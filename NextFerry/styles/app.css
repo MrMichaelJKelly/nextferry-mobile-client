@@ -1,0 +1,53 @@
+/* normalizing */
+html {
+	-ms-touch-action: none;
+    -webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+body {
+	overflow: hidden;
+}
+* {
+	margin: 0;
+	padding: 0;
+}
+li {
+	list-style-type: none;
+}
+/* structural and scrolling */
+#routes {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#timesport {
+	width: 80%;
+	float: right;
+	overflow: hidden;
+}
+#timeswrap {
+	width: 100%;
+}
+#times {
+	white-space: nowrap;
+	width: 1000pt;
+	background: #aaa;
+}
+#outerwrap {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	background: #ccc;
+}
+
+/* styling */
+#routes, #times {
+	font-size: 18pt;
+	line-height: 2em;
+}
