@@ -17,6 +17,12 @@ body {
 li {
 	list-style-type: none;
 }
+
+/* initial visibility state */
+#schedule-page, #options, .tab {
+    display: none;
+}
+
 /* structural and scrolling */
 #routes {
 	position: absolute;
@@ -38,10 +44,9 @@ li {
 }
 #outerwrap {
 	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100%;
 	width: 100%;
+    top: 20px;
+    bottom: 0px;
 	overflow: hidden;
 	background: #ccc;
 }

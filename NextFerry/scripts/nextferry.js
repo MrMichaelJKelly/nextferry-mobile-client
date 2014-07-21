@@ -78,7 +78,7 @@ var NextFerry = (function ($) {
 				hours -= 24;
 			if (hours > 12)
 				hours -= 12;
-			if (hours == 0)
+			if (hours === 0)
 				hours = 12;
 			cache12[t] = hours + ":" + (minutes < 10 ? "0" : "") + minutes;
 		}
@@ -125,7 +125,7 @@ var NextFerry = (function ($) {
 	Route.find = function( name ) {
 		for (var i in allRoutes) {
 			var r = allRoutes[i];
-			if ( r.displayName.west == name || r.displayName.east == name ) {
+			if ( r.displayName.west === name || r.displayName.east === name ) {
 				return r;
 			}
 		}
@@ -142,10 +142,10 @@ var NextFerry = (function ($) {
 		var tokens = line.split(",");
 		var rte = Route.find( tokens.shift() );
 		var key = tokens.shift();
-		var dir = ( key[0] == "w" ? "west" : "east" );
+		var dir = ( key[0] === "w" ? "west" : "east" );
 		var schedtype = "weekday";
-		if ( key[1] == "e" ) { schedtype = "weekend"; }
-		if ( key[1] == "s" ) { schedtype = "special"; }
+		if ( key[1] === "e" ) { schedtype = "weekend"; }
+		if ( key[1] === "s" ) { schedtype = "special"; }
 		rte.times[dir][schedtype] = tokens.map( function(v) { return parseInt(v); });
 	};
 
@@ -156,17 +156,23 @@ var NextFerry = (function ($) {
 	// times the ferry departs after now, today
 	Route.prototype.futureDepartures = function( dir, sched ) {
 		sched = sched || this.todaysSchedule();
+        var lst = this.times[dir][sched];
 		var t = NFDate.nowT();
-		return this.times[dir][sched].filter(function(e,i) { return (e > t); });
+		return (lst ? lst.filter(function(e,i) { return (e > t); }) : []);
 	};
 	Route.prototype.beforeNoon = function( dir, sched ) {
 		sched = sched || this.todaysSchedule();
-		return this.times[dir][sched].filter(function(e,i) { return (e < Noon); });
+        var lst = this.times[dir][sched];
+		return (lst ? lst.filter(function(e,i) { return (e < Noon); }) : []);
 	};
 	Route.prototype.afterNoon = function( dir, sched ) {
 		sched = sched || this.todaysSchedule();
-		return this.times[dir][sched].filter(function(e,i) { return (e >= Noon); });
+        var lst = this.times[dir][sched];
+		return (lst ? this.times[dir][sched].filter(function(e,i) { return (e >= Noon); }) : []);
 	};
+    Route.prototype.termName = function( dir) {
+        return NextFerry.allTerminals[this.terminals[dir]].name;
+    }
 
 	var allRoutes = [
 		new Route(1,     7,  3, "bainbridge","bainbridge"),
