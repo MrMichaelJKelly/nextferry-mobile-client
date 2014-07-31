@@ -4,14 +4,14 @@
         <meta charset="UTF-8" />
         <title>Next Ferry</title>
         <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-        <!-- <link href="styles/jquery.mobile-1.4.2.min.css" rel="stylesheet" /> -->
+        <link href="styles/cssslide.css" rel="stylesheet" />
         <link href="styles/app.css" rel="stylesheet" />
 
         <script src="cordova.js" type="text/javascript"></script>
         <script src="scripts/jquery.js" type="text/javascript"></script>
-        <!-- <script src="scripts/jquery.mobile-1.4.2.min.js" type="text/javascript"></script> -->
         <script src="scripts/jquery.tmpl.js" type="text/javascript"></script>
         <script src="scripts/iscroll.js" type="text/javascript"></script>
+        <script src="scripts/cssslide.js" type="text/javascript"></script>
         <script src="scripts/nextferry.js" type="text/javascript"></script>
         <script src="scripts/app.js" type="text/javascript"></script>
     </head>
@@ -41,37 +41,75 @@
             <div id="schedule-tab" class="tab">
                 <ul id="schedule-list">
                     <li>
-                        <span class="deco">departing</span> <span class="name" id="wname1">CONTENT</span> <span class="deco2">weekdays</span>
-                        <table id="westdaystable">
-                            <thead>
-                                <tr>
-                                    <td class="amhead">AM</td>
-                                    <td class="pmhead">PM</td>
-                                </tr>
-                            </thead>
-                            <tbody id="westdaysbody">
-                                <tr>
-                                    <td class="amtimes" id="wdam"></td>
-                                    <td class="pmtimes" id="wdpm"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <span class="deco">from</span> <span class="name" id="wname1">CONTENT</span> <span class="deco2">weekdays</span>
+                        <div class="slide slide-hidden">
+                            <table class="timetable" id="westdaystable">
+                                <thead>
+                                    <tr>
+                                        <td class="amhead">AM</td>
+                                        <td class="pmhead">PM</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="westdaysbody">
+                                    <tr>
+                                        <td class="amtimes" id="wdam"></td>
+                                        <td class="pmtimes" id="wdpm"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </li>
-                     <li>
-                        <span class="deco">departing</span> <span class="name" id="wname2">CONTENT</span> <span class="deco2">weekends</span>
-                         <table id="westendstable">
-                            <thead>
-                                <tr>
-                                    <td class="amhead">AM</td>
-                                    <td class="pmhead">PM</td>
-                                </tr>
-                            </thead>
-                            <tbody id="westendsbody">
-                                <td class="amtimes" id="weam"></td>
-                                <td class="pmtimes" id="wepm"></td>
-                            </tbody>
-                        </table>                       
-                    </li>                   
+                    <li>
+                        <span class="deco">from</span> <span class="name" id="wname2">CONTENT</span> <span class="deco2">weekends</span>
+                        <div class="slide slide-hidden">
+                            <table class="timetable" id="westendstable">
+                                <thead>
+                                    <tr>
+                                        <td class="amhead">AM</td>
+                                        <td class="pmhead">PM</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="westendsbody">
+                                    <td class="amtimes" id="weam"></td>
+                                    <td class="pmtimes" id="wepm"></td>
+                                </tbody>
+                            </table>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="deco">from</span> <span class="name" id="ename1">CONTENT</span> <span class="deco2">weekdays</span>
+                        <div class="slide slide-hidden">
+                            <table class="timetable" id="eastdaysstable">
+                                <thead>
+                                    <tr>
+                                        <td class="amhead">AM</td>
+                                        <td class="pmhead">PM</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="eastdaysbody">
+                                    <td class="amtimes" id="edam"></td>
+                                    <td class="pmtimes" id="edpm"></td>
+                                </tbody>
+                            </table>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="deco">from</span> <span class="name" id="ename2">CONTENT</span> <span class="deco2">weekends</span>
+                        <div class="slide">
+                            <table class="timetable" id="eastendstable">
+                                <thead>
+                                    <tr>
+                                        <td class="amhead">AM</td>
+                                        <td class="pmhead">PM</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="eastendsbody">
+                                    <td class="amtimes" id="eeam"></td>
+                                    <td class="pmtimes" id="eepm"></td>
+                                </tbody>
+                            </table>
+                        </div>
+                    </li>
                 </ul>
             </div>
             <div id="alerts-tab" class="tab">
@@ -79,9 +117,9 @@
             <div id="more-tab" class="tab">
             </div>
         </div>
-        
+
         <div id="options" class="page">
-            
+
         </div>
         <script type="text/javascript">
             $(document).one('ready', app.init);

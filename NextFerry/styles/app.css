@@ -18,12 +18,21 @@ li {
 	list-style-type: none;
 }
 
-/* initial visibility state */
+/* general page & tab structure */
 #schedule-page, #options, .tab {
     display: none;
 }
+.page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
 
-/* structural and scrolling */
+
+/* main page structural and scrolling */
 #routes {
 	position: absolute;
 	top: 0;
@@ -33,6 +42,7 @@ li {
 	width: 80%;
 	float: right;
 	overflow: hidden;
+    margin-top: 1.2em;
 }
 #timeswrap {
 	width: 100%;
@@ -40,7 +50,6 @@ li {
 #times {
 	white-space: nowrap;
 	width: 1000pt;
-	background: #aaa;
 }
 #outerwrap {
 	position: absolute;
@@ -48,11 +57,51 @@ li {
     top: 20px;
     bottom: 0px;
 	overflow: hidden;
-	background: #ccc;
+}
+
+/* schedule page structural and scrolling */
+
+#schedule-list {
+    position: relative;
+    margin-top: 10px;
+    overflow: scroll;
 }
 
 /* styling */
 #routes, #times {
 	font-size: 18pt;
-	line-height: 2em;
+	line-height: 2.2em;
+}
+
+#schedule-page {
+    background: #ccc;
+    font-size: 16pt;
+}
+#schedule-list {
+    margin-left: 0.75em;
+}
+#schedule-list>li {
+    margin-bottom: 0.2em;
+}
+.timetable {
+    margin: auto;
+    margin-bottom: 0.5em;
+}
+.deco, .deco2 {
+    font-style: italic;
+    font-size: 15pt;
+}
+.name {
+    font-variant: small-caps;
+    font-weight: bold;
+}
+.amhead, .pmhead {
+    text-align: center;
+    padding-right: 2em;
+}
+.amtimes, .pmtimes {
+    font-family: monospace;
+    text-align: right;
+    vertical-align: top;
+    padding-right: 2em;
 }

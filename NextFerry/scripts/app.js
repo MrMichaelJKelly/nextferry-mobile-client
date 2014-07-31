@@ -12,17 +12,26 @@ var app = (function ($, NextFerry) {
         }
         ServerIO.requestUpdate();
 
-        mainScroll = new IScroll("#outerwrap");
+        mainScroll = new IScroll("#outerwrap", { tap: true });
         timeScroll = new IScroll("#timeswrap", {
                                      scrollX: true,
                                      scrollY: false
                                  });
-       
-        renderSchedule("bainbridge");
-        $("#main-page").hide();
-        $("#schedule-page").show();
-        $("#schedule-tab").show();
-        //updateMainScrollers();
+        updateMainScrollers();
+        
+        $("#routes>li").on("tap",function() { // tap because that's what IScroll sends
+            renderSchedule( $(this).text() );
+            //$("main-page").hide();
+            $("#schedule-page").show();
+            $("#schedule-tab").show();
+            return false;
+        });
+        $("#schedule-list>li").on("click", function() {
+			$(this).children(".slide").slideToggleTransition();
+            return false;
+        });
+        
+        dir="west";
     };
     
     var updateMainScrollers = function() {
@@ -46,6 +55,7 @@ var app = (function ($, NextFerry) {
     var renderRoutes = function() {
         $("#routes").empty();
         $.tmpl(routeTmpl[dir], NextFerry.allRoutes).appendTo("#routes");
+        
     }
     var renderTimes = function() {
         $("#times").empty();
@@ -67,12 +77,21 @@ var app = (function ($, NextFerry) {
     var renderSchedule = function(name) {
         // build the schedule page for this schedule
         var r = NextFerry.Route.find(name);
-        $("#wname1").text(r.termName("west"));
-        $("#wname2").text(r.termName("west"));
+        
+        $("#wname1").text(r.termName("east"));
+        $("#wname2").text(r.termName("east"));
+        $("#ename1").text(r.termName("west"));
+        $("#ename2").text(r.termName("west"));
+        
 		$("#wdam").html( renderTimeList( r.beforeNoon( "west", "weekday" )));
         $("#wdpm").html( renderTimeList( r.afterNoon( "west", "weekday" )));
         $("#weam").html( renderTimeList( r.beforeNoon( "west", "weekend" )));
         $("#wepm").html( renderTimeList( r.afterNoon( "west", "weekend" )));
+        
+        $("#edam").html( renderTimeList( r.beforeNoon( "east", "weekday" )));
+        $("#edpm").html( renderTimeList( r.afterNoon( "east", "weekday" )));
+        $("#eeam").html( renderTimeList( r.beforeNoon( "east", "weekend" )));
+        $("#eepm").html( renderTimeList( r.afterNoon( "east", "weekend" )));
     };
 
     var ServerIO = (function() {
