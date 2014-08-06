@@ -2,6 +2,8 @@ var app = (function ($, NextFerry) {
     var dir = "west";
     var mainScroll;
     var timeScroll;
+    var tabScroll;
+    var schedScroll;
 
     var init = function() {
         renderRoutes();
@@ -17,17 +19,21 @@ var app = (function ($, NextFerry) {
                                      scrollX: true,
                                      scrollY: false
                                  });
+        //tabScroll = new IScroll("", {});
+        schedScroll = new IScroll("#schedule-tab", { tap: true });
         updateMainScrollers();
         
         $("#routes>li").on("tap",function() { // tap because that's what IScroll sends
             renderSchedule( $(this).text() );
-            //$("main-page").hide();
             $("#schedule-page").show();
-            $("#schedule-tab").show();
             return false;
         });
-        $("#schedule-list>li").on("click", function() {
+        $("#schedule-nav>li").on("click",function() {
+            return false;
+        });
+        $("#schedule-list>li").on("tap", function() {
 			$(this).children(".slide").slideToggleTransition();
+            updateSchedScroller();
             return false;
         });
         
@@ -40,6 +46,18 @@ var app = (function ($, NextFerry) {
             mainScroll && mainScroll.refresh();
         }, 10);  
     };
+    
+    var updateSchedScroller = function() {
+        // set the height of the scroll _container_ to the available height.
+        // seems like there should be a way to avoid doing this, but I don't know what it is.
+        // TODO: needs to be re-set on orientation change (and doesn't need to be reset otherwise).
+        //var foo = $("#schedule-page").height();
+        //var bar = $("#schedule-nav").height();
+        //$("#schedule-tab").height( foo - bar - 1 );
+        setTimeout(function () {
+            schedScroll && schedScroll.refresh();
+        }, 10);
+    }
     
     /* Main Page Layout */
 
@@ -92,6 +110,8 @@ var app = (function ($, NextFerry) {
         $("#edpm").html( renderTimeList( r.afterNoon( "east", "weekday" )));
         $("#eeam").html( renderTimeList( r.beforeNoon( "east", "weekend" )));
         $("#eepm").html( renderTimeList( r.afterNoon( "east", "weekend" )));
+        
+        updateSchedScroller();
     };
 
     var ServerIO = (function() {

@@ -9,6 +9,7 @@ html {
 }
 body {
 	overflow: hidden;
+    font-family: Open Sans;
 }
 * {
 	margin: 0;
@@ -18,10 +19,8 @@ li {
 	list-style-type: none;
 }
 
+
 /* general page & tab structure */
-#schedule-page, #options, .tab {
-    display: none;
-}
 .page {
     position: absolute;
     top: 0;
@@ -30,9 +29,23 @@ li {
     bottom: 0;
     overflow: hidden;
 }
+#schedule-page, #options { /* init visibility */
+    display: none;
+}
+
+/* some basic structures */
+.hnav {
+    overflow: hidden;
+}
+.hnav>li {
+    float: left;
+}
+.scrollwrapper {
+    overflow: hidden;
+}
 
 
-/* main page structural and scrolling */
+/* main page */
 #routes {
 	position: absolute;
 	top: 0;
@@ -56,43 +69,52 @@ li {
 	width: 100%;
     top: 20px;
     bottom: 0px;
-	overflow: hidden;
 }
 
-/* schedule page structural and scrolling */
 
-#schedule-list {
-    position: relative;
-    margin-top: 10px;
-    overflow: scroll;
-}
-
-/* styling */
 #routes, #times {
 	font-size: 18pt;
 	line-height: 2.2em;
 }
 
+
+/* schedule page panorama structure */
 #schedule-page {
-    background: #ccc;
+    background-image: url("images/clouds.jpg");
     font-size: 16pt;
 }
+#schedule-tab-container {
+    width: 5000pt;
+    overflow: hidden;
+}
+.schedule-tab {
+    position: relative;
+    float: left;
+    min-width: 20pt;
+    max-width: 250pt;
+}
+
+
+/* schedule styling */
+#schedule-nav>li {
+    font-size: 18pt;
+    padding: 15pt 10pt 10pt;
+}
 #schedule-list {
-    margin-left: 0.75em;
+    padding-left: 10pt;
 }
 #schedule-list>li {
-    margin-bottom: 0.2em;
+    margin-bottom: 2pt;
 }
 .timetable {
     margin: auto;
-    margin-bottom: 0.5em;
+    margin-bottom: 5pt;
 }
 .deco, .deco2 {
     font-style: italic;
     font-size: 15pt;
 }
 .name {
-    font-variant: small-caps;
     font-weight: bold;
 }
 .amhead, .pmhead {
