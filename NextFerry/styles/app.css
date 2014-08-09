@@ -84,14 +84,27 @@ li {
     font-size: 16pt;
 }
 #schedule-tab-container {
-    width: 5000pt;
+    position: absolute;
+    top: 55pt;
+    bottom: 0;
+    width: 870pt;
     overflow: hidden;
 }
 .schedule-tab {
-    position: relative;
-    float: left;
-    min-width: 20pt;
-    max-width: 250pt;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 320pt;
+    overflow: hidden;
+}
+#schedule-tab {
+    left: 0;
+}
+#alerts-tab {
+    left: 325pt;
+}
+#more-tab {
+    left: 650pt;
 }
 
 

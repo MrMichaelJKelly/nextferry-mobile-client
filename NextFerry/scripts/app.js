@@ -48,15 +48,9 @@ var app = (function ($, NextFerry) {
     };
     
     var updateSchedScroller = function() {
-        // set the height of the scroll _container_ to the available height.
-        // seems like there should be a way to avoid doing this, but I don't know what it is.
-        // TODO: needs to be re-set on orientation change (and doesn't need to be reset otherwise).
-        //var foo = $("#schedule-page").height();
-        //var bar = $("#schedule-nav").height();
-        //$("#schedule-tab").height( foo - bar - 1 );
         setTimeout(function () {
             schedScroll && schedScroll.refresh();
-        }, 10);
+        }, 700);
     }
     
     /* Main Page Layout */
