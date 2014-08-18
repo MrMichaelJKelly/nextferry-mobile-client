@@ -1,16 +1,28 @@
 var app = (function ($, NextFerry) {
     var dir = "west";
+    var testrun = true;
     var mainScroll;
     var timeScroll;
     var tabScroll;
     var schedScroll;
 
     var init = function() {
+        if ( testrun ) {
+            // for now just go to test page; later, make it a tab?
+            $("#test-page").show();
+            $("#main-page").hide();
+            nextFerryTests();
+        }
+        else {
+
         renderRoutes();
         ServerIO.loadSchedule.listeners.add(renderTimes);
 
         if (window.localStorage["cache"]) {
             ServerIO.loadSchedule(window.localStorage["cache"]);
+        }
+        if (window.localStorage["readalerts"]) {
+            readalerts = window.localStorage["readalerts"];
         }
         ServerIO.requestUpdate();
 
@@ -36,7 +48,7 @@ var app = (function ($, NextFerry) {
             updateSchedScroller();
             return false;
         });
-        
+        }
         dir="west";
     };
     
@@ -66,12 +78,12 @@ var app = (function ($, NextFerry) {
 
     var renderRoutes = function() {
         $("#routes").empty();
-        $.tmpl(routeTmpl[dir], NextFerry.allRoutes).appendTo("#routes");
+        $.tmpl(routeTmpl[dir], NextFerry.Route.allRoutes()).appendTo("#routes");
         
     }
     var renderTimes = function() {
         $("#times").empty();
-        $.tmpl(timeTmpl[dir], NextFerry.allRoutes).appendTo("#times");
+        $.tmpl(timeTmpl[dir], NextFerry.Route.allRoutes()).appendTo("#times");
         updateMainScrollers();
     }
     
@@ -125,6 +137,7 @@ var app = (function ($, NextFerry) {
         loadSchedule.listeners = $.Callbacks();
 
         var loadAlerts = function(text) {
+			NextFerry.Alert.loadAlerts( text );
             loadAlerts.listeners.fire();
         };
         loadAlerts.listeners = $.Callbacks();
@@ -154,7 +167,7 @@ var app = (function ($, NextFerry) {
                     // TODO
                 }
                 else if (header === "allalerts") {
-                    // TODO
+                    loadAlerts(body);
                 }
                 else {
                     // IGNORE.
@@ -165,11 +178,11 @@ var app = (function ($, NextFerry) {
         var requestUpdate = function() {
             // returns the chainable request object
             return $.ajax({
-                              url : initURL + "/" + appVersion + "/" + (window.localStorage["cachedate"] || ""),
-                              dataType: "text",
-                              success: processReply
-                              // we just ignore failures
-                          });
+                  url : initURL + "/" + appVersion + "/" + (window.localStorage["cachedate"] || ""),
+                  dataType: "text",
+                  success: processReply
+                  // we just ignore failures
+              });
         };
 
         var requestTravelTimes = function(loc) {

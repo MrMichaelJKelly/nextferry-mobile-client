@@ -29,7 +29,7 @@ li {
     bottom: 0;
     overflow: hidden;
 }
-#schedule-page, #options { /* init visibility */
+#schedule-page, #options, #test-page { /* init visibility */
     display: none;
 }
 
