@@ -17,13 +17,10 @@ var app = (function ($, NextFerry) {
 
         renderRoutes();
         ServerIO.loadSchedule.listeners.add(renderTimes);
-
         if (window.localStorage["cache"]) {
             ServerIO.loadSchedule(window.localStorage["cache"]);
         }
-        if (window.localStorage["readalerts"]) {
-            readalerts = window.localStorage["readalerts"];
-        }
+		NextFerry.Alert.init();		
         ServerIO.requestUpdate();
 
         mainScroll = new IScroll("#outerwrap", { tap: true });

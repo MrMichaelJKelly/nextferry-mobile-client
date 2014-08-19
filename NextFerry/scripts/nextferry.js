@@ -276,17 +276,33 @@ var NextFerry = (function ($) {
         this.body = body;
         this.unread = true;
     }
+    Alert.init = function() {
+        _alertlist = [];
+        _readlist = [];
+        if (window.localStorage["readlist"]) {
+            _readlist = window.localStorage["readlist"];
+        }
+    }
+    Alert.allAlerts = function() {
+        return _alertlist;
+    }
     Alert.alertsFor = function(r) {
-        var result = [];
+        var results = [];
+        if ( typeof r === "string" ) {
+            r = Route.find(r);
+        }
         for (var i in _alertlist) {
             var a = _alertlist[i];
             if (a.codes & r.code) {
-                result.push(a);
+                results.push(a);
             }
         }
         return results;     
     };
     Alert.hasAlerts = function (r,unreadonly) {
+        if ( typeof r === "string" ) {
+            r = Route.find(r);
+        }
         for (var i in _alertlist) {
             var a = _alertlist[i];
             if ((a.codes & r.code) && (a.unread || !unreadonly)) {
@@ -297,17 +313,18 @@ var NextFerry = (function ($) {
     };
     Alert.loadAlerts = function(text) {
         _alertlist = [];
-        var alertblocks = text.split("\n__");
+        var alertblocks = text.split(/^__/m);
         var i;
         for (i in alertblocks) {
-            if (alertblocks[i] !== "") {
-                var ary;
-                var body, id, codes;
-                ary = alertblocks[i].split("\n", 1);
-                body = ary[1];
-                ary = ary[0].split(" ");
-                id = ary[0];
-                codes = ary[1];
+            if (alertblocks[i].length > 2) { // skip extraneous newlines
+                var k = alertblocks[i].indexOf("\n");
+                var header = alertblocks[i].substr(0,k);  // substr and substring?
+                var body = alertblocks[i].substring(k+1); // js at its finest! (not!)
+                var ary, id, codes;
+                
+                ary = header.split(" ");
+                id = ary[1];
+                codes = ary[2];
                 _alertlist.push(new Alert(id, codes, body)); 
             }
         }

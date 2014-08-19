@@ -25,14 +25,15 @@ function nextFerryTests() {
 		"fauntleroy-southworth,we,315,365,415,455,515,555,585,610,645,670,705,740,820,860,900,960,1000,1100,1140,1180,1230,1340,1420,1495,1570\n" +
 		"southworth-fauntleroy,ed,265,300,360,400,475,500,560,590,610,670,695,750,790,870,895,950,965,1025,1070,1110,1160,1230,1385,1465,1540\n" +
 		"southworth-fauntleroy,ee,265,365,410,460,500,560,600,620,655,690,720,750,790,865,910,950,1010,1050,1150,1185,1230,1275,1385,1465,1540\n";
-	var standardinitmessage =
-		"#schedule 2014.07.06\n" +
-		schedulefragment +
-		"#done";
-	var standarddonemessage =
-		"#done";
-	var specialmessage = "";
-
+    	// translated into human-readable times, this is what the schedule is:
+        //pt townsend,wd, 2:00pm, 2:45pm, 3:30pm, 4:15pm, 6:00pm, 7:30pm, 9:10pm
+        //pt townsend,we, 7:15am, 8:45am,11:45am,12:30am, 1:15pm, 2:00pm, 2:45pm, 3:30pm, 4:15pm, 5:00pm, 6:00pm, 7:30pm, 9:10pm
+        //pt townsend,ed, 6:30am, 8:00am, 8:45am, 9:30am,12:30pm, 1:15pm
+        //pt townsend,ee, 6:30am, 8:00am,11:00am,11:45am,12:30pm, 1:15pm, 4:15pm, 5:15pm, 6:45pm, 8:30pm
+        //fauntleroy-southworth,wd, 4:25am, 5:15am, 5:50am, 7:05am, 7:45am, 8:45am, 9:05am, 9:25am,10:20am,11:00am,11:40am,12:20pm, 1:40pm, 2:20pm, 3:05pm, 3:35pm, 4:20pm, 5:00pm, 5:40pm, 6:30pm, 7:35pm, 8:55pm,10:20pm,11:40pm,12:55am, 2:10am
+        //fauntleroy-southworth,we, 5:15am, 6:05am, 6:55am, 7:35am, 8:35am, 9:15am, 9:45am,10:10am,10:45am,11:10am,11:45am,12:20pm, 1:40pm, 2:20pm, 3:00pm, 4:00pm, 4:40pm, 6:20pm, 7:00pm, 7:40pm, 8:30pm,10:20pm,11:40pm,12:55pm, 2:10am
+        //southworth-fauntleroy,ed, 4:25am, 5:00am, 6:00am, 6:40am, 7:55am, 8:20am, 9:20am, 9:50am,10:10am,11:10am,11:35am,12:30pm, 1:10pm, 2:30pm, 2:55pm, 3:50pm, 4:05pm, 5:05pm, 5:50pm, 6:30pm, 7:20pm, 8:30pm,11:05pm,12:25pm, 1:40am
+        //southworth-fauntleroy,ee, 4:25am, 6:05am, 6:50am, 7:40am, 8:20am, 9:20am,10:00am,10:20am,10:55am,11:30am,12:00am,12:30pm, 1:10pm, 2:25pm, 3:10pm, 3:50pm, 4:50pm, 5:30pm, 7:10pm, 7:45pm, 8:30pm, 9:15pm,11:05pm,12:25pm, 1:40am
 
 	function loadsched() {
 		// See the "readable" version in the comment at the bottom of the file
@@ -162,13 +163,69 @@ function nextFerryTests() {
 		NextFerry.timeString = saveformat;
 	});
 
+    
+    // Alerts
+    
+    var alert1 = "__ 00:45:53.308110 224\n" +
+				 "This is an alert for the Vashon ferries.  Some message here.\n" +
+				 "__\n";
+    var alert3 = "__ 00:45:53.308110 224\n" +
+				 "This is an alert for the Vashon ferries.  Some message here.\n" +
+    			 "__ 01:45:53.000000 224\n" +
+    			 "Another alert for the Vashon ferries.\n" +
+    			 "__ 02:45:53.000000 4\n" +
+    			 "And this is an alert for Edmonds\n"
+				 "__";
+    
+    QUnit.test("Loading an Alert", function(assert) {
+        window.localStorage["readlist"] = "";
+        NextFerry.Alert.init();
+        expect(5);
+        
+        NextFerry.Alert.loadAlerts(alert1);
+        var alerts = NextFerry.Alert.allAlerts();
+        assert.equal( alerts.length, 1, "We can load a single alert" );
+        var a = alerts[0];
+        assert.equal( a.id, "00:45:53.308110", "With id..." );
+        assert.equal( a.codes, 224, "Codes..." );
+        assert.equal( a.unread, true, "Read status...");
+        assert.equal( a.body, "This is an alert for the Vashon ferries.  Some message here.\n", "and body.");
+    });
+    
+    QUnit.test("Working with Alerts", function(assert) {
+        window.localStorage["readlist"] = "";
+        NextFerry.Alert.init();
+        expect(10);
+        
+        NextFerry.Alert.loadAlerts(alert3);
+        assert.equal( NextFerry.Alert.allAlerts().length, 3, "Loading multiple alerts" );
+        
+        var r = NextFerry.Route.find("fauntleroy-vashon");
+        assert.equal( NextFerry.Alert.hasAlerts(r), true, "checking when alerts present" );
+        assert.equal( NextFerry.Alert.hasAlerts(r,true), true, "...okay for unread alerts" );
+        var alerts = NextFerry.Alert.alertsFor(r);
+        assert.equal( alerts.length, 2, "Retrieval works" );
+        assert.equal( NextFerry.Alert.alertsFor("vashon-southworth").length, 2, "via another route");
+		assert.equal( NextFerry.Alert.alertsFor("bremerton").length, 0, "empty lookup works");
+        assert.equal( NextFerry.Alert.hasAlerts("bremerton"), false, "either way you do it" );
+        assert.equal( NextFerry.Alert.hasAlerts("edmonds"), true, "edmonds alert" );
+        alerts = NextFerry.Alert.alertsFor("edmonds");
+        assert.equal( alerts.length, 1, "we can retrieve it" );
+        assert.equal( alerts[0].body, "And this is an alert for Edmonds\n", "and it has the right body" );
+    });
+    
+    
+    // Asynch tests go last.  Be *really* careful about global state!
+    
 	QUnit.asyncTest( "First Contact", function( assert ) {
 		//setup
 		NextFerry.Route.clearAllTimes();
+        window.localStorage["cachedate"] = "";
 		expect(3);
 
 		//test
 		app.ServerIO.requestUpdate().always( function(obj,stat,data) {
+            console.log(".always comes through");
 			assert.equal( stat, "success", "call succeeded");
 			var pttownsend = NextFerry.Route.find("pt townsend");
 			assert.ok( pttownsend.times.west.weekday, "retrieved a weekday schedule")
@@ -181,11 +238,4 @@ function nextFerryTests() {
 	});
 }
 
-//pt townsend,wd, 2:00pm, 2:45pm, 3:30pm, 4:15pm, 6:00pm, 7:30pm, 9:10pm
-//pt townsend,we, 7:15am, 8:45am,11:45am,12:30am, 1:15pm, 2:00pm, 2:45pm, 3:30pm, 4:15pm, 5:00pm, 6:00pm, 7:30pm, 9:10pm
-//pt townsend,ed, 6:30am, 8:00am, 8:45am, 9:30am,12:30pm, 1:15pm
-//pt townsend,ee, 6:30am, 8:00am,11:00am,11:45am,12:30pm, 1:15pm, 4:15pm, 5:15pm, 6:45pm, 8:30pm
-//fauntleroy-southworth,wd, 4:25am, 5:15am, 5:50am, 7:05am, 7:45am, 8:45am, 9:05am, 9:25am,10:20am,11:00am,11:40am,12:20pm, 1:40pm, 2:20pm, 3:05pm, 3:35pm, 4:20pm, 5:00pm, 5:40pm, 6:30pm, 7:35pm, 8:55pm,10:20pm,11:40pm,12:55am, 2:10am
-//fauntleroy-southworth,we, 5:15am, 6:05am, 6:55am, 7:35am, 8:35am, 9:15am, 9:45am,10:10am,10:45am,11:10am,11:45am,12:20pm, 1:40pm, 2:20pm, 3:00pm, 4:00pm, 4:40pm, 6:20pm, 7:00pm, 7:40pm, 8:30pm,10:20pm,11:40pm,12:55pm, 2:10am
-//southworth-fauntleroy,ed, 4:25am, 5:00am, 6:00am, 6:40am, 7:55am, 8:20am, 9:20am, 9:50am,10:10am,11:10am,11:35am,12:30pm, 1:10pm, 2:30pm, 2:55pm, 3:50pm, 4:05pm, 5:05pm, 5:50pm, 6:30pm, 7:20pm, 8:30pm,11:05pm,12:25pm, 1:40am
-//southworth-fauntleroy,ee, 4:25am, 6:05am, 6:50am, 7:40am, 8:20am, 9:20am,10:00am,10:20am,10:55am,11:30am,12:00am,12:30pm, 1:10pm, 2:25pm, 3:10pm, 3:50pm, 4:50pm, 5:30pm, 7:10pm, 7:45pm, 8:30pm, 9:15pm,11:05pm,12:25pm, 1:40am
+
