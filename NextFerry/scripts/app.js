@@ -1,68 +1,77 @@
 var app = (function ($, NextFerry) {
     var dir = "west";
-    var testrun = true;
+    var testrun = false;
+    
     var mainScroll;
     var timeScroll;
-    var tabScroll;
+	var tabsScroll;
     var schedScroll;
+    var alertScroll;
 
+    //======= Initialization and event wiring
+    
     var init = function() {
-        if ( testrun ) {
+        if (testrun) {
             // for now just go to test page; later, make it a tab?
             $("#test-page").show();
             $("#main-page").hide();
             nextFerryTests();
         }
         else {
+            // show the main page first, then init everything else.
 
-        renderRoutes();
-        ServerIO.loadSchedule.listeners.add(renderTimes);
-        if (window.localStorage["cache"]) {
-            ServerIO.loadSchedule(window.localStorage["cache"]);
-        }
-		NextFerry.Alert.init();		
-        ServerIO.requestUpdate();
+            $("#title").lettering();
+            showMainPage();
+            ServerIO.loadSchedule.listeners.add(renderTimes);
+            if (window.localStorage["cache"]) {
+                ServerIO.loadSchedule(window.localStorage["cache"]);
+            }
+            NextFerry.Alert.init();		
+            ServerIO.requestUpdate();
 
-        mainScroll = new IScroll("#outerwrap", { tap: true });
-        timeScroll = new IScroll("#timeswrap", {
-                                     scrollX: true,
-                                     scrollY: false
-                                 });
-        //tabScroll = new IScroll("", {});
-        schedScroll = new IScroll("#schedule-tab", { tap: true });
-        updateMainScrollers();
+            mainScroll = new IScroll("#outerwrap", { tap: true });
+            timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
+            updateScroller(mainScroll);
+            updateScroller(timeScroll);
+
+
+            schedScroll = new IScroll("#schedule-tab", { tap: true });
+            alertScroll = new IScroll("#alerts-tab");
+            
+            /*
+            tabsScroll = new IScroll("#schedule-tab-container", { 
+                scrollX: true, 
+                scrollY: false, 
+                momentum: false,
+                bounce: false,
+                eventPassthrough: "horizontal"
+            });
+            */
         
-        $("#routes>li").on("tap",function() { // tap because that's what IScroll sends
-            renderSchedule( $(this).text() );
-            $("#schedule-page").show();
-            return false;
-        });
-        $("#schedule-nav>li").on("click",function() {
-            return false;
-        });
-        $("#schedule-list>li").on("tap", function() {
-			$(this).children(".slide").slideToggleTransition();
-            updateSchedScroller();
-            return false;
-        });
+            $("#routes>li").on("tap", showSchedulePage);   // tap because that's what Iscroll sends
+            $("#sn-back").on("click", backPage);
+			//$("#schedule-page").on("", navigateTabs);
+            $("#schedule-list>li").on("tap", toggleSchedulePart);
         }
-        dir="west";
+        dir = "west";
     };
     
-    var updateMainScrollers = function() {
-        setTimeout(function () {
-            timeScroll && timeScroll.refresh();
-            mainScroll && mainScroll.refresh();
-        }, 10);  
+    var updateScroller = function(scr,delay) {
+        delay = delay || 10;
+        setTimeout(function() {
+            scr && scr.refresh();
+        }, delay);
     };
     
-    var updateSchedScroller = function() {
-        setTimeout(function () {
-            schedScroll && schedScroll.refresh();
-        }, 700);
-    }
     
-    /* Main Page Layout */
+    //======= Main Page Rendering and events
+    
+    var showMainPage = function() {
+        renderRoutes();
+        renderTimes();
+		goPage($("#main-page"));
+        return false;
+    };
 
     var routeTmpl = {
         west : "<li>{%= displayName.west %}</li>",
@@ -71,51 +80,120 @@ var app = (function ($, NextFerry) {
     var timeTmpl = {
         west : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('west') %}{%= NextFerry.timeString(v) %} {%/each%}</li>",
         east : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('east') %}{%= NextFerry.timeString(v) %} {%/each%}</li>"
-    }
+    };
 
     var renderRoutes = function() {
         $("#routes").empty();
         $.tmpl(routeTmpl[dir], NextFerry.Route.allRoutes()).appendTo("#routes");
-        
-    }
+    };
     var renderTimes = function() {
         $("#times").empty();
         $.tmpl(timeTmpl[dir], NextFerry.Route.allRoutes()).appendTo("#times");
-        updateMainScrollers();
-    }
+        updateScroller(mainScroll);
+        updateScroller(timeScroll);
+    };
     
-    /* Schedule Page Layout */
-    
-    var renderTimeList = function( lst ) {
+    var renderTimeList = function(lst) {
         var result = "";
-        for( var i in lst ) {
-            if ( i>0 ) { result += "<br/>"; }
-            result += NextFerry.timeString( lst[i] );
+        for (var i in lst) {
+            if (i > 0) {
+                result += "<br/>";
+            }
+            result += NextFerry.timeString(lst[i]);
         }
         return result;
+    };
+    
+    //======= Schedule Page Rendering and events
+    
+    var showSchedulePage = function() {
+        renderSchedule($(this).text());
+        renderAlerts($(this).text());
+		goPage($("#schedule-page"));
+        return false;
     };
     
     var renderSchedule = function(name) {
         // build the schedule page for this schedule
         var r = NextFerry.Route.find(name);
+        $("#schedule-list .slide").hide();
         
         $("#wname1").text(r.termName("east"));
         $("#wname2").text(r.termName("east"));
         $("#ename1").text(r.termName("west"));
         $("#ename2").text(r.termName("west"));
         
-		$("#wdam").html( renderTimeList( r.beforeNoon( "west", "weekday" )));
-        $("#wdpm").html( renderTimeList( r.afterNoon( "west", "weekday" )));
-        $("#weam").html( renderTimeList( r.beforeNoon( "west", "weekend" )));
-        $("#wepm").html( renderTimeList( r.afterNoon( "west", "weekend" )));
+        $("#wdam").html(renderTimeList(r.beforeNoon("west", "weekday")));
+        $("#wdpm").html(renderTimeList(r.afterNoon("west", "weekday")));
+        $("#weam").html(renderTimeList(r.beforeNoon("west", "weekend")));
+        $("#wepm").html(renderTimeList(r.afterNoon("west", "weekend")));
         
-        $("#edam").html( renderTimeList( r.beforeNoon( "east", "weekday" )));
-        $("#edpm").html( renderTimeList( r.afterNoon( "east", "weekday" )));
-        $("#eeam").html( renderTimeList( r.beforeNoon( "east", "weekend" )));
-        $("#eepm").html( renderTimeList( r.afterNoon( "east", "weekend" )));
+        $("#edam").html(renderTimeList(r.beforeNoon("east", "weekday")));
+        $("#edpm").html(renderTimeList(r.afterNoon("east", "weekday")));
+        $("#eeam").html(renderTimeList(r.beforeNoon("east", "weekend")));
+        $("#eepm").html(renderTimeList(r.afterNoon("east", "weekend")));
         
-        updateSchedScroller();
+        updateScroller(schedScroll,700);
     };
+    
+    var toggleSchedulePart = function() {
+        $(this).children(".slide").slideToggle();
+        updateScroller(schedScroll,700);
+        return false;
+    };
+    
+    var alertTmpl = "<li>{%= body %}</li>";
+    
+    var renderAlerts = function(name) {
+    	// build the alerts page if there are any, otherwise hide the alerts page.
+        var alist = NextFerry.Alert.alertsFor(name);
+        if (alist.length) {
+            $("#alerts-list").empty();
+			$.tmpl(alertTmpl, alist).appendTo("#alerts-list");
+            $("#sn-alerts").show();
+            $("#alerts-tab").show();
+            updateScroller(alertScroll);
+            updateScroller(tabsScroll);
+        }
+        else {
+            $("#alerts-tab").hide();
+            $("#sn-alerts").hide();
+        }
+    };
+    
+
+    
+    //======= Page Transitions
+    
+    var currentPage;
+    var prevPage;
+    
+    var goPage = function(p) {
+        p.show();
+        currentPage && currentPage.hide();
+    	prevPage = currentPage;
+        currentPage = p;
+        return false;
+    };
+    
+    var backPage = function() {
+        // kinda hand-wavy; the app never goes more than two levels deep.
+        if ( prevPage && prevPage !== $("#main-page")) {
+            prevPage.show();
+            currentPage && currentPage.hide();
+            currentPage = prevPage;
+        }
+        else if ( currentPage === $("#main-page") ) {
+            // todo: when we wire the android back button in, we'll have to handle this case.
+        }
+        else {
+            goPage($("#main-page"));
+        }
+        prevPage = false;
+        return false;
+    }
+    
+    //======= Retreiving Information from the Server
 
     var ServerIO = (function() {
         var initURL = "http://nextferry.appspot.com/init";
@@ -134,7 +212,7 @@ var app = (function ($, NextFerry) {
         loadSchedule.listeners = $.Callbacks();
 
         var loadAlerts = function(text) {
-			NextFerry.Alert.loadAlerts( text );
+            NextFerry.Alert.loadAlerts(text);
             loadAlerts.listeners.fire();
         };
         loadAlerts.listeners = $.Callbacks();
@@ -175,11 +253,11 @@ var app = (function ($, NextFerry) {
         var requestUpdate = function() {
             // returns the chainable request object
             return $.ajax({
-                  url : initURL + "/" + appVersion + "/" + (window.localStorage["cachedate"] || ""),
-                  dataType: "text",
-                  success: processReply
-                  // we just ignore failures
-              });
+                              url : initURL + "/" + appVersion + "/" + (window.localStorage["cachedate"] || ""),
+                              dataType: "text",
+                              success: processReply
+                              // we just ignore failures
+                          });
         };
 
         var requestTravelTimes = function(loc) {
@@ -195,6 +273,8 @@ var app = (function ($, NextFerry) {
         return submodule;
     }());
 
+    //======= Utilities
+    
     function beginsWith(s1, s2) {
         var i = 0;
         for (; i < s1.length && i < s2.length; i++) {

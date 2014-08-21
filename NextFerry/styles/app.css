@@ -46,16 +46,33 @@ li {
 
 
 /* main page */
+.heading {
+    margin: 10pt;
+    font-size: 28pt;
+}
+#title>.char1 {
+    letter-spacing: -2pt;
+}
+#title>.char2 {
+    letter-spacing: -1pt;
+}
+#title>.char5 {
+    letter-spacing: -5pt;
+}
+#direction {
+    margin-right: 15pt;
+}
 #routes {
 	position: absolute;
 	top: 0;
 	left: 0;
+    font-weight: 200;
 }
 #timesport {
 	width: 80%;
 	float: right;
 	overflow: hidden;
-    margin-top: 1.2em;
+    margin-top: 1.5em;
 }
 #timeswrap {
 	width: 100%;
@@ -67,14 +84,16 @@ li {
 #outerwrap {
 	position: absolute;
 	width: 100%;
-    top: 20px;
-    bottom: 0px;
+    top: 50pt;
+    left: 11pt;
+    right: 10pt;
+    bottom: 10pt;
 }
 
 
 #routes, #times {
 	font-size: 18pt;
-	line-height: 2.2em;
+	line-height: 2.25em;
 }
 
 
@@ -109,6 +128,9 @@ li {
 
 
 /* schedule styling */
+#schedule-nav {
+    width: 450pt;
+}
 #schedule-nav>li {
     font-size: 18pt;
     padding: 15pt 10pt 10pt;
@@ -120,7 +142,7 @@ li {
     margin-bottom: 2pt;
 }
 .timetable {
-    margin: auto;
+    margin-left: 20pt;
     margin-bottom: 5pt;
 }
 .deco, .deco2 {
@@ -139,4 +161,10 @@ li {
     text-align: right;
     vertical-align: top;
     padding-right: 2em;
+}
+
+/* alert styling */
+
+#alerts-list>li {
+    margin-bottom: 5pt;
 }

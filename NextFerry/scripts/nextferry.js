@@ -315,6 +315,7 @@ var NextFerry = (function ($) {
         _alertlist = [];
         var alertblocks = text.split(/^__/m);
         var i;
+        console.log("Loading alerts");
         for (i in alertblocks) {
             if (alertblocks[i].length > 2) { // skip extraneous newlines
                 var k = alertblocks[i].indexOf("\n");
@@ -326,6 +327,7 @@ var NextFerry = (function ($) {
                 id = ary[1];
                 codes = ary[2];
                 _alertlist.push(new Alert(id, codes, body)); 
+                console.log("Alert for " + codes);
             }
         }
         var oldreadlist = _readlist;

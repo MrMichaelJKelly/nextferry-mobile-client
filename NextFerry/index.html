@@ -4,7 +4,6 @@
         <meta charset="UTF-8" />
         <title>Next Ferry</title>
         <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-        <link href="styles/cssslide.css" rel="stylesheet" />
         <link href="styles/opensans.css" rel="stylesheet" />
         <link href="styles/app.css" rel="stylesheet" />
         <link href="test/qunit.css" rel="stylesheet" />
@@ -13,8 +12,8 @@
         <script src="scripts/jquery.js" type="text/javascript"></script>
         <script src="scripts/jquery.tmpl.js" type="text/javascript"></script>
         <script src="scripts/iscroll.js" type="text/javascript"></script>
-        <script src="scripts/cssslide.js" type="text/javascript"></script>
         <script src="scripts/nextferry.js" type="text/javascript"></script>
+        <script src="scripts/jquery.lettering-0.6.1.min.js" type="text/javascript"></script>
         <script src="scripts/app.js" type="text/javascript"></script>
 		<script src="test/qunit.js" type="text/javascript"></script>
 		<script src="test/tests.js" type="text/javascript"></script>
@@ -24,7 +23,9 @@
         <!--Main-->
         <div id="main-page" class="page">
 
-            <h1>Next Ferry</h1>
+
+            <span class="heading" id="direction" style="float: right">West</span>
+            <span class="heading" id="title" style="float: left">Next Ferry</span>
 
             <!--Content-->
             <div id="outerwrap" class="scrollwrapper">
@@ -43,6 +44,7 @@
 
         <div id="schedule-page" class="page">
             <ul id="schedule-nav" class="hnav">
+                <li id="sn-back">(back)</li>
                 <li id="sn-sched">Schedule</li>
                 <li id="sn-alerts">Alerts</li>
                 <li id="sn-more">More</li>
@@ -52,7 +54,7 @@
                     <ul id="schedule-list" class="scrollee">
                         <li>
                             <span class="deco">from</span> <span class="name" id="wname1">CONTENT</span> <span class="deco2">weekdays</span>
-                            <div class="slide slide-hidden">
+                            <div class="slide">
                                 <table class="timetable" id="westdaystable">
                                     <thead>
                                         <tr>
@@ -71,7 +73,7 @@
                         </li>
                         <li>
                             <span class="deco">from</span> <span class="name" id="wname2">CONTENT</span> <span class="deco2">weekends</span>
-                            <div class="slide slide-hidden">
+                            <div class="slide">
                                 <table class="timetable" id="westendstable">
                                     <thead>
                                         <tr>
@@ -88,7 +90,7 @@
                         </li>
                         <li>
                             <span class="deco">from</span> <span class="name" id="ename1">CONTENT</span> <span class="deco2">weekdays</span>
-                            <div class="slide slide-hidden">
+                            <div class="slide">
                                 <table class="timetable" id="eastdaysstable">
                                     <thead>
                                         <tr>
@@ -122,11 +124,10 @@
                         </li>
                     </ul>
                 </div>
-                <div id="alerts-tab" class="schedule-tab">
-                    <p>Why yes, we do have something to show on the alerts page!</p>
+                <div id="alerts-tab" class="schedule-tab scrollwrapper">
+                    <ul id="alerts-list" class="scrollee">CONTENT</ul>
                 </div>
                 <div id="more-tab" class="schedule-tab">
-                    <p>And on the more tab too...</p>
                 </div>
             </div>
         </div>
