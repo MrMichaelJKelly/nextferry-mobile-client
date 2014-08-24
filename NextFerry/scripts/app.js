@@ -1,10 +1,9 @@
 var app = (function ($, NextFerry) {
-    var dir = "west";
+    var dir = "West";
     var testrun = false;
     
     var mainScroll;
     var timeScroll;
-	var tabsScroll;
     var schedScroll;
     var alertScroll;
 
@@ -21,7 +20,8 @@ var app = (function ($, NextFerry) {
             // show the main page first, then init everything else.
 
             $("#title").lettering();
-            showMainPage();
+            renderMainPage();
+            goPage($("#main-page"));
             ServerIO.loadSchedule.listeners.add(renderTimes);
             if (window.localStorage["cache"]) {
                 ServerIO.loadSchedule(window.localStorage["cache"]);
@@ -37,23 +37,13 @@ var app = (function ($, NextFerry) {
 
             schedScroll = new IScroll("#schedule-tab", { tap: true });
             alertScroll = new IScroll("#alerts-tab");
-            
-            /*
-            tabsScroll = new IScroll("#schedule-tab-container", { 
-                scrollX: true, 
-                scrollY: false, 
-                momentum: false,
-                bounce: false,
-                eventPassthrough: "horizontal"
-            });
-            */
-        
-            $("#routes>li").on("tap", showSchedulePage);   // tap because that's what Iscroll sends
-            $("#sn-back").on("click", backPage);
-			//$("#schedule-page").on("", navigateTabs);
+                    
+            $("#direction").on("click",toggleDirection);
+            $("#routes").on("tap", goSchedulePage);   // tap because that's what Iscroll sends
+            $("#schedule-page").on("swipe",navigateTabs);
+            $("#schedule-nav>li").on("click",navigateTabs);
             $("#schedule-list>li").on("tap", toggleSchedulePart);
         }
-        dir = "west";
     };
     
     var updateScroller = function(scr,delay) {
@@ -66,20 +56,20 @@ var app = (function ($, NextFerry) {
     
     //======= Main Page Rendering and events
     
-    var showMainPage = function() {
+    var renderMainPage = function() {
+        $("#direction").text(dir);
         renderRoutes();
         renderTimes();
-		goPage($("#main-page"));
         return false;
     };
 
     var routeTmpl = {
-        west : "<li>{%= displayName.west %}</li>",
-        east : "<li>{%= displayName.east %}</li>"
+        West : "<li>{%= displayName.west %}</li>",
+        East : "<li>{%= displayName.east %}</li>"
     };
     var timeTmpl = {
-        west : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('west') %}{%= NextFerry.timeString(v) %} {%/each%}</li>",
-        east : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('east') %}{%= NextFerry.timeString(v) %} {%/each%}</li>"
+        West : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('west') %}{%= NextFerry.timeString(v) %} {%/each%}</li>",
+        East : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('east') %}{%= NextFerry.timeString(v) %} {%/each%}</li>"
     };
 
     var renderRoutes = function() {
@@ -104,11 +94,24 @@ var app = (function ($, NextFerry) {
         return result;
     };
     
+    var toggleDirection = function() {
+        if ( dir === "West" ) {
+            dir = "East";
+        }
+        else {
+            dir = "West";
+        }
+        
+		renderMainPage();
+        return false;
+    };
+    
     //======= Schedule Page Rendering and events
     
-    var showSchedulePage = function() {
-        renderSchedule($(this).text());
-        renderAlerts($(this).text());
+    var goSchedulePage = function(e) {
+        var target = e.target.innerText; // gets the route name
+        renderSchedule(target);
+        renderAlerts(target);
 		goPage($("#schedule-page"));
         return false;
     };
@@ -153,7 +156,6 @@ var app = (function ($, NextFerry) {
             $("#sn-alerts").show();
             $("#alerts-tab").show();
             updateScroller(alertScroll);
-            updateScroller(tabsScroll);
         }
         else {
             $("#alerts-tab").hide();
@@ -161,34 +163,63 @@ var app = (function ($, NextFerry) {
         }
     };
     
-
+    //======= Tab Transitions
+    
+    var currentTab;
+    var scrollPoints = {
+        "sn-sched" : 0,
+        "sn-alerts" : 325,
+        "sn-more" : 650
+    };
+    
+    var navigateTabs = function(e) {
+        console.log(e);
+        if (e.type === "click") {
+            currentTab = e.target.id;      
+        }
+        
+        if (currentTab === "sn-back") {
+            backPage();
+        }
+        else {
+            $("#schedule-tab-container").scrollLeft( scrollPoints[currentTab] );
+        }
+        return false;
+    };
     
     //======= Page Transitions
+    // goPage and backPage are for page *transitions*.
+    // do not use them for re-rendering the same page.
     
-    var currentPage;
+    var currentPage;	// these are selectors (the "#id" string), not html objects.
     var prevPage;
     
     var goPage = function(p) {
+        if ( currentPage && currentPage === p.selector ) {
+            console.log("assertion failure: goPage called to rerender the same page!");
+        }
         p.show();
-        currentPage && currentPage.hide();
-    	prevPage = currentPage;
-        currentPage = p;
+        $(currentPage).hide();
+        prevPage = currentPage;
+        currentPage = p.selector;
         return false;
     };
     
     var backPage = function() {
         // kinda hand-wavy; the app never goes more than two levels deep.
-        if ( prevPage && prevPage !== $("#main-page")) {
-            prevPage.show();
-            currentPage && currentPage.hide();
+        if ( prevPage && prevPage !== "#main-page") {
+            $(prevPage).show();
+            currentPage && $(currentPage).hide();
             currentPage = prevPage;
         }
-        else if ( currentPage === $("#main-page") ) {
+        else if ( currentPage === "#main-page" ) {
             // todo: when we wire the android back button in, we'll have to handle this case.
         }
         else {
             goPage($("#main-page"));
         }
+        // prevPage is always cleared, no matter where we came from.
+        // (hence, the 2nd "back" always goes to the #main-page.)
         prevPage = false;
         return false;
     }
