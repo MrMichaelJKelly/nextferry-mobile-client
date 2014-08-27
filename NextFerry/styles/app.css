@@ -9,7 +9,7 @@ html {
 }
 body {
 	overflow: hidden;
-    font-family: Open Sans;
+    font-family: Dosis;
 }
 * {
 	margin: 0;
@@ -17,6 +17,27 @@ body {
 }
 li {
 	list-style-type: none;
+}
+
+/* Icons */
+@font-face {
+    font-family: Icons;
+    src: url('fonts/webhostinghub-glyphs.ttf');
+    font-weight: 500;
+    font-style: normal;
+}
+.icon {
+	font-family: Icons;   
+}
+.icon.closed::before { content: "\F3C9"; }
+.icon.open::before { content: "\F3C7"; }
+.icon.info::before { content: "\F315"; }
+.icon.alert::before { content: "\F05A"; }
+.icon.return::before { content: "\F31A"; }
+.icon[glyph]::before { content: attr(glyph); }
+.icon.open, .icon.closed {
+    vertical-align: -10%;
+    font-size: 90%;
 }
 
 
@@ -102,6 +123,14 @@ li {
     background-image: url("images/clouds.jpg");
     font-size: 16pt;
 }
+#schedule-nav {
+    width: 450pt;
+    margin-left: 2pt;
+}
+#schedule-nav>li {
+    font-size: 18pt;
+    padding: 20pt 9pt 5pt;
+}
 #schedule-tab-container {
     position: absolute;
     top: 55pt;
@@ -127,14 +156,7 @@ li {
 }
 
 
-/* schedule styling */
-#schedule-nav {
-    width: 450pt;
-}
-#schedule-nav>li {
-    font-size: 18pt;
-    padding: 15pt 10pt 10pt;
-}
+/* timetable styling */
 #schedule-list {
     padding-left: 10pt;
 }

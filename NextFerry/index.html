@@ -4,7 +4,7 @@
         <meta charset="UTF-8" />
         <title>Next Ferry</title>
         <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-        <link href="styles/opensans.css" rel="stylesheet" />
+        <link href="styles/dosis.css" rel="stylesheet" />
         <link href="styles/app.css" rel="stylesheet" />
         <link href="test/qunit.css" rel="stylesheet" />
 
@@ -44,7 +44,7 @@
 
         <div id="schedule-page" class="page">
             <ul id="schedule-nav" class="hnav">
-                <li id="sn-back">(back)</li>
+                <li id="sn-back"><span class="icon return" style="font-size: smaller"></span></li>
                 <li id="sn-sched">Schedule</li>
                 <li id="sn-alerts">Alerts</li>
                 <li id="sn-more">More</li>
@@ -53,6 +53,7 @@
                 <div id="schedule-tab" class="schedule-tab scrollwrapper">
                     <ul id="schedule-list" class="scrollee">
                         <li>
+                            <span class="icon closed"></span>
                             <span class="deco">from</span> <span class="name" id="wname1">CONTENT</span> <span class="deco2">weekdays</span>
                             <div class="slide">
                                 <table class="timetable" id="westdaystable">
@@ -72,6 +73,7 @@
                             </div>
                         </li>
                         <li>
+                            <span class="icon closed"></span>                           
                             <span class="deco">from</span> <span class="name" id="wname2">CONTENT</span> <span class="deco2">weekends</span>
                             <div class="slide">
                                 <table class="timetable" id="westendstable">
@@ -89,6 +91,7 @@
                             </div>
                         </li>
                         <li>
+                            <span class="icon closed"></span>
                             <span class="deco">from</span> <span class="name" id="ename1">CONTENT</span> <span class="deco2">weekdays</span>
                             <div class="slide">
                                 <table class="timetable" id="eastdaysstable">
@@ -106,6 +109,7 @@
                             </div>
                         </li>
                         <li>
+                            <span class="icon closed"></span>
                             <span class="deco">from</span> <span class="name" id="ename2">CONTENT</span> <span class="deco2">weekends</span>
                             <div class="slide">
                                 <table class="timetable" id="eastendstable">

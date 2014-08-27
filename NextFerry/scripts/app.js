@@ -19,7 +19,7 @@ var app = (function ($, NextFerry) {
         else {
             // show the main page first, then init everything else.
 
-            $("#title").lettering();
+            //$("#title").lettering();
             renderMainPage();
             goPage($("#main-page"));
             ServerIO.loadSchedule.listeners.add(renderTimes);
@@ -141,6 +141,7 @@ var app = (function ($, NextFerry) {
     
     var toggleSchedulePart = function() {
         $(this).children(".slide").slideToggle();
+        $(this).children(".icon").toggleClass("open closed");
         updateScroller(schedScroll,700);
         return false;
     };
@@ -175,7 +176,7 @@ var app = (function ($, NextFerry) {
     var navigateTabs = function(e) {
         console.log(e);
         if (e.type === "click") {
-            currentTab = e.target.id;      
+            currentTab = e.currentTarget.id;      
         }
         
         if (currentTab === "sn-back") {
