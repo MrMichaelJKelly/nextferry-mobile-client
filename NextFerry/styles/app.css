@@ -67,9 +67,15 @@ li {
 
 
 /* main page */
+#main-page {
+    background: url("images/background.jpg") no-repeat left bottom;
+    background-size: cover;
+    color: #324151;
+}
 .heading {
     margin: 10pt;
-    font-size: 28pt;
+    font-size: 30pt;
+    font-weight: 500;
 }
 #title>.char1 {
     letter-spacing: -2pt;
@@ -87,18 +93,19 @@ li {
 	position: absolute;
 	top: 0;
 	left: 0;
-    font-weight: 200;
+    font-weight: 300;
 }
 #timesport {
 	width: 80%;
 	float: right;
 	overflow: hidden;
-    margin-top: 1.5em;
+    margin-top: 1.7em;
 }
 #timeswrap {
 	width: 100%;
 }
 #times {
+    font-family: courier, monospace;
 	white-space: nowrap;
 	width: 1000pt;
 }
@@ -113,8 +120,8 @@ li {
 
 
 #routes, #times {
-	font-size: 18pt;
-	line-height: 2.25em;
+	font-size: 20pt;
+	line-height: 2.22em;
 }
 
 
@@ -129,6 +136,7 @@ li {
 }
 #schedule-nav>li {
     font-size: 18pt;
+    font-weight: 500;
     padding: 20pt 9pt 5pt;
 }
 #schedule-tab-container {
@@ -169,10 +177,15 @@ li {
 }
 .deco, .deco2 {
     font-style: italic;
+    font-weight: 300;
     font-size: 15pt;
 }
+.deco::after {
+    content: " ";
+    letter-spacing: 4pt;
+}
 .name {
-    font-weight: bold;
+    font-weight: 600;
 }
 .amhead, .pmhead {
     text-align: center;
