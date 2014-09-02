@@ -1,7 +1,7 @@
 {
   "ProjectGuid": "69b8438c-3edb-4985-9a9c-4cf1ea10664d",
   "ProjectTypeGuids": "{070BCB52-5A75-4F8C-A973-144AF0EAFCC9}",
-  "AppIdentifier": "com.telerik.NextFerry",
+  "AppIdentifier": "sandbox.co.NextFerry",
   "ProjectName": "NextFerry",
   "IsRunnable": "true",
   "FrameworkVersion": "3.2.0",
@@ -26,20 +26,18 @@
     "android.permission.WRITE_EXTERNAL_STORAGE"
   ],
   "CorePlugins": [
-    "org.apache.cordova.console",
-    "org.apache.cordova.device",
     "org.apache.cordova.geolocation",
-    "org.apache.cordova.media",
     "org.apache.cordova.network-information",
     "org.apache.cordova.dialogs",
-    "org.apache.cordova.splashscreen"
+    "com.telerik.plugin.eqatecanalytics",
+    "com.telerik.feedback"
   ],
   "DeviceOrientations": [
     "Portrait",
     "Landscape"
   ],
   "iOSStatusBarStyle": "Default",
-  "AndroidHardwareAcceleration": "false",
+  "AndroidHardwareAcceleration": "true",
   "WP8SupportedResolutions": [
     "ID_RESOLUTION_WVGA",
     "ID_RESOLUTION_WXGA",
@@ -47,8 +45,8 @@
   ],
   "BundleVersion": "1.0",
   "Framework": "Cordova",
-  "DisplayName": "",
-  "Author": "",
+  "DisplayName": "denisesandbox@gmail.com",
+  "Author": "denisesandbox@gmail.com",
   "Description": "NextFerry",
   "iOSDeviceFamily": [
     "1",
@@ -56,10 +54,10 @@
   ],
   "iOSBackgroundMode": [],
   "AndroidVersionCode": "1",
-  "WP8TileTitle": "",
+  "WP8TileTitle": "NextFerry",
   "WP8ProductID": "{69b8438c-3edb-4985-9a9c-4cf1ea10664d}",
   "WP8PublisherID": "{decd56f9-d056-43c3-9287-9735346bb520}",
-  "WP8Publisher": "",
+  "WP8Publisher": "denisesandbox@gmail.com",
   "WP8Capabilities": [],
   "WP8Requirements": []
 }

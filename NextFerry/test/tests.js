@@ -38,7 +38,7 @@ function nextFerryTests() {
 	function loadsched() {
 		// See the "readable" version in the comment at the bottom of the file
 		NextFerry.Route.clearAllTimes();
-		app.ServerIO.loadSchedule( schedulefragment );
+		ServerIO.loadSchedule( schedulefragment );
 	}
 
 	QUnit.test( "Test Infrastructure test", function( assert ) {
@@ -224,7 +224,7 @@ function nextFerryTests() {
 		expect(3);
 
 		//test
-		app.ServerIO.requestUpdate().always( function(obj,stat,data) {
+		ServerIO.requestUpdate().always( function(obj,stat,data) {
             console.log(".always comes through");
 			assert.equal( stat, "success", "call succeeded");
 			var pttownsend = NextFerry.Route.find("pt townsend");
