@@ -136,6 +136,29 @@ var NextFerry = (function ($) {
     Route.allRoutes = function() {
         return _allRoutes;
     }
+    Route.displayRoutes = function() {
+        var result = [];
+        if (ServerIO.settings.routeList === {}) {
+            // never set before; initialize
+            ServerIO.settings.routeList = {
+				"bainbridge" : true,
+                "edmonds" : true,
+                "mukilteo" : true,
+                "pt townsend" : true,
+				"fauntleroy-southworth" : true,
+                "fauntleroy-vashon" : true,
+                "vashon-southworth", "southworth-vashon"),
+        new Route(1 << 8, 7, 4, "bremerton", "bremerton"),
+        new Route(1 << 9, 21, 16, "vashon-pt defiance", "pt defiance-vashon"),
+        new Route(1 << 10, 1, 10, "friday harbor", "friday harbor"),
+        new Route(1 << 11, 1, 15, "orcas", "orcas")               
+            }
+        }
+        for (var i in _allRoutes) {
+            result.push(_allRoutes[i]);
+        }
+        return result;
+    }
     Route.find = function(name) {
         for (var i in _allRoutes) {
             var r = _allRoutes[i];

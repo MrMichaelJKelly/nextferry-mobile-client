@@ -84,12 +84,24 @@ var ServerIO = (function($) {
             }
             return (i === s2.length);
         }
+    
+    var settings = {
+        useLocation : false,
+        routeList = {}
+    }
+    var settingsChanged = function() {
+        window.localStorage["settings"] = settings;
+        settingsChanged.listeners.fire();
+    }
+    settingsChanged.listeners = $.Callbacks();
 
         var module = {
             requestUpdate : requestUpdate,
             requestTravelTimes : requestTravelTimes,
             loadSchedule : loadSchedule,
-            loadAlerts : loadAlerts
+            loadAlerts : loadAlerts,
+            settings: settings,
+            settingsChanged : settingsChanged
         };
         return module;
 }(jQuery));

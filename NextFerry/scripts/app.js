@@ -80,11 +80,11 @@ var app = (function ($) {
 
     var renderRoutes = function() {
         $("#routes").empty();
-        $.tmpl(routeTmpl[dir], NextFerry.Route.allRoutes()).appendTo("#routes");
+        $.tmpl(routeTmpl[dir], NextFerry.Route.displayRoutes()).appendTo("#routes");
     };
     var renderTimes = function() {
         $("#times").empty();
-        $.tmpl(timeTmpl[dir], NextFerry.Route.allRoutes()).appendTo("#times");
+        $.tmpl(timeTmpl[dir], NextFerry.Route.displayRoutes()).appendTo("#times");
         updateScroller(mainScroll);
         updateScroller(timeScroll);
     };
@@ -225,10 +225,14 @@ var app = (function ($) {
         return false;
     }
 
+    //======= Settings
+    var showSettings = function() {
+        
+    };
 
 
     var module = {
-        init : init,
+        init : init
     };
 
     return module;

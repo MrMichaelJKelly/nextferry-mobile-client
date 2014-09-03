@@ -105,7 +105,7 @@ li {
 	width: 100%;
 }
 #times {
-    font-family: courier, monospace;
+    font-family: monospace;
 	white-space: nowrap;
 	width: 1000pt;
 }
