@@ -43,7 +43,7 @@ var getAccuratePosition = function (geolocationSuccess, geolocationError, geopro
             foundPosition(position);
         }
         else {
-            geoprogress(position);
+            geoprogress && geoprogress(position);
         }
     };
 
@@ -55,7 +55,7 @@ var getAccuratePosition = function (geolocationSuccess, geolocationError, geopro
     var onError = function (error) {
         clearTimeout(timerID);
         navigator.geolocation.clearWatch(watchID);
-        geolocationError(error);
+        geolocationError && geolocationError(error);
     };
 
     var foundPosition = function (position) {

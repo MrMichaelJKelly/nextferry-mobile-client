@@ -5,15 +5,16 @@
 var app = (function ($) {
     var dir = "West";
     var testrun = false;
-    
+
     var mainScroll;
     var timeScroll;
     var schedScroll;
     var alertScroll;
 
     //======= Initialization and event wiring
-    
+
     var init = function() {
+        NextFerry.init();
         if (testrun) {
             // for now just go to test page; later, make it a tab?
             $("#test-page").show();
@@ -21,16 +22,13 @@ var app = (function ($) {
             nextFerryTests();
         }
         else {
-            // show the main page first, then init everything else.
-
             //$("#title").lettering();
             renderMainPage();
             goPage($("#main-page"));
             ServerIO.loadSchedule.listeners.add(renderTimes);
-            if (window.localStorage["cache"]) {
-                ServerIO.loadSchedule(window.localStorage["cache"]);
+            if ( window.localStorage["cache"] ) {
+                ServerIO.loadSchedule( window.localStorage["cache"] );
             }
-            NextFerry.Alert.init();		
             ServerIO.requestUpdate();
 
             mainScroll = new IScroll("#outerwrap", { tap: true });
@@ -38,30 +36,30 @@ var app = (function ($) {
             updateScroller(mainScroll);
             updateScroller(timeScroll);
 
-
             schedScroll = new IScroll("#schedule-tab", { tap: true });
             alertScroll = new IScroll("#alerts-tab");
-                    
+
+            // wire up all the event actions
             $("#direction").on("click",toggleDirection);
             $("#routes").on("tap", goSchedulePage);   // tap because that's what Iscroll sends
             $("#schedule-page").on("swipe",navigateTabs);
             $("#schedule-nav>li").on("click",navigateTabs);
             $("#schedule-list>li").on("tap", toggleSchedulePart);
-            
+
             //feedback.initialize('50377a40-30e3-11e4-9c7b-3512796cc48e');
         }
     };
-    
+
     var updateScroller = function(scr,delay) {
         delay = delay || 10;
         setTimeout(function() {
             scr && scr.refresh();
         }, delay);
     };
-    
-    
+
+
     //======= Main Page Rendering and events
-    
+
     var renderMainPage = function() {
         $("#direction").text(dir);
         renderRoutes();
@@ -88,7 +86,7 @@ var app = (function ($) {
         updateScroller(mainScroll);
         updateScroller(timeScroll);
     };
-    
+
     var renderTimeList = function(lst) {
         var result = "";
         for (var i in lst) {
@@ -99,15 +97,16 @@ var app = (function ($) {
         }
         return result;
     };
-    
+
     var toggleDirection = function() {
 		dir = ( dir === "West" ? "East" : "West" );
 		renderMainPage();
+        ServerIO.requestTravelTimes();
         return false;
     };
-    
+
     //======= Schedule Page Rendering and events
-    
+
     var goSchedulePage = function(e) {
         var target = e.target.innerText; // gets the route name
         renderSchedule(target);
@@ -115,39 +114,39 @@ var app = (function ($) {
 		goPage($("#schedule-page"));
         return false;
     };
-    
+
     var renderSchedule = function(name) {
         // build the schedule page for this schedule
         var r = NextFerry.Route.find(name);
         $("#schedule-list .slide").hide();
-        
+
         $("#wname1").text(r.termName("east"));
         $("#wname2").text(r.termName("east"));
         $("#ename1").text(r.termName("west"));
         $("#ename2").text(r.termName("west"));
-        
+
         $("#wdam").html(renderTimeList(r.beforeNoon("west", "weekday")));
         $("#wdpm").html(renderTimeList(r.afterNoon("west", "weekday")));
         $("#weam").html(renderTimeList(r.beforeNoon("west", "weekend")));
         $("#wepm").html(renderTimeList(r.afterNoon("west", "weekend")));
-        
+
         $("#edam").html(renderTimeList(r.beforeNoon("east", "weekday")));
         $("#edpm").html(renderTimeList(r.afterNoon("east", "weekday")));
         $("#eeam").html(renderTimeList(r.beforeNoon("east", "weekend")));
         $("#eepm").html(renderTimeList(r.afterNoon("east", "weekend")));
-        
+
         updateScroller(schedScroll,700);
     };
-    
+
     var toggleSchedulePart = function() {
         $(this).children(".slide").slideToggle();
         $(this).children(".icon").toggleClass("open closed");
         updateScroller(schedScroll,700);
         return false;
     };
-    
+
     var alertTmpl = "<li>{%= body %}</li>";
-    
+
     var renderAlerts = function(name) {
     	// build the alerts page if there are any, otherwise hide the alerts page.
         var alist = NextFerry.Alert.alertsFor(name);
@@ -163,22 +162,22 @@ var app = (function ($) {
             $("#sn-alerts").hide();
         }
     };
-    
+
     //======= Tab Transitions
-    
+
     var currentTab;
     var scrollPoints = {
         "sn-sched" : 0,
         "sn-alerts" : 325,
         "sn-more" : 650
     };
-    
+
     var navigateTabs = function(e) {
         console.log(e);
         if (e.type === "click") {
-            currentTab = e.currentTarget.id;      
+            currentTab = e.currentTarget.id;
         }
-        
+
         if (currentTab === "sn-back") {
             backPage();
         }
@@ -187,14 +186,14 @@ var app = (function ($) {
         }
         return false;
     };
-    
+
     //======= Page Transitions
     // goPage and backPage are for page *transitions*.
     // do not use them for re-rendering the same page.
-    
+
     var currentPage;	// these are selectors (the "#id" string), not html objects.
     var prevPage;
-    
+
     var goPage = function(p) {
         if ( currentPage && currentPage === p.selector ) {
             console.log("assertion failure: goPage called to rerender the same page!");
@@ -205,7 +204,7 @@ var app = (function ($) {
         currentPage = p.selector;
         return false;
     };
-    
+
     var backPage = function() {
         // kinda hand-wavy; the app never goes more than two levels deep.
         if ( prevPage && prevPage !== "#main-page") {
@@ -227,7 +226,7 @@ var app = (function ($) {
 
     //======= Settings
     var showSettings = function() {
-        
+
     };
 
 

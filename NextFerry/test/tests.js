@@ -163,9 +163,9 @@ function nextFerryTests() {
 		NextFerry.timeString = saveformat;
 	});
 
-    
+
     // Alerts
-    
+
     var alert1 = "__ 00:45:53.308110 224\n" +
 				 "This is an alert for the Vashon ferries.  Some message here.\n" +
 				 "__\n";
@@ -176,12 +176,12 @@ function nextFerryTests() {
     			 "__ 02:45:53.000000 4\n" +
     			 "And this is an alert for Edmonds\n"
 				 "__";
-    
+
     QUnit.test("Loading an Alert", function(assert) {
         window.localStorage["readlist"] = "";
-        NextFerry.Alert.init();
+        NextFerry.init();
         expect(5);
-        
+
         NextFerry.Alert.loadAlerts(alert1);
         var alerts = NextFerry.Alert.allAlerts();
         assert.equal( alerts.length, 1, "We can load a single alert" );
@@ -191,15 +191,15 @@ function nextFerryTests() {
         assert.equal( a.unread, true, "Read status...");
         assert.equal( a.body, "This is an alert for the Vashon ferries.  Some message here.\n", "and body.");
     });
-    
+
     QUnit.test("Working with Alerts", function(assert) {
         window.localStorage["readlist"] = "";
-        NextFerry.Alert.init();
+        NextFerry.init();
         expect(10);
-        
+
         NextFerry.Alert.loadAlerts(alert3);
         assert.equal( NextFerry.Alert.allAlerts().length, 3, "Loading multiple alerts" );
-        
+
         var r = NextFerry.Route.find("fauntleroy-vashon");
         assert.equal( NextFerry.Alert.hasAlerts(r), true, "checking when alerts present" );
         assert.equal( NextFerry.Alert.hasAlerts(r,true), true, "...okay for unread alerts" );
@@ -213,10 +213,10 @@ function nextFerryTests() {
         assert.equal( alerts.length, 1, "we can retrieve it" );
         assert.equal( alerts[0].body, "And this is an alert for Edmonds\n", "and it has the right body" );
     });
-    
-    
+
+
     // Asynch tests go last.  Be *really* careful about global state!
-    
+
 	QUnit.asyncTest( "First Contact", function( assert ) {
 		//setup
 		NextFerry.Route.clearAllTimes();

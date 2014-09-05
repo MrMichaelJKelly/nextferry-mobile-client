@@ -28,6 +28,12 @@ var ServerIO = (function($) {
         };
         loadAlerts.listeners = $.Callbacks();
 
+        var loadTravelTimes = function(text) {
+            NextFerry.Terminal.loadTTs(text);
+            loadTravelTimes.listeners.fire();
+        };
+        loadTravelTimes.listeners = $.Callbacks();
+
         var processReply = function(data, status, jqXHR) {
             // we use the same function to look through all data sent to us
             // the reply is text format, with sections indicated by
@@ -71,10 +77,30 @@ var ServerIO = (function($) {
                           });
         };
 
-        var requestTravelTimes = function(loc) {
+
+        var _requestTTdelay = false;
+        var requestTravelTimes = function() {
+            if ( _requestTTdelay ) {
+                return;
+            }
+            else {
+                // timer prevents calling this too often.
+                _requestTTdelay = true;
+                setTimeout( function() { _requestTTdelay = false; }, 20000);
+                // asynch request to get current position which
+                //   calls asynch request to get travel times
+                getAccuratePosition( function(loc) {
+                    console.log(loc);
+                    $.ajax({
+                        url: travelURL +  "/" + appVersion + "/" + loc.latitude + "," + loc.longitude,
+                        dataType: "text",
+                        success: processReply
+                    });
+                });
+            }
         };
- 
-    
+
+
         function beginsWith(s1, s2) {
             var i = 0;
             for (; i < s1.length && i < s2.length; i++) {
@@ -84,22 +110,23 @@ var ServerIO = (function($) {
             }
             return (i === s2.length);
         }
-    
-    var settings = {
-        useLocation : false,
-        routeList = {}
-    }
-    var settingsChanged = function() {
-        window.localStorage["settings"] = settings;
-        settingsChanged.listeners.fire();
-    }
-    settingsChanged.listeners = $.Callbacks();
+        function noop() { };
+
+        var settings = {
+            useLocation : false,
+        }
+        var settingsChanged = function() {
+            window.localStorage["settings"] = settings;
+            settingsChanged.listeners.fire();
+        }
+        settingsChanged.listeners = $.Callbacks();
 
         var module = {
             requestUpdate : requestUpdate,
             requestTravelTimes : requestTravelTimes,
             loadSchedule : loadSchedule,
             loadAlerts : loadAlerts,
+            loadTravelTimes : loadTravelTimes,
             settings: settings,
             settingsChanged : settingsChanged
         };

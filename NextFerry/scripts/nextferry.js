@@ -116,6 +116,42 @@ var NextFerry = (function ($) {
         NextFerry.timeString = (as12 ? display12 : display24);
     }
 
+
+    var _allRoutes = [];    // main data structure: all routes and schedules
+    var _displayList = {};  // user-chosen set of routes to display
+    var _alertList = [];    // list of all alerts (not persisted)
+    var _readList = [];     // list of alerts the user has already read
+    // sets are represented by js object attributes (with value = true)
+
+    var init = function() {
+        _allRoutes = [
+            new Route(1, 7, 3, "bainbridge", "bainbridge"),
+            new Route(1 << 2, 8, 12, "edmonds", "edmonds"),
+            new Route(1 << 3, 14, 5, "mukilteo", "mukilteo"),
+            new Route(1 << 4, 11, 17, "pt townsend", "pt townsend"),
+            new Route(1 << 5, 9, 20, "fauntleroy-southworth", "southworth-fauntleroy"),
+            new Route(1 << 6, 9, 22, "fauntleroy-vashon", "vashon-fauntleroy"),
+            new Route(1 << 7, 22, 20, "vashon-southworth", "southworth-vashon"),
+            new Route(1 << 8, 7, 4, "bremerton", "bremerton"),
+            new Route(1 << 9, 21, 16, "vashon-pt defiance", "pt defiance-vashon"),
+            new Route(1 << 10, 1, 10, "friday harbor", "friday harbor"),
+            new Route(1 << 11, 1, 15, "orcas", "orcas")
+        ];
+        // routes are "schedule-less" until main app init.
+
+        _displayList = window.localStorage["displayList"];
+        if ( ! _displayList ) {
+            // default: display all routes
+            _displayList = {};
+            for( var i in _allRoutes ) {
+                _displayList[_allRoutes[i].displayName["west"]] = true;
+            }
+        }
+
+        _readList = window.localStorage["readList"] || [];
+    };
+
+
     function Route(code, eastCode, westCode, westName, eastName) {
         this.code = code;
         this.terminals = {
@@ -138,24 +174,8 @@ var NextFerry = (function ($) {
     }
     Route.displayRoutes = function() {
         var result = [];
-        if (ServerIO.settings.routeList === {}) {
-            // never set before; initialize
-            ServerIO.settings.routeList = {
-				"bainbridge" : true,
-                "edmonds" : true,
-                "mukilteo" : true,
-                "pt townsend" : true,
-				"fauntleroy-southworth" : true,
-                "fauntleroy-vashon" : true,
-                "vashon-southworth", "southworth-vashon"),
-        new Route(1 << 8, 7, 4, "bremerton", "bremerton"),
-        new Route(1 << 9, 21, 16, "vashon-pt defiance", "pt defiance-vashon"),
-        new Route(1 << 10, 1, 10, "friday harbor", "friday harbor"),
-        new Route(1 << 11, 1, 15, "orcas", "orcas")               
-            }
-        }
-        for (var i in _allRoutes) {
-            result.push(_allRoutes[i]);
+        for (var i in _displayList) {
+            result.push(Route.find(i));
         }
         return result;
     }
@@ -215,7 +235,7 @@ var NextFerry = (function ($) {
     Route.prototype.afterNoon = function(dir, sched) {
         sched = sched || this.todaysSchedule();
         var lst = this.times[dir][sched];
-        return (lst ? this.times[dir][sched].filter(function(e, i) {
+        return (lst ? lst.filter(function(e, i) {
             return (e >= Noon);
         }) : []);
     };
@@ -226,19 +246,6 @@ var NextFerry = (function ($) {
 		return Alert.hasAlerts(this,true);
     };
 
-    var _allRoutes = [
-        new Route(1, 7, 3, "bainbridge", "bainbridge"),
-        new Route(1 << 2, 8, 12, "edmonds", "edmonds"),
-        new Route(1 << 3, 14, 5, "mukilteo", "mukilteo"),
-        new Route(1 << 4, 11, 17, "pt townsend", "pt townsend"),
-        new Route(1 << 5, 9, 20, "fauntleroy-southworth", "southworth-fauntleroy"),
-        new Route(1 << 6, 9, 22, "fauntleroy-vashon", "vashon-fauntleroy"),
-        new Route(1 << 7, 22, 20, "vashon-southworth", "southworth-vashon"),
-        new Route(1 << 8, 7, 4, "bremerton", "bremerton"),
-        new Route(1 << 9, 21, 16, "vashon-pt defiance", "pt defiance-vashon"),
-        new Route(1 << 10, 1, 10, "friday harbor", "friday harbor"),
-        new Route(1 << 11, 1, 15, "orcas", "orcas")
-    ];
 
     function Terminal(c, n, l) {
         this.code = c;
@@ -246,14 +253,27 @@ var NextFerry = (function ($) {
         this.loc = l;
         this.tt = false;
     }
-    Terminal.clearAllTT = function() {
+    Terminal.clearTTs = function() {
         for (var t in _allTerminals) {
             _allTerminals[t].tt = false;
+        }
+    }
+    Terminal.loadTTs = function(text) {
+        Terminal.clearTTs();
+        var lines = text.split("\n");
+        for (var i in lines) {
+            console.log(lines[i]);
+            var pieces = lines[i].split(":");
+            var code = pieces[0];
+            _allTerminals[code].tt = pieces[1];
         }
     };
     Terminal.allTerminals = function() {
         return _allTerminals;
     };
+    Terminal.find = function(code) {
+        return _allTerminals[code];
+    }
     var _allTerminals = {
         1 : new Terminal(1, "Anacortes", "48.502220, -122.679455"),
         3 : new Terminal(3, "Bainbridge Island", "47.623046, -122.511377"),
@@ -292,42 +312,35 @@ var NextFerry = (function ($) {
         else
             return "Good";
     }
-    
+
     function Alert(id, codes, body) {
         this.id = id;
         this.codes = codes;
         this.body = body;
         this.unread = true;
     }
-    Alert.init = function() {
-        _alertlist = [];
-        _readlist = [];
-        if (window.localStorage["readlist"]) {
-            _readlist = window.localStorage["readlist"];
-        }
-    }
     Alert.allAlerts = function() {
-        return _alertlist;
+        return _alertList;
     }
     Alert.alertsFor = function(r) {
         var results = [];
         if ( typeof r === "string" ) {
             r = Route.find(r);
         }
-        for (var i in _alertlist) {
-            var a = _alertlist[i];
+        for (var i in _alertList) {
+            var a = _alertList[i];
             if (a.codes & r.code) {
                 results.push(a);
             }
         }
-        return results;     
+        return results;
     };
     Alert.hasAlerts = function (r,unreadonly) {
         if ( typeof r === "string" ) {
             r = Route.find(r);
         }
-        for (var i in _alertlist) {
-            var a = _alertlist[i];
+        for (var i in _alertList) {
+            var a = _alertList[i];
             if ((a.codes & r.code) && (a.unread || !unreadonly)) {
                 return true;
             }
@@ -335,41 +348,39 @@ var NextFerry = (function ($) {
         return false;
     };
     Alert.loadAlerts = function(text) {
-        _alertlist = [];
+        _alertList = [];
         var alertblocks = text.split(/^__/m);
         var i;
-        console.log("Loading alerts");
         for (i in alertblocks) {
             if (alertblocks[i].length > 2) { // skip extraneous newlines
                 var k = alertblocks[i].indexOf("\n");
                 var header = alertblocks[i].substr(0,k);  // substr and substring?
                 var body = alertblocks[i].substring(k+1); // js at its finest! (not!)
                 var ary, id, codes;
-                
+
                 ary = header.split(" ");
                 id = ary[1];
                 codes = ary[2];
-                _alertlist.push(new Alert(id, codes, body)); 
+                _alertList.push(new Alert(id, codes, body));
                 console.log("Alert for " + codes);
             }
         }
-        var oldreadlist = _readlist;
-        _readlist = [];
+        var oldreadlist = _readList;
+        _readList = [];
         for (i in oldreadlist) {
-            for (var j in _alertlist) {
-                if (oldreadlist[i] === _alertlist[j].id) {
-                    _alertlist[j].unread = false;
-                    _readlist.push(oldreadlist[i]);
+            for (var j in _alertList) {
+                if (oldreadlist[i] === _alertList[j].id) {
+                    _alertList[j].unread = false;
+                    _readList.push(oldreadlist[i]);
                     break;
                 }
             }
         }
     };
-    var _alertlist = [];
-    var _readlist = [];
 
 
     var module = {
+        init : init,
         NFDate : NFDate,
         Route : Route,
         Terminal : Terminal,
