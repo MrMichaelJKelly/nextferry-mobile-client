@@ -72,8 +72,8 @@ var app = (function ($) {
         East : "<li>{%= displayName.east %}</li>"
     };
     var timeTmpl = {
-        West : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('west') %}{%= NextFerry.timeString(v) %} {%/each%}</li>",
-        East : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('east') %}{%= NextFerry.timeString(v) %} {%/each%}</li>"
+        West : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('west') %}<span class=''>{%= NextFerry.timeString(v) %}</span> {%/each%}</li>",
+        East : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('east') %}<span class=''>{%= NextFerry.timeString(v) %}</span> {%/each%}</li>"
     };
 
     var renderRoutes = function() {
@@ -87,16 +87,6 @@ var app = (function ($) {
         updateScroller(timeScroll);
     };
 
-    var renderTimeList = function(lst) {
-        var result = "";
-        for (var i in lst) {
-            if (i > 0) {
-                result += "<br/>";
-            }
-            result += NextFerry.timeString(lst[i]);
-        }
-        return result;
-    };
 
     var toggleDirection = function() {
 		dir = ( dir === "West" ? "East" : "West" );
@@ -136,6 +126,15 @@ var app = (function ($) {
         $("#eepm").html(renderTimeList(r.afterNoon("east", "weekend")));
 
         updateScroller(schedScroll,700);
+    };
+    
+    var renderTimeList = function(lst) {
+        var result = "";
+        for (var i in lst) {
+            if (i > 0) { result += "<br/>"; }
+            result += NextFerry.timeString(lst[i]);
+        }
+        return result;
     };
 
     var toggleSchedulePart = function() {

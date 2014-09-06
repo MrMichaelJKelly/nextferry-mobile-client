@@ -262,10 +262,10 @@ var NextFerry = (function ($) {
         Terminal.clearTTs();
         var lines = text.split("\n");
         for (var i in lines) {
-            console.log(lines[i]);
             var pieces = lines[i].split(":");
-            var code = pieces[0];
-            _allTerminals[code].tt = pieces[1];
+            if ( pieces.length === 2 ) {
+                _allTerminals[pieces[0]].tt = pieces[1];               
+            }
         }
     };
     Terminal.allTerminals = function() {
