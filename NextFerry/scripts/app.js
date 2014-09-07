@@ -22,7 +22,7 @@ var app = (function ($) {
             nextFerryTests();
         }
         else {
-            //$("#title").lettering();
+            $("#title").lettering();
             renderMainPage();
             goPage($("#main-page"));
             ServerIO.loadSchedule.listeners.add(renderTimes);
@@ -36,15 +36,15 @@ var app = (function ($) {
             updateScroller(mainScroll);
             updateScroller(timeScroll);
 
-            schedScroll = new IScroll("#schedule-tab", { tap: true });
+            schedScroll = new IScroll("#schedule-tab", { click: true });
             alertScroll = new IScroll("#alerts-tab");
 
             // wire up all the event actions
-            $("#direction").on("click",toggleDirection);
+            $("#direction").on("click", toggleDirection);
             $("#routes").on("tap", goSchedulePage);   // tap because that's what Iscroll sends
             $("#schedule-page").on("swipe",navigateTabs);
             $("#schedule-nav>li").on("click",navigateTabs);
-            $("#schedule-list>li").on("tap", toggleSchedulePart);
+            $("#schedule-list>li").on("click", toggleSchedulePart);
 
             //feedback.initialize('50377a40-30e3-11e4-9c7b-3512796cc48e');
         }
@@ -88,7 +88,8 @@ var app = (function ($) {
     };
 
 
-    var toggleDirection = function() {
+    var toggleDirection = function(e) {
+        e.preventDefault();
 		dir = ( dir === "West" ? "East" : "West" );
 		renderMainPage();
         ServerIO.requestTravelTimes();
@@ -98,9 +99,12 @@ var app = (function ($) {
     //======= Schedule Page Rendering and events
 
     var goSchedulePage = function(e) {
-        var target = e.target.innerText; // gets the route name
-        renderSchedule(target);
-        renderAlerts(target);
+        e.preventDefault();
+        console.log(e);
+        console.log(e.type + ":" + e.currentTarget.tagName);
+        var routename = e.target.innerText;
+        renderSchedule(routename);
+        renderAlerts(routename);
 		goPage($("#schedule-page"));
         return false;
     };
@@ -109,6 +113,7 @@ var app = (function ($) {
         // build the schedule page for this schedule
         var r = NextFerry.Route.find(name);
         $("#schedule-list .slide").hide();
+        tapdance = false; // see below
 
         $("#wname1").text(r.termName("east"));
         $("#wname2").text(r.termName("east"));
@@ -137,10 +142,18 @@ var app = (function ($) {
         return result;
     };
 
-    var toggleSchedulePart = function() {
-        $(this).children(".slide").slideToggle();
-        $(this).children(".icon").toggleClass("open closed");
-        updateScroller(schedScroll,700);
+    var tapdance = false;	// prevent inadvertant double-click behavior on my android.
+    var toggleSchedulePart = function(e) {
+        e.preventDefault();
+        if ( !tapdance ) {	// don't respond to event until previous event is done.
+            tapdance = true;
+            console.log(e);
+            console.log(e.type + ":" + e.currentTarget.tagName);
+            $(this).children(".slide").slideToggle(200);
+            $(this).children(".icon").toggleClass("open closed");
+            updateScroller(schedScroll,350);
+            setTimeout(function() { tapdance = false; }, 400);
+        }
         return false;
     };
 
@@ -172,6 +185,7 @@ var app = (function ($) {
     };
 
     var navigateTabs = function(e) {
+        e.preventDefault();
         console.log(e);
         if (e.type === "click") {
             currentTab = e.currentTarget.id;
@@ -227,6 +241,8 @@ var app = (function ($) {
     var showSettings = function() {
 
     };
+    
+
 
 
     var module = {
