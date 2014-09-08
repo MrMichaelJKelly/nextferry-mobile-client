@@ -158,7 +158,7 @@ var NextFerry = (function ($) {
             "west" : westCode,
             "east" : eastCode
         };
-        this.displayName = {
+        this.displayName = {	// subtlety: a westbound route goes from east terminal to west terminal
             "west" : westName,
             "east" : eastName
         };
@@ -245,6 +245,11 @@ var NextFerry = (function ($) {
     Route.prototype.hasNewAlerts = function() {
 		return Alert.hasAlerts(this,true);
     };
+    Route.prototype.tGoodness = function(dir,t,now) {
+        now = now || NFDate.nowT();
+        var term = _allTerminals[ this.terminals[ dir === "east" ? "west" : "east" ] ];
+        return timeGoodness(now,term,0,t);
+    }
 
 
     function Terminal(c, n, l) {
@@ -299,7 +304,7 @@ var NextFerry = (function ($) {
     // Goodness depends on the departure time, the current
     // time, travel time, and how much of a buffer you want
     // to leave.
-    function timeGoodness(now, tt, buffer, departure) {
+    var timeGoodness = function(now, tt, buffer, departure) {
         if (tt === false) // ! not just falsey
             return "Unknown";
         else if (now + 0.95 * (tt + buffer) > departure)

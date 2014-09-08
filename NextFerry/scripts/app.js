@@ -3,7 +3,7 @@
  */
 
 var app = (function ($) {
-    var dir = "West";
+    var dir = "west";
     var testrun = false;
 
     var mainScroll;
@@ -67,22 +67,23 @@ var app = (function ($) {
         return false;
     };
 
-    var routeTmpl = {
-        West : "<li>{%= displayName.west %}</li>",
-        East : "<li>{%= displayName.east %}</li>"
-    };
-    var timeTmpl = {
-        West : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('west') %}<span class=''>{%= NextFerry.timeString(v) %}</span> {%/each%}</li>",
-        East : "<li>&nbsp;{%each(i,v) this.data.futureDepartures('east') %}<span class=''>{%= NextFerry.timeString(v) %}</span> {%/each%}</li>"
-    };
-
     var renderRoutes = function() {
         $("#routes").empty();
-        $.tmpl(routeTmpl[dir], NextFerry.Route.displayRoutes()).appendTo("#routes");
+        $("#routes").append( NextFerry.Route.displayRoutes().map( function(r) {
+            return $( "<li>" + r.displayName[dir] + "</li>" );
+        }));
     };
     var renderTimes = function() {
+        var now = NextFerry.NFDate.nowT();
+        // <li><span class='timegoodness'>time</span> <span>...</li>
         $("#times").empty();
-        $.tmpl(timeTmpl[dir], NextFerry.Route.displayRoutes()).appendTo("#times");
+        $("#times").append( NextFerry.Route.displayRoutes().map( function(r) {
+            return $( "<li>" + "".concat( r.futureDepartures(dir).map( function(tt) {
+                return "<span class='" + r.tGoodness(dir,tt,now) + "'> " + 
+                       NextFerry.timeString(tt) + 
+                       "</span>";
+            } )) + "</li>");
+        }));
         updateScroller(mainScroll);
         updateScroller(timeScroll);
     };
@@ -90,7 +91,7 @@ var app = (function ($) {
 
     var toggleDirection = function(e) {
         e.preventDefault();
-		dir = ( dir === "West" ? "East" : "West" );
+		dir = ( dir === "west" ? "east" : "west" );
 		renderMainPage();
         ServerIO.requestTravelTimes();
         return false;
@@ -157,14 +158,14 @@ var app = (function ($) {
         return false;
     };
 
-    var alertTmpl = "<li>{%= body %}</li>";
+
 
     var renderAlerts = function(name) {
     	// build the alerts page if there are any, otherwise hide the alerts page.
         var alist = NextFerry.Alert.alertsFor(name);
         if (alist.length) {
             $("#alerts-list").empty();
-			$.tmpl(alertTmpl, alist).appendTo("#alerts-list");
+			$("#alerts-list").append( alist.map(function(a) { return "<li>" + a.body + "</li>"; }));
             $("#sn-alerts").show();
             $("#alerts-tab").show();
             updateScroller(alertScroll);
