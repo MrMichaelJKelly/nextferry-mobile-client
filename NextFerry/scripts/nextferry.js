@@ -27,94 +27,89 @@
  * codebase is factored.
  */
 var NextFerry = (function ($) {
-    // Testing infrastucture: spoof time by overriding any of these functions
-    // Note you can cause recomputation of todaysScheduleType by setting
-    // the cached value to null.
-    var NFDate = {
-        _tschedt : null,
-        nowD : function() {
-            return new Date(Date.now());
+
+    // Testing infrastucture: spoof time by changing the appropriate values
+    var TestNow = {
+        hours : function() {
+            var now = new Date(Date.now());
+            return now.getHours();
         },
-        getHours : function(d) {
-            return d.getHours();
+        minutes : function() {
+            var now = new Date(Date.now());
+            return now.getMinutes();
         },
-        getMinutes : function(d) {
-            return d.getMinutes();
+        dow : function() {
+            var now = new Date(Date.now());
+            return now.getDay();
         },
-        getDay : function(d) {
-            return d.getDay();
-        },
-        nowT : function() {
-            var dt = NFDate.nowD();
-            var x = NFDate.getHours(dt) * 60 + NFDate.getMinutes(dt);
-            return adjustTime(x);
-        },
-        todaysScheduleType : function() {
-            if (!NFDate._tschedt) {
-                var today = NFDate.nowD();
-                var time = (NFDate.getHours(today) * 60) + NFDate.getMinutes(today);
-                var dow = NFDate.getDay(today);
-                if (time < MorningCutoff) {
-                    dow -= 1;
-                }
-                NFDate._tschedt =
-                (dow < 1 || dow > 5) ? "weekend" : "weekday";
-            }
-            return NFDate._tschedt;
+        reset : function() {    // reset any now-dependent cached values.
+            _tschedt = null;
         }
     };
 
-    // module private functionality: manipulating times
-    // times are minutes past midnite, with some caveats (see original code)
-    var Noon = 12 * 60;
-    var MorningCutoff = 150; // 2:30 am
+    // times are minutes past midnight, but with the day boundary at 2:30am,
+    // to match WSDOT schedule behavior.
+    var NFTime = {
+        Noon : 12 * 60,
+        Midnight : 24 * 60,
+        MorningCutoff : 150, // 2:30am
+        now : function() {
+            var nowT = TestNow.hours() * 60 + TestNow.minutes();
+            if ( nowT < NFTime.MorningCutoff )
+                nowT += NFTime.Midnight;
+            return nowT;
+        },
 
-    // WSDOT essentially has a different concept of
-    // when today becomes tomorrow.  Here we correct
-    // for that by using times > 24H for early morning
-    // times.
-    function adjustTime(t) {
-        return (t < MorningCutoff ? t + 24 * 60 : t);
-    }
-
-    // caches for the string output for times.
-    var cache12 = {};
-    var cache24 = {};
-    // Create printable strings for times, a bit faster
-    // than creating date objects.  And cache them.
-    function display12(t) {
-        if (!cache12[t]) {
-            var hours = Math.floor(t / 60);
-            var minutes = t % 60;
-            if (hours > 24)
-                hours -= 24;
-            if (hours > 12)
-                hours -= 12;
-            if (hours === 0)
-                hours = 12;
-            cache12[t] = hours + ":" + (minutes < 10 ? "0" : "") + minutes;
+        display : function(d) { return NFTime.display12(d); },
+        setDisplayFormat : function(as12) {
+            NFTime.display = (as12 ? NFTime.display12 : NFTime.display24);
+        },
+        // Create printable strings for times, faster
+        // than converting them to date objects.  And cache them.
+        display12 : function(t) {
+            if (!_cache12[t]) {
+                var hours = Math.floor(t / 60);
+                var minutes = t % 60;
+                if (hours > 24)
+                    hours -= 24;
+                if (hours > 12)
+                    hours -= 12;
+                if (hours === 0)
+                    hours = 12;
+                _cache12[t] = hours + ":" + (minutes < 10 ? "0" : "") + minutes;
+            }
+            console.log( "converted " + t + " -> " + _cache12[t]);
+            return _cache12[t];
+        },
+        display24 : function(t) {
+            if (!_cache24[t]) {
+                var hours = Math.floor(t / 60);
+                var minutes = t % 60;
+                if (hours >= 24)
+                    hours -= 24;
+                _cache24[t] =
+                    (hours < 10 ? "0" : "") + hours +
+                    ":" +
+                    (minutes < 10 ? "0" : "") + minutes;
+            }
+            return _cache24[t];
         }
-        return cache12[t];
-    }
-    function display24(t) {
-        if (!cache24[t]) {
-            var hours = Math.floor(t / 60);
-            var minutes = t % 60;
-            if (hours >= 24)
-                hours -= 24;
-            cache24[t] =
-            (hours < 10 ? "0" : "") + hours +
-            ":" +
-            (minutes < 10 ? "0" : "") + minutes;
-        }
-        return cache24[t];
-    }
+    };
+    var _cache12 = {};
+    var _cache24 = {};
 
-    // public display functions
-    var timeString = display12;
-    function setTimeFormat(as12) {
-        NextFerry.timeString = (as12 ? display12 : display24);
+    var todaysScheduleType = function() {
+        if (!_tschedt) {
+            var time = NFTime.now();
+            var dow = TestNow.dow();
+            if (time > NFTime.Midnight) {
+                dow -= 1;
+            }
+            _tschedt = (dow < 1 || dow > 5) ? "weekend" : "weekday";
+        }
+        return _tschedt;
     }
+    var _tschedt = null;
 
 
     var _allRoutes = [];    // main data structure: all routes and schedules
@@ -214,13 +209,13 @@ var NextFerry = (function ($) {
 
     Route.prototype.todaysSchedule = function() {
         // Use special if we have it, else default
-        return this.times.west.special ? "special" : NFDate.todaysScheduleType();
+        return this.times.west.special ? "special" : todaysScheduleType();
     };
     // times the ferry departs after now, today
     Route.prototype.futureDepartures = function(dir, sched) {
         sched = sched || this.todaysSchedule();
         var lst = this.times[dir][sched];
-        var t = NFDate.nowT();
+        var t = NFTime.now();
         return (lst ? lst.filter(function(e, i) {
             return (e > t);
         }) : []);
@@ -229,14 +224,14 @@ var NextFerry = (function ($) {
         sched = sched || this.todaysSchedule();
         var lst = this.times[dir][sched];
         return (lst ? lst.filter(function(e, i) {
-            return (e < Noon);
+            return (e < NFTime.Noon);
         }) : []);
     };
     Route.prototype.afterNoon = function(dir, sched) {
         sched = sched || this.todaysSchedule();
         var lst = this.times[dir][sched];
         return (lst ? lst.filter(function(e, i) {
-            return (e >= Noon);
+            return (e >= NFTime.Noon);
         }) : []);
     };
     Route.prototype.termName = function(dir) {
@@ -246,7 +241,7 @@ var NextFerry = (function ($) {
 		return Alert.hasAlerts(this,true);
     };
     Route.prototype.tGoodness = function(dir,t,now) {
-        now = now || NFDate.nowT();
+        now = now || NFTime.now();
         var term = _allTerminals[ this.terminals[ dir === "east" ? "west" : "east" ] ];
         return timeGoodness(now,term,0,t);
     }
@@ -269,7 +264,7 @@ var NextFerry = (function ($) {
         for (var i in lines) {
             var pieces = lines[i].split(":");
             if ( pieces.length === 2 ) {
-                _allTerminals[pieces[0]].tt = pieces[1];               
+                _allTerminals[pieces[0]].tt = pieces[1];
             }
         }
     };
@@ -386,12 +381,14 @@ var NextFerry = (function ($) {
 
     var module = {
         init : init,
-        NFDate : NFDate,
+        NFTime : NFTime,
         Route : Route,
         Terminal : Terminal,
         Alert : Alert,
-        timeString : timeString,
-        setTimeFormat : setTimeFormat,
+
+        // for testing
+        TestNow : TestNow,
+        todaysScheduleType : todaysScheduleType,
         timeGoodness : timeGoodness
     };
 

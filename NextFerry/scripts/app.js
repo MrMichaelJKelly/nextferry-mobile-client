@@ -74,13 +74,13 @@ var app = (function ($) {
         }));
     };
     var renderTimes = function() {
-        var now = NextFerry.NFDate.nowT();
+        var now = NextFerry.NFTime.now();
         // <li><span class='timegoodness'>time</span> <span>...</li>
         $("#times").empty();
         $("#times").append( NextFerry.Route.displayRoutes().map( function(r) {
             return $( "<li>" + "".concat( r.futureDepartures(dir).map( function(tt) {
-                return "<span class='" + r.tGoodness(dir,tt,now) + "'> " + 
-                       NextFerry.timeString(tt) + 
+                return "<span class='" + r.tGoodness(dir,tt,now) + "'> " +
+                       NextFerry.NFTime.display(tt) +
                        "</span>";
             } )) + "</li>");
         }));
@@ -133,12 +133,12 @@ var app = (function ($) {
 
         updateScroller(schedScroll,700);
     };
-    
+
     var renderTimeList = function(lst) {
         var result = "";
         for (var i in lst) {
             if (i > 0) { result += "<br/>"; }
-            result += NextFerry.timeString(lst[i]);
+            result += NextFerry.NFTime.display(lst[i]);
         }
         return result;
     };
@@ -242,7 +242,7 @@ var app = (function ($) {
     var showSettings = function() {
 
     };
-    
+
 
 
 

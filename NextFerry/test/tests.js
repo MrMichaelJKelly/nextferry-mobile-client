@@ -72,51 +72,50 @@ function nextFerryTests() {
 
 
 	function mockTime( h, m, dow ) {
-		NextFerry.NFDate.getHours = function( d ) { return h; };
-		NextFerry.NFDate.getMinutes = function( d ) { return m; };
-		NextFerry.NFDate.getDay = function( d ) { return dow; };
-		NextFerry.NFDate._tschedt = null;
+		NextFerry.TestNow.reset();
+		NextFerry.TestNow.hours = function() { return h; };
+		NextFerry.TestNow.minutes = function() { return m; };
+		NextFerry.TestNow.dow = function() { return dow; };
 	}
 
 	QUnit.test( "Time functionality", function( assert ) {
-		//setup
 		loadsched();
-		var oldTimeString = NextFerry.timeString;
-		var olddate = NextFerry.NFDate;
-		NextFerry.setTimeFormat( true );
+		var oldTimeImpl = NextFerry.TestNow;
 
 		var faunt = NextFerry.Route.find("fauntleroy-southworth");
 		var times = faunt.times.west.weekday;
 
-		assert.equal( NextFerry.timeString( times[0] ), "4:25" );
-		assert.equal( NextFerry.timeString( times[0] ), "4:25", "caching is okay");
-		assert.equal( NextFerry.timeString( times[11] ), "12:20" );
-		assert.equal( NextFerry.timeString( times[19] ), "6:30" );
-		assert.equal( NextFerry.timeString( times[24] ), "12:55" );
-		assert.equal( NextFerry.timeString( times[25] ), "2:10");
+		NextFerry.NFTime.setDisplayFormat( true );
 
-		NextFerry.setTimeFormat( false );
+		assert.equal( NextFerry.NFTime.display( times[0] ), "4:25" );
+		assert.equal( NextFerry.NFTime.display( times[0] ), "4:25", "caching is okay");
+		assert.equal( NextFerry.NFTime.display( times[11] ), "12:20" );
+		assert.equal( NextFerry.NFTime.display( times[19] ), "6:30" );
+		assert.equal( NextFerry.NFTime.display( times[24] ), "12:55" );
+		assert.equal( NextFerry.NFTime.display( times[25] ), "2:10");
 
-		assert.equal( NextFerry.timeString( times[0] ), "04:25" );
-		assert.equal( NextFerry.timeString( times[0] ), "04:25", "caching is okay");
-		assert.equal( NextFerry.timeString( times[11] ), "12:20" );
-		assert.equal( NextFerry.timeString( times[19] ), "18:30" );
-		assert.equal( NextFerry.timeString( times[24] ), "00:55" );
-		assert.equal( NextFerry.timeString( times[25] ), "02:10");
+		NextFerry.NFTime.setDisplayFormat( false );
+
+		assert.equal( NextFerry.NFTime.display( times[0] ), "04:25" );
+		assert.equal( NextFerry.NFTime.display( times[0] ), "04:25", "caching is okay");
+		assert.equal( NextFerry.NFTime.display( times[11] ), "12:20" );
+		assert.equal( NextFerry.NFTime.display( times[19] ), "18:30" );
+		assert.equal( NextFerry.NFTime.display( times[24] ), "00:55" );
+		assert.equal( NextFerry.NFTime.display( times[25] ), "02:10");
+
 
 		mockTime( 10, 10, 0 );
-		assert.equal( NextFerry.NFDate.todaysScheduleType(), "weekend" );
+		assert.equal( NextFerry.todaysScheduleType(), "weekend" );
 
 		mockTime( 10, 10, 1 );
-		assert.equal( NextFerry.NFDate.todaysScheduleType(), "weekday" );
+		assert.equal( NextFerry.todaysScheduleType(), "weekday" );
 
 		mockTime( 10, 10, 6 );
-		assert.equal( NextFerry.NFDate.todaysScheduleType(), "weekend" );
+		assert.equal( NextFerry.todaysScheduleType(), "weekend" );
 
 		//teardown
 		NextFerry.Route.clearAllTimes();
-		NextFerry.timeString = oldTimeString;
-		NextFerry.NFDate = olddate;
+		NextFerry.TestNow = oldTimeImpl;
 	});
 
 
@@ -124,9 +123,8 @@ function nextFerryTests() {
 	QUnit.test( "Which schedule is it?", function( assert ) {
 		//setup
 		loadsched();
-		var saveNFDate = NextFerry.NFDate;
-		var saveformat = NextFerry.timeString;
-		NextFerry.setTimeFormat( true );
+		var oldTimeImpl = NextFerry.TestNow;
+		NextFerry.NFTime.setDisplayFormat( true );
 
 		var faunt = NextFerry.Route.find("fauntleroy-southworth");
 		var pttownsend = NextFerry.Route.find("pt townsend");
@@ -137,20 +135,20 @@ function nextFerryTests() {
 		var times = faunt.futureDepartures( "west" );
 		// the next departure after 10:15 is 10:20
 		assert.equal( times.length, 18, "we can get times after 10:15" );
-		assert.equal( NextFerry.timeString(times[0]), "10:20" );
+		assert.equal( NextFerry.NFTime.display(times[0]), "10:20" );
 
 		times = faunt.beforeNoon( "east", "weekend" );
 		assert.equal( times.length, 10, "we can get times before Noon" );
 		times = faunt.afterNoon( "east", "weekend" );
 		assert.equal( times.length, 15, "we can get times after Noon");
-		assert.equal( NextFerry.timeString(times[0]), "12:00", "after Noon includes 12:00");
+		assert.equal( NextFerry.NFTime.display(times[0]), "12:00", "after Noon includes 12:00");
 
 		// mean, viscious edge-case:  after midnight, before morning cutoff, Monday morning...
 		// (the proper schedule is the weekend schedule, with a 2:10 departure)
 		mockTime( 1, 30, 1 );
 		times = faunt.futureDepartures( "west" );
 		assert.equal( times.length, 1, "late sunday night");
-		assert.equal( NextFerry.timeString(times[0]), "2:10");
+		assert.equal( NextFerry.NFTime.display(times[0]), "2:10");
 
 		// when there are no future departures this day?
 		mockTime( 15, 0, 3 );
@@ -159,8 +157,7 @@ function nextFerryTests() {
 
 		//teardown
 		NextFerry.Route.clearAllTimes();
-		NextFerry.NFDate = saveNFDate;
-		NextFerry.timeString = saveformat;
+		NextFerry.TestNow = oldTimeImpl;
 	});
 
 
