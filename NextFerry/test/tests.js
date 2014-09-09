@@ -70,17 +70,8 @@ function nextFerryTests() {
 		NextFerry.Route.clearAllTimes();
 	});
 
-
-	function mockTime( h, m, dow ) {
-		NextFerry.TestNow.reset();
-		NextFerry.TestNow.hours = function() { return h; };
-		NextFerry.TestNow.minutes = function() { return m; };
-		NextFerry.TestNow.dow = function() { return dow; };
-	}
-
 	QUnit.test( "Time functionality", function( assert ) {
 		loadsched();
-		var oldTimeImpl = NextFerry.TestNow;
 
 		var faunt = NextFerry.Route.find("fauntleroy-southworth");
 		var times = faunt.times.west.weekday;
@@ -104,18 +95,18 @@ function nextFerryTests() {
 		assert.equal( NextFerry.NFTime.display( times[25] ), "02:10");
 
 
-		mockTime( 10, 10, 0 );
+		NextFerry.NFTime.spoofOn( 10, 10, 0 );
 		assert.equal( NextFerry.todaysScheduleType(), "weekend" );
 
-		mockTime( 10, 10, 1 );
+		NextFerry.NFTime.spoofOn( 10, 10, 1 );
 		assert.equal( NextFerry.todaysScheduleType(), "weekday" );
 
-		mockTime( 10, 10, 6 );
+		NextFerry.NFTime.spoofOn( 10, 10, 6 );
 		assert.equal( NextFerry.todaysScheduleType(), "weekend" );
 
 		//teardown
 		NextFerry.Route.clearAllTimes();
-		NextFerry.TestNow = oldTimeImpl;
+		NextFerry.NFTime.spoofOff();
 	});
 
 
@@ -123,13 +114,12 @@ function nextFerryTests() {
 	QUnit.test( "Which schedule is it?", function( assert ) {
 		//setup
 		loadsched();
-		var oldTimeImpl = NextFerry.TestNow;
 		NextFerry.NFTime.setDisplayFormat( true );
 
 		var faunt = NextFerry.Route.find("fauntleroy-southworth");
 		var pttownsend = NextFerry.Route.find("pt townsend");
 
-		mockTime( 10, 15, 5 );
+		NextFerry.NFTime.spoofOn( 10, 15, 5 );
 		assert.equal( faunt.todaysSchedule(), "weekday", "we know what day it is" );
 
 		var times = faunt.futureDepartures( "west" );
@@ -145,19 +135,19 @@ function nextFerryTests() {
 
 		// mean, viscious edge-case:  after midnight, before morning cutoff, Monday morning...
 		// (the proper schedule is the weekend schedule, with a 2:10 departure)
-		mockTime( 1, 30, 1 );
+		NextFerry.NFTime.spoofOn( 1, 30, 1 );
 		times = faunt.futureDepartures( "west" );
 		assert.equal( times.length, 1, "late sunday night");
 		assert.equal( NextFerry.NFTime.display(times[0]), "2:10");
 
 		// when there are no future departures this day?
-		mockTime( 15, 0, 3 );
+		NextFerry.NFTime.spoofOn( 15, 0, 3 );
 		times = pttownsend.futureDepartures( "east" );
 		assert.equal( times.length, 0, "no more departures today");
 
 		//teardown
 		NextFerry.Route.clearAllTimes();
-		NextFerry.TestNow = oldTimeImpl;
+		NextFerry.NFTime.spoofOff();
 	});
 
 

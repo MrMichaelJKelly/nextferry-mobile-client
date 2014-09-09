@@ -28,45 +28,53 @@
  */
 var NextFerry = (function ($) {
 
-    // Testing infrastucture: spoof time by changing the appropriate values
-    var TestNow = {
-        hours : function() {
-            var now = new Date(Date.now());
-            return now.getHours();
-        },
-        minutes : function() {
-            var now = new Date(Date.now());
-            return now.getMinutes();
-        },
-        dow : function() {
-            var now = new Date(Date.now());
-            return now.getDay();
-        },
-        reset : function() {    // reset any now-dependent cached values.
-            _tschedt = null;
-        }
-    };
-
-    // times are minutes past midnight, but with the day boundary at 2:30am,
+    // NFTime submodule (not object type)
+    // Times are minutes past midnight, but with the day boundary at 2:30am,
     // to match WSDOT schedule behavior.
-    var NFTime = {
-        Noon : 12 * 60,
-        Midnight : 24 * 60,
-        MorningCutoff : 150, // 2:30am
-        now : function() {
-            var nowT = TestNow.hours() * 60 + TestNow.minutes();
-            if ( nowT < NFTime.MorningCutoff )
-                nowT += NFTime.Midnight;
-            return nowT;
-        },
+    var NFTime = function() {
+        var _cache12 = {};
+        var _cache24 = {};
+        var Noon = 12 * 60;
+        var Midnight = 24 * 60;
+        var MorningCutoff = 150; // 2:30am
+        var isSpoof = false;
+        var hours, minutes, dow;
 
-        display : function(d) { return NFTime.display12(d); },
-        setDisplayFormat : function(as12) {
-            NFTime.display = (as12 ? NFTime.display12 : NFTime.display24);
-        },
+        // Use spoofOn to set specific times for testing, and spoofOff to return
+        // to normal behavior.
+        // The arguments are *calendar* (uncorrected) hour, minute, day-of-week
+        var spoofOn = function(h,m,d) {
+            isSpoof = true;
+            _tsched = false;
+            hours = h;
+            minutes = m;
+            dow = d;
+        };
+        var spoofOff = function() {
+            isSpoof = false;
+            _tsched = false;
+        };
+        var now = function() {
+            if ( !isSpoof ) {
+                var nowD = new Date(Date.now());
+                hours = nowD.getHours();
+                minutes = nowD.getMinutes();
+            }
+
+            var nowT = hours * 60 + minutes;
+            return ( nowT < MorningCutoff ? nowT + Midnight : nowT);
+        };
+        var dayOfWeek = function() {
+            if ( !isSpoof ) {
+                var nowD = new Date(Date.now());
+                dow = nowD.getDay();
+            }
+            return ( now() > Midnight ? dow-1 : dow );
+        };
+
         // Create printable strings for times, faster
         // than converting them to date objects.  And cache them.
-        display12 : function(t) {
+        var display12 = function(t) {
             if (!_cache12[t]) {
                 var hours = Math.floor(t / 60);
                 var minutes = t % 60;
@@ -80,8 +88,8 @@ var NextFerry = (function ($) {
             }
             console.log( "converted " + t + " -> " + _cache12[t]);
             return _cache12[t];
-        },
-        display24 : function(t) {
+        };
+        var display24 = function(t) {
             if (!_cache24[t]) {
                 var hours = Math.floor(t / 60);
                 var minutes = t % 60;
@@ -93,30 +101,43 @@ var NextFerry = (function ($) {
                     (minutes < 10 ? "0" : "") + minutes;
             }
             return _cache24[t];
-        }
-    };
-    var _cache12 = {};
-    var _cache24 = {};
+        };
+        var _display = display12;
+        var display = function(t) { return _display(t); }
+        var setDisplayFormat = function(as12) {
+            _display = (as12 ? display12 : display24);
+        };
+
+        var submodule = {
+            Noon : Noon,
+            Midnight : Midnight,
+            MorningCutoff : MorningCutoff,
+            now : now,
+            dayOfWeek : dayOfWeek,
+            spoofOn : spoofOn,
+            spoofOff : spoofOff,
+            display : display,
+            setDisplayFormat : setDisplayFormat
+        };
+
+        return submodule;
+    }(); // submodule NFTime
+
 
     var todaysScheduleType = function() {
-        if (!_tschedt) {
-            var time = NFTime.now();
-            var dow = TestNow.dow();
-            if (time > NFTime.Midnight) {
-                dow -= 1;
-            }
-            _tschedt = (dow < 1 || dow > 5) ? "weekend" : "weekday";
+        if (!_tsched) {
+            var dow = NFTime.dayOfWeek();
+            _tsched = (dow < 1 || dow > 5) ? "weekend" : "weekday";
         }
-        return _tschedt;
+        return _tsched;
     }
-    var _tschedt = null;
+    var _tsched = null;
 
 
-    var _allRoutes = [];    // main data structure: all routes and schedules
-    var _displayList = {};  // user-chosen set of routes to display
+    var _allRoutes = [];    // main data structure: list of all routes
+    var _displayList = {};  // user-chosen *set* of routes to display (route id's are keys)
     var _alertList = [];    // list of all alerts (not persisted)
     var _readList = [];     // list of alerts the user has already read
-    // sets are represented by js object attributes (with value = true)
 
     var init = function() {
         _allRoutes = [
@@ -387,7 +408,6 @@ var NextFerry = (function ($) {
         Alert : Alert,
 
         // for testing
-        TestNow : TestNow,
         todaysScheduleType : todaysScheduleType,
         timeGoodness : timeGoodness
     };
