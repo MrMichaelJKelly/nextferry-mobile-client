@@ -149,6 +149,44 @@ function nextFerryTests() {
 		NextFerry.Route.clearAllTimes();
 		NextFerry.NFTime.spoofOff();
 	});
+    
+    var travelTimes = "17:10\n20:20";  // 10 minutes to pt townsend, 20 minutes to southworth
+    QUnit.test( "Time Goodness", function( assert ) {
+		//setup
+		loadsched();
+        NextFerry.Terminal.loadTTs(travelTimes);
+        
+        assert.equal(NextFerry.Terminal.find(17).tt, 10, "setting tt worked");
+        assert.equal(NextFerry.Terminal.find(20).tt, 20 );
+        assert.equal(NextFerry.Terminal.find(7).tt, false, "not setting tt worked too");
+        
+        // If we don't know the travel time, we can't estimate goodness
+        // If we do know the travel time, our expected arrival is now + travel time,
+        // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
+        //
+        // If our expected arrival time is:
+        //     more than a couple minutes after departure time it is definitely too late.
+        //     right around departure time it is risky.   (our buffer is entirely consumed.)
+        //     between arrival time and two hours later, it is good
+        //     after that, we don't care (we'll catch an earlier ferry for sure).
+        
+        var faunt = NextFerry.Route.find("fauntleroy-southworth"); // 20 minutes to southworth
+        var departure = 1500;
+        // buffer = zero, for now.
+        
+        assert.equal( faunt.tGoodness("west", departure, departure), "Unknown", "We don't know tt for west terminal" );
+		assert.equal( faunt.tGoodness("east", departure, departure+10), "TooLate", "It already left");
+        assert.equal( faunt.tGoodness("east", departure, departure-10), "TooLate", "We can't get there in time");
+        assert.equal( faunt.tGoodness("east", departure, departure-18), "Risky", "Maybe if we're lucky");
+        assert.equal( faunt.tGoodness("east", departure, departure-20), "Risky", "If all goes perfectly");
+        assert.equal( faunt.tGoodness("east", departure, departure-22), "Good", "Within our buffer zone");
+        assert.equal( faunt.tGoodness("east", departure, departure-100), "Good", "80 minutes to spare is plenty good" );
+        assert.equal( faunt.tGoodness("east", departure, departure-300), "Indifferent", "yeah, whatever" );
+		
+        //teardown
+		NextFerry.Route.clearAllTimes();
+        NextFerry.Terminal.clearTTs();
+    });
 
 
     // Alerts

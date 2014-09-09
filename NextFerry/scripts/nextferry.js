@@ -261,10 +261,10 @@ var NextFerry = (function ($) {
     Route.prototype.hasNewAlerts = function() {
 		return Alert.hasAlerts(this,true);
     };
-    Route.prototype.tGoodness = function(dir,t,now) {
+    Route.prototype.tGoodness = function(dir,departuretime,now) {
         now = now || NFTime.now();
         var term = _allTerminals[ this.terminals[ dir === "east" ? "west" : "east" ] ];
-        return timeGoodness(now,term,0,t);
+        return timeGoodness(now,term.tt,0,departuretime);
     }
 
 
@@ -285,7 +285,7 @@ var NextFerry = (function ($) {
         for (var i in lines) {
             var pieces = lines[i].split(":");
             if ( pieces.length === 2 ) {
-                _allTerminals[pieces[0]].tt = pieces[1];
+                _allTerminals[pieces[0]].tt = parseInt(pieces[1]);
             }
         }
     };
@@ -317,15 +317,25 @@ var NextFerry = (function ($) {
         22 : new Terminal(22, "Vashon Island", "47.508616, -122.464127")
     };
 
-    // Goodness depends on the departure time, the current
-    // time, travel time, and how much of a buffer you want
-    // to leave.
+    // Goodness depends on the departure time, the current time, travel time to the 
+    // terminal, and user-specified buffer time.
+	//
+    // If we don't know the travel time, we can't estimate goodness
+    // If we do know the travel time, our expected arrival is now + travel time,
+    // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
+    //
+    // If our expected arrival time is:
+    //     more than a couple minutes after departure time it is definitely too late.
+    //     right at departure time it is risky.   (our buffer is entirely consumed.)
+    //     between arrival time and two hours later, it is good
+    //     after that, we don't care (we'll catch an earlier ferry for sure).
+    //
     var timeGoodness = function(now, tt, buffer, departure) {
         if (tt === false) // ! not just falsey
             return "Unknown";
-        else if (now + 0.95 * (tt + buffer) > departure)
+        else if (now + 0.9*tt + 0.5*buffer > departure)
             return "TooLate";
-        else if (now + tt + buffer > departure)
+        else if (now + tt + buffer >= departure)
             return "Risky";
         else if (now + tt + buffer + 120 < departure)
         // two hours is the *max* time we care about
