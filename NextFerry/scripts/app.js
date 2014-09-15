@@ -22,15 +22,22 @@ var app = (function ($) {
             nextFerryTests();
         }
         else {
+            // immediately show the main page
             $("#title").lettering();
             renderMainPage();
             goPage($("#main-page"));
+            
+            // wire up asynch responses
             ServerIO.loadSchedule.listeners.add(renderTimes);
+            ServerIO.loadTravelTimes.listeners.add(updateTravelTimes);
+            
+            // initialize main page travel times and generalized update
             if ( window.localStorage["cache"] ) {
                 ServerIO.loadSchedule( window.localStorage["cache"] );
             }
             ServerIO.requestUpdate();
 
+            // initialize scrollers
             mainScroll = new IScroll("#outerwrap", { tap: true });
             timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
             updateScroller(mainScroll);
@@ -87,6 +94,15 @@ var app = (function ($) {
         updateScroller(mainScroll);
         updateScroller(timeScroll);
     };
+    
+    var updateTravelTimes = function() {
+        // let's wait and see if we need to be clever or not.
+        renderTimes();
+        // only bother if the main page is showing
+        //if($('#main-page').is(':visible')){
+        //    
+        //} 
+    };
 
 
     var toggleDirection = function(e) {
@@ -101,8 +117,8 @@ var app = (function ($) {
 
     var goSchedulePage = function(e) {
         e.preventDefault();
-        console.log(e);
-        console.log(e.type + ":" + e.currentTarget.tagName);
+        //console.log(e);
+        //console.log(e.type + ":" + e.currentTarget.tagName);
         var routename = e.target.innerText;
         renderSchedule(routename);
         renderAlerts(routename);
@@ -148,8 +164,8 @@ var app = (function ($) {
         e.preventDefault();
         if ( !tapdance ) {	// don't respond to event until previous event is done.
             tapdance = true;
-            console.log(e);
-            console.log(e.type + ":" + e.currentTarget.tagName);
+            //console.log(e);
+            //console.log(e.type + ":" + e.currentTarget.tagName);
             $(this).children(".slide").slideToggle(200);
             $(this).children(".icon").toggleClass("open closed");
             updateScroller(schedScroll,350);
@@ -242,8 +258,6 @@ var app = (function ($) {
     var showSettings = function() {
 
     };
-
-
 
 
     var module = {

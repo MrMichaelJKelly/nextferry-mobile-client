@@ -86,7 +86,6 @@ var NextFerry = (function ($) {
                     hours = 12;
                 _cache12[t] = hours + ":" + (minutes < 10 ? "0" : "") + minutes;
             }
-            console.log( "converted " + t + " -> " + _cache12[t]);
             return _cache12[t];
         };
         var display24 = function(t) {
@@ -264,7 +263,7 @@ var NextFerry = (function ($) {
     Route.prototype.tGoodness = function(dir,departuretime,now) {
         now = now || NFTime.now();
         var term = _allTerminals[ this.terminals[ dir === "east" ? "west" : "east" ] ];
-        return timeGoodness(now,term.tt,0,departuretime);
+        return term.tGoodness(now,0,departuretime);
     }
 
 
@@ -294,7 +293,33 @@ var NextFerry = (function ($) {
     };
     Terminal.find = function(code) {
         return _allTerminals[code];
-    }
+    };
+    Terminal.prototype.tGoodness = function(now,buffer,departuretime) {
+        // Time goodness depends on the departure time, the current time, travel time to this 
+        // terminal, and user-specified buffer time.
+    	//
+        // If we don't know the travel time, we can't estimate goodness
+        // If we do know the travel time, our expected arrival is now + travel time,
+        // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
+        //
+        // If our expected arrival time is:
+        //     more than a couple minutes after departure time it is definitely too late.
+        //     right at departure time it is risky.   (our buffer is entirely consumed.)
+        //     between arrival time and two hours later, it is good
+        //     after that, we don't care (we'll catch an earlier ferry for sure).
+        //
+        if (this.tt === false) // ! not just falsey
+            return "Unknown";
+        else if (now + 0.9*this.tt + 0.5*buffer > departuretime)
+            return "TooLate";
+        else if (now + this.tt + buffer >= departuretime)
+            return "Risky";
+        else if (now + this.tt + buffer + 120 < departuretime)
+        	// two hours is the *max* time we care about
+            return "Indifferent";
+        else
+            return "Good";   
+    };
     var _allTerminals = {
         1 : new Terminal(1, "Anacortes", "48.502220, -122.679455"),
         3 : new Terminal(3, "Bainbridge Island", "47.623046, -122.511377"),
@@ -317,32 +342,6 @@ var NextFerry = (function ($) {
         22 : new Terminal(22, "Vashon Island", "47.508616, -122.464127")
     };
 
-    // Goodness depends on the departure time, the current time, travel time to the 
-    // terminal, and user-specified buffer time.
-	//
-    // If we don't know the travel time, we can't estimate goodness
-    // If we do know the travel time, our expected arrival is now + travel time,
-    // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
-    //
-    // If our expected arrival time is:
-    //     more than a couple minutes after departure time it is definitely too late.
-    //     right at departure time it is risky.   (our buffer is entirely consumed.)
-    //     between arrival time and two hours later, it is good
-    //     after that, we don't care (we'll catch an earlier ferry for sure).
-    //
-    var timeGoodness = function(now, tt, buffer, departure) {
-        if (tt === false) // ! not just falsey
-            return "Unknown";
-        else if (now + 0.9*tt + 0.5*buffer > departure)
-            return "TooLate";
-        else if (now + tt + buffer >= departure)
-            return "Risky";
-        else if (now + tt + buffer + 120 < departure)
-        // two hours is the *max* time we care about
-            return "Indifferent";
-        else
-            return "Good";
-    }
 
     function Alert(id, codes, body) {
         this.id = id;
@@ -418,8 +417,7 @@ var NextFerry = (function ($) {
         Alert : Alert,
 
         // for testing
-        todaysScheduleType : todaysScheduleType,
-        timeGoodness : timeGoodness
+        todaysScheduleType : todaysScheduleType
     };
 
     return module;

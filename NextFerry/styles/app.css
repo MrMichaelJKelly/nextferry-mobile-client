@@ -34,6 +34,7 @@ li {
 .icon.info::before { content: "\F315"; }
 .icon.alert::before { content: "\F05A"; }
 .icon.return::before { content: "\F31A"; }
+.icon.settings::before { content: "\F00F"; }
 .icon[glyph]::before { content: attr(glyph); }
 .icon.open, .icon.closed {
     vertical-align: -10%;
@@ -50,7 +51,7 @@ li {
     bottom: 0;
     overflow: hidden;
 }
-#schedule-page, #options, #test-page { /* init visibility */
+#schedule-page, #settings, #test-page { /* init visibility */
     display: none;
 }
 
@@ -63,6 +64,13 @@ li {
 }
 .scrollwrapper {
     overflow: hidden;
+}
+.settingsfloater {
+    position: absolute;
+    background: rgba(255,255,255,30%);
+    right: 0;
+    bottom: 0;
+    z-index: 20;
 }
 
 
@@ -85,6 +93,14 @@ li {
     margin-right: 15pt;
     text-transform: capitalize;
 }
+#outerwrap {
+	position: absolute;
+	width: 100%;
+    top: 50pt;
+    left: 11pt;
+    right: 10pt;
+    bottom: 10pt;
+}
 #routes {
 	position: absolute;
 	top: 0;
@@ -105,13 +121,14 @@ li {
 	white-space: nowrap;
 	width: 1000pt;
 }
-#outerwrap {
-	position: absolute;
-	width: 100%;
-    top: 50pt;
-    left: 11pt;
-    right: 10pt;
-    bottom: 10pt;
+.TooLate {
+    color: Red;
+}
+.Risky {
+    color: Yellow;
+}
+.Good {
+    color: Green;
 }
 
 
