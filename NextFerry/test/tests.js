@@ -1,19 +1,5 @@
 function nextFerryTests() {
-	QUnit.test( "Routes exist", function( assert ) {
-      assert.equal( NextFerry.Route.allRoutes().length, 11, "There are 11 routes" );
-      assert.equal( NextFerry.Route.allRoutes()[3].displayName["west"], "pt townsend",
-      	"At least one route has a correct name" );
-      assert.equal( NextFerry.Route.allRoutes()[5].displayName["east"], "vashon-fauntleroy",
-      	"At least one route has its name in the correct direction");
-      assert.equal(
-      	NextFerry.Terminal.allTerminals()[ NextFerry.Route.allRoutes()[5].terminals["west"] ].name, "Vashon Island",
-      	"At least one route is hooked properly to it's terminal");
-      assert.equal( NextFerry.Route.find("edmonds").terminals["west"], 12, "Route.find can find");
-      assert.equal( NextFerry.Route.find("fauntleroy-vashon").code,
-      	            NextFerry.Route.find("vashon-fauntleroy").code,
-      	            "... in either direction");
-    });
-
+	// management stuff
 	var schedulefragment =
 		"// this is part of a real schedule \n" +
 		"// with some times removed to make the lengths different\n" +
@@ -35,23 +21,78 @@ function nextFerryTests() {
         //southworth-fauntleroy,ed, 4:25am, 5:00am, 6:00am, 6:40am, 7:55am, 8:20am, 9:20am, 9:50am,10:10am,11:10am,11:35am,12:30pm, 1:10pm, 2:30pm, 2:55pm, 3:50pm, 4:05pm, 5:05pm, 5:50pm, 6:30pm, 7:20pm, 8:30pm,11:05pm,12:25pm, 1:40am
         //southworth-fauntleroy,ee, 4:25am, 6:05am, 6:50am, 7:40am, 8:20am, 9:20am,10:00am,10:20am,10:55am,11:30am,12:00am,12:30pm, 1:10pm, 2:25pm, 3:10pm, 3:50pm, 4:50pm, 5:30pm, 7:10pm, 7:45pm, 8:30pm, 9:15pm,11:05pm,12:25pm, 1:40am
 
+
 	function loadsched() {
 		// See the "readable" version in the comment at the bottom of the file
 		NextFerry.Route.clearAllTimes();
 		ServerIO.loadSchedule( schedulefragment );
 	}
 
+	// remove changes to localStorage.
+	var _store;
+	function copyLS() {
+		_store = JSON.stringify( window.localStorage );
+	}
+	function restoreLS() {
+		// just copying over window.localStorage seems like a bad idea.
+		// after all, window.localStorage is a special kind of object.
+		// so restore the properties, one by one.
+		var restore = JSON.parse( _store );
+		for ( i in restore ) {
+			window.localStorage[i] = restore[i];
+		}
+		// and get rid of any that were added.
+		for ( i in window.localStorage ) {
+			if ( ! (i in restore) ) {
+				delete window.localStorage[i];
+			}
+		}
+	}
+
+	// begin tests.
+
 	QUnit.test( "Test Infrastructure test", function( assert ) {
+		window.localStorage["zzqq"] = 1;
+		copyLS();
+
+		// test clearAllTimes
 		var pttownsend = NextFerry.Route.find("pt townsend");
 		pttownsend.times.east.weekday = [1, 2, 3, 4];
 		pttownsend.times.west.weekday = [5, 6, 7, 8];
 		NextFerry.Route.clearAllTimes();
 		assert.deepEqual( pttownsend.times.east, {});
 		assert.deepEqual( pttownsend.times.west, {});
+
+		// test restoring localStorage
+		assert.ok( ! ("zzy" in window.localStorage) );
+		assert.ok( "zzqq" in window.localStorage );
+		window.localStorage["zzqq"] = 20;
+		window.localStorage["zzy"] = "bar";
+		restoreLS();
+		assert.equal( window.localStorage["zzqq"], 1, "restoring localStorage works");
+		assert.ok( ! ("zzy" in window.localStorage), "and it gets rid of added properties" );
+		delete window.localStorage["zzqq"];
 	});
+
+	QUnit.test( "Routes exist", function( assert ) {
+    assert.equal( NextFerry.Route.allRoutes().length, 11, "There are 11 routes" );
+    assert.equal( NextFerry.Route.allRoutes()[3].displayName["west"], "pt townsend",
+    	"At least one route has a correct name" );
+    assert.equal( NextFerry.Route.allRoutes()[5].displayName["east"], "vashon-fauntleroy",
+    	"At least one route has its name in the correct direction");
+    assert.equal(
+    	NextFerry.Terminal.allTerminals()[ NextFerry.Route.allRoutes()[5].terminals["west"] ].name, "Vashon Island",
+    	"At least one route is hooked properly to it's terminal");
+    assert.equal( NextFerry.Route.find("edmonds").terminals["west"], 12, "Route.find can find");
+    assert.equal( NextFerry.Route.find("fauntleroy-vashon").code,
+    	            NextFerry.Route.find("vashon-fauntleroy").code,
+    	            "... in either direction");
+    assert.equal( NextFerry.Route.find(1<<8).code, 1<<8, "lookup by code works too");
+  });
 
 	QUnit.test( "Schedules can be created", function( assert ) {
 		//setup
+		copyLS();
 		loadsched();
 
 		//test
@@ -68,15 +109,17 @@ function nextFerryTests() {
 
 		//teardown
 		NextFerry.Route.clearAllTimes();
+		restoreLS();
 	});
 
 	QUnit.test( "Time functionality", function( assert ) {
+		copyLS();
 		loadsched();
 
 		var faunt = NextFerry.Route.find("fauntleroy-southworth");
 		var times = faunt.times.west.weekday;
 
-		NextFerry.NFTime.setDisplayFormat( true );
+		NextFerry.NFTime.setDisplayFormat( "tf12" );
 
 		assert.equal( NextFerry.NFTime.display( times[0] ), "4:25" );
 		assert.equal( NextFerry.NFTime.display( times[0] ), "4:25", "caching is okay");
@@ -85,7 +128,7 @@ function nextFerryTests() {
 		assert.equal( NextFerry.NFTime.display( times[24] ), "12:55" );
 		assert.equal( NextFerry.NFTime.display( times[25] ), "2:10");
 
-		NextFerry.NFTime.setDisplayFormat( false );
+		NextFerry.NFTime.setDisplayFormat( "tf24" );
 
 		assert.equal( NextFerry.NFTime.display( times[0] ), "04:25" );
 		assert.equal( NextFerry.NFTime.display( times[0] ), "04:25", "caching is okay");
@@ -107,14 +150,16 @@ function nextFerryTests() {
 		//teardown
 		NextFerry.Route.clearAllTimes();
 		NextFerry.NFTime.spoofOff();
+		restoreLS();
 	});
 
 
 
 	QUnit.test( "Which schedule is it?", function( assert ) {
 		//setup
+		copyLS();
 		loadsched();
-		NextFerry.NFTime.setDisplayFormat( true );
+		NextFerry.NFTime.setDisplayFormat( "tf12" );
 
 		var faunt = NextFerry.Route.find("fauntleroy-southworth");
 		var pttownsend = NextFerry.Route.find("pt townsend");
@@ -148,44 +193,47 @@ function nextFerryTests() {
 		//teardown
 		NextFerry.Route.clearAllTimes();
 		NextFerry.NFTime.spoofOff();
+		restoreLS();
 	});
-    
+
     var travelTimes = "17:10\n20:20";  // 10 minutes to pt townsend, 20 minutes to southworth
     QUnit.test( "Time Goodness", function( assert ) {
-		//setup
-		loadsched();
-        NextFerry.Terminal.loadTTs(travelTimes);
-        
-        assert.equal(NextFerry.Terminal.find(17).tt, 10, "setting tt worked");
-        assert.equal(NextFerry.Terminal.find(20).tt, 20 );
-        assert.equal(NextFerry.Terminal.find(7).tt, false, "not setting tt worked too");
-        
-        // If we don't know the travel time, we can't estimate goodness
-        // If we do know the travel time, our expected arrival is now + travel time,
-        // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
-        //
-        // If our expected arrival time is:
-        //     more than a couple minutes after departure time it is definitely too late.
-        //     right around departure time it is risky.   (our buffer is entirely consumed.)
-        //     between arrival time and two hours later, it is good
-        //     after that, we don't care (we'll catch an earlier ferry for sure).
-        
-        var faunt = NextFerry.Route.find("fauntleroy-southworth"); // 20 minutes to southworth
-        var departure = 1500;
-        // buffer = zero, for now.
-        
-        assert.equal( faunt.tGoodness("west", departure, departure), "Unknown", "We don't know tt for west terminal" );
-		assert.equal( faunt.tGoodness("east", departure, departure+10), "TooLate", "It already left");
-        assert.equal( faunt.tGoodness("east", departure, departure-10), "TooLate", "We can't get there in time");
-        assert.equal( faunt.tGoodness("east", departure, departure-18), "Risky", "Maybe if we're lucky");
-        assert.equal( faunt.tGoodness("east", departure, departure-20), "Risky", "If all goes perfectly");
-        assert.equal( faunt.tGoodness("east", departure, departure-22), "Good", "Within our buffer zone");
-        assert.equal( faunt.tGoodness("east", departure, departure-100), "Good", "80 minutes to spare is plenty good" );
-        assert.equal( faunt.tGoodness("east", departure, departure-300), "Indifferent", "yeah, whatever" );
-		
-        //teardown
-		NextFerry.Route.clearAllTimes();
-        NextFerry.Terminal.clearTTs();
+			//setup
+			copyLS();
+			loadsched();
+			NextFerry.Terminal.loadTTs(travelTimes);
+
+			assert.equal(NextFerry.Terminal.find(17).tt, 10, "setting tt worked");
+			assert.equal(NextFerry.Terminal.find(20).tt, 20 );
+			assert.equal(NextFerry.Terminal.find(7).tt, false, "not setting tt worked too");
+
+      // If we don't know the travel time, we can't estimate goodness
+      // If we do know the travel time, our expected arrival is now + travel time,
+      // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
+      //
+      // If our expected arrival time is:
+      //     more than a couple minutes after departure time it is definitely too late.
+      //     right around departure time it is risky.   (our buffer is entirely consumed.)
+      //     between arrival time and two hours later, it is good
+      //     after that, we don't care (we'll catch an earlier ferry for sure).
+
+      var faunt = NextFerry.Route.find("fauntleroy-southworth"); // 20 minutes to southworth
+      var departure = 1500;
+      // buffer = zero, for now.
+
+      assert.equal( faunt.tGoodness("west", departure, departure), "Unknown", "We don't know tt for west terminal" );
+      assert.equal( faunt.tGoodness("east", departure, departure+10), "TooLate", "It already left");
+      assert.equal( faunt.tGoodness("east", departure, departure-10), "TooLate", "We can't get there in time");
+      assert.equal( faunt.tGoodness("east", departure, departure-18), "Risky", "Maybe if we're lucky");
+      assert.equal( faunt.tGoodness("east", departure, departure-20), "Risky", "If all goes perfectly");
+      assert.equal( faunt.tGoodness("east", departure, departure-22), "Good", "Within our buffer zone");
+      assert.equal( faunt.tGoodness("east", departure, departure-100), "Good", "80 minutes to spare is plenty good" );
+      assert.equal( faunt.tGoodness("east", departure, departure-300), "Indifferent", "yeah, whatever" );
+
+      //teardown
+      NextFerry.Route.clearAllTimes();
+      NextFerry.Terminal.clearTTs();
+      restoreLS();
     });
 
 
@@ -203,63 +251,67 @@ function nextFerryTests() {
 				 "__";
 
     QUnit.test("Loading an Alert", function(assert) {
-        window.localStorage["readlist"] = "";
-        NextFerry.init();
-        expect(5);
+    	copyLS();
+      window.localStorage["readlist"] = "";
+      NextFerry.init();
+      expect(5);
 
-        NextFerry.Alert.loadAlerts(alert1);
-        var alerts = NextFerry.Alert.allAlerts();
-        assert.equal( alerts.length, 1, "We can load a single alert" );
-        var a = alerts[0];
-        assert.equal( a.id, "00:45:53.308110", "With id..." );
-        assert.equal( a.codes, 224, "Codes..." );
-        assert.equal( a.unread, true, "Read status...");
-        assert.equal( a.body, "This is an alert for the Vashon ferries.  Some message here.\n", "and body.");
+      NextFerry.Alert.loadAlerts(alert1);
+      var alerts = NextFerry.Alert.allAlerts();
+      assert.equal( alerts.length, 1, "We can load a single alert" );
+      var a = alerts[0];
+      assert.equal( a.id, "00:45:53.308110", "With id..." );
+      assert.equal( a.codes, 224, "Codes..." );
+      assert.equal( a.unread, true, "Read status...");
+      assert.equal( a.body, "This is an alert for the Vashon ferries.  Some message here.\n", "and body.");
+      restoreLS();
     });
 
     QUnit.test("Working with Alerts", function(assert) {
-        window.localStorage["readlist"] = "";
-        NextFerry.init();
-        expect(10);
+    	copyLS();
+      window.localStorage["readlist"] = "";
+      NextFerry.init();
+      expect(10);
 
-        NextFerry.Alert.loadAlerts(alert3);
-        assert.equal( NextFerry.Alert.allAlerts().length, 3, "Loading multiple alerts" );
+      NextFerry.Alert.loadAlerts(alert3);
+      assert.equal( NextFerry.Alert.allAlerts().length, 3, "Loading multiple alerts" );
 
-        var r = NextFerry.Route.find("fauntleroy-vashon");
-        assert.equal( NextFerry.Alert.hasAlerts(r), true, "checking when alerts present" );
-        assert.equal( NextFerry.Alert.hasAlerts(r,true), true, "...okay for unread alerts" );
-        var alerts = NextFerry.Alert.alertsFor(r);
-        assert.equal( alerts.length, 2, "Retrieval works" );
-        assert.equal( NextFerry.Alert.alertsFor("vashon-southworth").length, 2, "via another route");
-		assert.equal( NextFerry.Alert.alertsFor("bremerton").length, 0, "empty lookup works");
-        assert.equal( NextFerry.Alert.hasAlerts("bremerton"), false, "either way you do it" );
-        assert.equal( NextFerry.Alert.hasAlerts("edmonds"), true, "edmonds alert" );
-        alerts = NextFerry.Alert.alertsFor("edmonds");
-        assert.equal( alerts.length, 1, "we can retrieve it" );
-        assert.equal( alerts[0].body, "And this is an alert for Edmonds\n", "and it has the right body" );
+      var r = NextFerry.Route.find("fauntleroy-vashon");
+      assert.equal( NextFerry.Alert.hasAlerts(r), true, "checking when alerts present" );
+      assert.equal( NextFerry.Alert.hasAlerts(r,true), true, "...okay for unread alerts" );
+      var alerts = NextFerry.Alert.alertsFor(r);
+      assert.equal( alerts.length, 2, "Retrieval works" );
+      assert.equal( NextFerry.Alert.alertsFor("vashon-southworth").length, 2, "via another route");
+	assert.equal( NextFerry.Alert.alertsFor("bremerton").length, 0, "empty lookup works");
+      assert.equal( NextFerry.Alert.hasAlerts("bremerton"), false, "either way you do it" );
+      assert.equal( NextFerry.Alert.hasAlerts("edmonds"), true, "edmonds alert" );
+      alerts = NextFerry.Alert.alertsFor("edmonds");
+      assert.equal( alerts.length, 1, "we can retrieve it" );
+      assert.equal( alerts[0].body, "And this is an alert for Edmonds\n", "and it has the right body" );
+
+      restoreLS();
     });
 
 
-    // Asynch tests go last.  Be *really* careful about global state!
+  // Asynch network tests goes last.
+  // We don't clean up state from this one, but all that will happen is that
+  // a new schedule will be loaded.
+  // Don't add any other state changes!
 
 	QUnit.asyncTest( "First Contact", function( assert ) {
 		//setup
 		NextFerry.Route.clearAllTimes();
-        window.localStorage["cachedate"] = "";
+    window.localStorage["cachedate"] = "";
 		expect(3);
 
 		//test
 		ServerIO.requestUpdate().always( function(obj,stat,data) {
-            console.log(".always comes through");
 			assert.equal( stat, "success", "call succeeded");
 			var pttownsend = NextFerry.Route.find("pt townsend");
 			assert.ok( pttownsend.times.west.weekday, "retrieved a weekday schedule")
 			assert.ok( pttownsend.times.west.weekday.length > 0, "and it is non-empty");
 			QUnit.start();
 		});
-
-		//teardown
-		NextFerry.Route.clearAllTimes();
 	});
 }
 

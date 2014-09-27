@@ -103,8 +103,8 @@ var NextFerry = (function ($) {
         };
         var _display = display12;
         var display = function(t) { return _display(t); }
-        var setDisplayFormat = function(as12) {
-            _display = (as12 ? display12 : display24);
+        var setDisplayFormat = function(tf) {
+            _display = (tf === "tf12" ? display12 : display24);
         };
 
         var submodule = {
@@ -159,11 +159,12 @@ var NextFerry = (function ($) {
             // default: display all routes
             _displayList = {};
             for( var i in _allRoutes ) {
-                _displayList[_allRoutes[i].displayName["west"]] = true;
+                _displayList[_allRoutes[i].code] = true;
             }
         }
 
         _readList = window.localStorage["readList"] || [];
+        NFTime.setDisplayFormat( window.localStorage["tf"] || "tf12" );
     };
 
 
@@ -194,10 +195,27 @@ var NextFerry = (function ($) {
         }
         return result;
     }
+    Route.prototype.isDisplayed = function() {
+        return this.code in _displayList;
+    }
+    Route.prototype.display = function(b) {
+        // TODO: what is the real syntax?
+        if (b) {
+            _displayList[this.code] = true;
+        }
+        else {
+            del(_displayList[this.code]);
+        }
+    }
+    Route.saveDisplaySettings = function() {
+        window.localStorage["displayList"] = _displayList;
+    }
     Route.find = function(name) {
         for (var i in _allRoutes) {
             var r = _allRoutes[i];
-            if (r.displayName.west === name || r.displayName.east === name) {
+            if (r.displayName.west === name ||
+                r.displayName.east === name ||
+                r.code === name ) {
                 return r;
             }
         }
@@ -295,7 +313,7 @@ var NextFerry = (function ($) {
         return _allTerminals[code];
     };
     Terminal.prototype.tGoodness = function(now,buffer,departuretime) {
-        // Time goodness depends on the departure time, the current time, travel time to this 
+        // Time goodness depends on the departure time, the current time, travel time to this
         // terminal, and user-specified buffer time.
     	//
         // If we don't know the travel time, we can't estimate goodness
@@ -318,7 +336,7 @@ var NextFerry = (function ($) {
         	// two hours is the *max* time we care about
             return "Indifferent";
         else
-            return "Good";   
+            return "Good";
     };
     var _allTerminals = {
         1 : new Terminal(1, "Anacortes", "48.502220, -122.679455"),
