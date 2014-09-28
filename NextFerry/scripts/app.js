@@ -252,16 +252,13 @@ var app = (function ($) {
     };
 
     var saveSettings = function() {
-        /*
-        $(".routedisplay").map( function(n) {
-            var code = $n.id().substring(1,$);
-            Route.find(code).display( n.checked() );
+        $(".routedisplay").each( function() {
+            var code = $(this).prop("id").substr(1);
+            NextFerry.Route.find(code).display( this.checked );
         });
-        Route.saveDisplaySettings();
-        */
+        NextFerry.Route.saveDisplaySettings();
 
         var timeformat = $("input:radio[name=tf]:checked").prop( "id" );
-        console.log( "time format is " + timeformat);
         window.localStorage["timeformat"] = timeformat;
         NextFerry.NFTime.setDisplayFormat(timeformat);
 

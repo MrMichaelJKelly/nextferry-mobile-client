@@ -205,7 +205,7 @@ var NextFerry = (function ($) {
             _displayList[this.code] = true;
         }
         else {
-            del(_displayList[this.code]);
+            delete _displayList[this.code];
         }
     }
     Route.saveDisplaySettings = function() {
