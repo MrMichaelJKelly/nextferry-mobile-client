@@ -27,7 +27,7 @@ li {
     font-style: normal;
 }
 .icon {
-	font-family: Icons;   
+	font-family: Icons;
 }
 .icon.closed::before { content: "\F3C9"; }
 .icon.open::before { content: "\F3C7"; }
@@ -51,7 +51,7 @@ li {
     bottom: 0;
     overflow: hidden;
 }
-#schedule-page, #settings, #test-page { /* init visibility */
+#schedule-page, #settings-page, #test-page { /* init visibility */
     display: none;
 }
 
@@ -66,10 +66,11 @@ li {
     overflow: hidden;
 }
 .settingsfloater {
+    font-size: 24pt;
     position: absolute;
-    background: rgba(255,255,255,30%);
-    right: 0;
-    bottom: 0;
+    background-color: rgba(255,255,255,50%);
+    right: 10px;
+    bottom: 10px;
     z-index: 20;
 }
 
@@ -217,4 +218,40 @@ li {
 
 #alerts-list>li {
     margin-bottom: 5pt;
+}
+
+/* settings page */
+#settings-page {
+    background-color: #324151;
+    font-size: 14pt;
+}
+#settings-container {
+    position: relative;
+    top: 20pt;
+    margin: auto;
+    width: 200pt;
+    overflow: hidden;
+    background-color: white;
+    border: groove;
+    border-color: #ADB3B9;
+}
+#settings-page .icon.return {
+    float: left;
+}
+#settings-page h2 {
+    padding: 8pt;
+    text-align: center;
+    font-size: 16pt;
+}
+#settings-page li {
+    padding: 8pt;
+    border-style: solid none none none;
+    border-width: 1px;
+    border-color: #ADB3B9;
+}
+
+.explain {
+    font-family: serif;
+    font-size: smaller;
+    color: #324151;
 }

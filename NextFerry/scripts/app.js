@@ -10,6 +10,7 @@ var app = (function ($) {
     var timeScroll;
     var schedScroll;
     var alertScroll;
+    var settingsScroll;
 
     //======= Initialization and event wiring
 
@@ -24,13 +25,12 @@ var app = (function ($) {
         else {
             // immediately show the main page
             $("#title").lettering();
-            renderMainPage();
-            goPage($("#main-page"));
-            
+            goPage("#main-page");
+
             // wire up asynch responses
             ServerIO.loadSchedule.listeners.add(renderTimes);
             ServerIO.loadTravelTimes.listeners.add(updateTravelTimes);
-            
+
             // initialize main page travel times and generalized update
             if ( window.localStorage["cache"] ) {
                 ServerIO.loadSchedule( window.localStorage["cache"] );
@@ -45,13 +45,16 @@ var app = (function ($) {
 
             schedScroll = new IScroll("#schedule-tab", { click: true });
             alertScroll = new IScroll("#alerts-tab");
+            settingsScroll = new IScroll("#settings-page");
 
             // wire up all the event actions
             $("#direction").on("click", toggleDirection);
-            $("#routes").on("tap", goSchedulePage);   // tap because that's what Iscroll sends
+            $("#routes").on("tap", gogoPage("#schedule-page"));   // tap because that's what Iscroll sends
             $("#schedule-page").on("swipe",navigateTabs);
             $("#schedule-nav>li").on("click",navigateTabs);
             $("#schedule-list>li").on("click", toggleSchedulePart);
+            $(".settingsfloater").on("click", gogoPage("#settings-page"));
+            $(".setnav").on("click", inSettingsNav);
 
             //feedback.initialize('50377a40-30e3-11e4-9c7b-3512796cc48e');
         }
@@ -71,7 +74,6 @@ var app = (function ($) {
         $("#direction").text(dir);
         renderRoutes();
         renderTimes();
-        return false;
     };
 
     var renderRoutes = function() {
@@ -94,14 +96,10 @@ var app = (function ($) {
         updateScroller(mainScroll);
         updateScroller(timeScroll);
     };
-    
+
     var updateTravelTimes = function() {
         // let's wait and see if we need to be clever or not.
         renderTimes();
-        // only bother if the main page is showing
-        //if($('#main-page').is(':visible')){
-        //    
-        //} 
     };
 
 
@@ -115,15 +113,20 @@ var app = (function ($) {
 
     //======= Schedule Page Rendering and events
 
-    var goSchedulePage = function(e) {
-        e.preventDefault();
-        //console.log(e);
-        //console.log(e.type + ":" + e.currentTarget.tagName);
-        var routename = e.target.innerText;
-        renderSchedule(routename);
-        renderAlerts(routename);
-		goPage($("#schedule-page"));
-        return false;
+    var _routename;
+    var renderSchedulePage = function(e) {
+        if ( e ) {
+            _routename = e.target.innerText;
+            console.log( "changing schedule page to " + _routename);
+        }
+        if ( ! _routename ) {
+            alert("error! called SchedulePage without route! (bug in code, please report)");
+            backPage();
+        }
+        else {
+            renderSchedule(_routename);
+            renderAlerts(_routename);
+        }
     };
 
     var renderSchedule = function(name) {
@@ -175,7 +178,6 @@ var app = (function ($) {
     };
 
 
-
     var renderAlerts = function(name) {
     	// build the alerts page if there are any, otherwise hide the alerts page.
         var alist = NextFerry.Alert.alertsFor(name);
@@ -217,51 +219,136 @@ var app = (function ($) {
         return false;
     };
 
-    //======= Page Transitions
-    // goPage and backPage are for page *transitions*.
-    // do not use them for re-rendering the same page.
 
-    var currentPage;	// these are selectors (the "#id" string), not html objects.
-    var prevPage;
+    //======= Settings Page
 
-    var goPage = function(p) {
-        if ( currentPage && currentPage === p.selector ) {
-            console.log("assertion failure: goPage called to rerender the same page!");
+    var renderSettingsPage = function() {
+        $(".setting-parts").hide();
+        $("#settings-routes-form").empty();
+        $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
+            function(r) {
+                var id = "r" + r.code;
+                return $( "<p><input type='checkbox' class='routedisplay' id='" + id +
+                    ( r.isDisplayed() ? "' checked>" : "'>") +
+                    "<label for='" + id + "'>" + r.displayName.west + "</label>" +
+                    "</p>");
+        }));
+        var tf = window.localStorage["timeformat"] || "tf12";
+        $("#" + tf).prop( "checked", true );
+
+        /*
+        $("#useloc").checked( window.localStorage["useloc"] );
+        $("#buftime").value( window.localStorage["buffertime"] );
+        if ( window.localStorage["vashondir"] ) {
+            // etc.
         }
-        p.show();
-        $(currentPage).hide();
-        prevPage = currentPage;
-        currentPage = p.selector;
+        else {
+            // etc.
+        }
+        // TODO: set the schedule name on about.
+        */
+
+        updateScroller(settingsScroll);
+    };
+
+    var saveSettings = function() {
+        /*
+        $(".routedisplay").map( function(n) {
+            var code = $n.id().substring(1,$);
+            Route.find(code).display( n.checked() );
+        });
+        Route.saveDisplaySettings();
+        */
+
+        var timeformat = $("input:radio[name=tf]:checked").prop( "id" );
+        console.log( "time format is " + timeformat);
+        window.localStorage["timeformat"] = timeformat;
+        NextFerry.NFTime.setDisplayFormat(timeformat);
+
+/*
+        var useLoc = $("#useloc")[0].isChecked();
+        if ( useloc !== window.localStorage["useloc"] ) {
+            window.localStorage["useloc"] = useloc;
+            // TODO: actually use this info here.
+        }
+
+        var buffertime = $("#buftime").value();
+        window.localStorage["buffertime"] = buffertime;
+        // TODO: use
+
+        var vashondir = true; // TODO
+        window.localStorage["vashondir"] = vashondir;
+        // TODO: use
+        */
+    };
+
+    var inSettingsNav = function(e) {
+        e.preventDefault();
+        var dest = e.currentTarget.getAttribute("dest");
+        if ( dest === "exit" ) {
+            saveSettings();
+            backPage();
+        }
+        else if ( dest === "list" ) {
+            $(".settings-part").hide();
+            $("#settings-list").show();
+            updateScroller(settingsScroll);
+        }
+        else {
+            $("#settings-list").hide();
+            $("#" + dest).show();
+            updateScroller(settingsScroll);
+        }
         return false;
     };
 
+    //======= Page Transitions
+    // goPage and backPage are for page *transitions*.
+    // using them to re-render a page will screw up the back behavior.
+
+    var currentPage;	// the "#id" string (not html element)
+    var prevPage;
+
+    var renderers = {
+        "#main-page" : renderMainPage,
+        "#schedule-page" : renderSchedulePage,
+        "#settings-page" : renderSettingsPage
+    };
+
+    var goPage = function(p,e) {
+        if ( currentPage && currentPage === p ) {
+            alert("error! goPage called to rerender the same page! (please report bug)");
+        }
+        renderers[p](e);
+        $(p).show();
+        $(currentPage).hide();
+        prevPage = currentPage;
+        currentPage = p;
+    };
+
+    // produces an event handler to go to a specific page
+    var gogoPage = function(p) {
+        return function(e) {
+            e.preventDefault();
+            goPage(p,e);
+            return false;
+        };
+    };
+
     var backPage = function() {
-        // kinda hand-wavy; the app never goes more than two levels deep.
-        if ( prevPage && prevPage !== "#main-page") {
-            $(prevPage).show();
-            currentPage && $(currentPage).hide();
-            currentPage = prevPage;
-        }
-        else if ( currentPage === "#main-page" ) {
-            // todo: when we wire the android back button in, we'll have to handle this case.
-        }
-        else {
-            goPage($("#main-page"));
-        }
+        // todo: wire in android back button behavior to exit if on main page.
+        goPage( prevPage ? prevPage : "#main-page" );
         // prevPage is always cleared, no matter where we came from.
         // (hence, the 2nd "back" always goes to the #main-page.)
         prevPage = false;
         return false;
     }
 
-    //======= Settings
-    var showSettings = function() {
-
-    };
-
 
     var module = {
-        init : init
+        init : init,
+        // for testing
+        saveSettings : saveSettings
     };
 
     return module;

@@ -29,6 +29,7 @@ var ServerIO = (function($) {
     loadAlerts.listeners = $.Callbacks();
 
     var loadTravelTimes = function(text) {
+        console.log("received travel times:\n" + text);
         NextFerry.Terminal.loadTTs(text);
         loadTravelTimes.listeners.fire();
     };
@@ -112,23 +113,12 @@ var ServerIO = (function($) {
     }
     function noop() { };
 
-    var settings = {
-        useLocation : false,
-    }
-    var settingsChanged = function() {
-        window.localStorage["settings"] = settings;
-        settingsChanged.listeners.fire();
-    }
-    settingsChanged.listeners = $.Callbacks();
-
     var module = {
         requestUpdate : requestUpdate,
         requestTravelTimes : requestTravelTimes,
         loadSchedule : loadSchedule,
         loadAlerts : loadAlerts,
         loadTravelTimes : loadTravelTimes,
-        settings: settings,
-        settingsChanged : settingsChanged
     };
     return module;
 }(jQuery));

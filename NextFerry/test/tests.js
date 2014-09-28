@@ -236,6 +236,16 @@ function nextFerryTests() {
       restoreLS();
     });
 
+    QUnit.test("Route display", function(assert) {
+    	copyLS();
+    	window.localStorage["displayList"] = "";
+    	NextFerry.init();
+    	var dl = NextFerry.Route.displayRoutes();
+    	assert.equal( dl.length, 11, "initially all routes are displayed");
+    	assert.ok( dl[1].displayName.west, "it really is a route");
+
+    	restoreLS();
+    });
 
     // Alerts
 

@@ -1,167 +1,262 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>Next Ferry</title>
-        <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-        <link href="styles/dosis.css" rel="stylesheet" />
-        <link href="styles/app.css" rel="stylesheet" />
-        <link href="test/qunit.css" rel="stylesheet" />
+<head>
+    <meta charset="UTF-8" />
+    <title>Next Ferry</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <link href="styles/dosis.css" rel="stylesheet" />
+    <link href="styles/app.css" rel="stylesheet" />
+    <link href="test/qunit.css" rel="stylesheet" />
 
-        <!-- 3rd party libraries -->
-        <script src="cordova.js" type="text/javascript"></script>
-        <script src="scripts/jquery.js" type="text/javascript"></script>
-        <script src="scripts/iscroll.js" type="text/javascript"></script>
-        <script src="scripts/jquery.lettering-0.6.1.min.js" type="text/javascript"></script>
-        <script src="scripts/geo.js", type="text/javascript"></script>
-        <!-- my app -->
-        <script src="scripts/nextferry.js" type="text/javascript"></script>
-        <script src="scripts/serverio.js" type="text/javascript"></script>
-        <script src="scripts/app.js" type="text/javascript"></script>
-        <!-- tests -->
-		<script src="test/qunit.js" type="text/javascript"></script>
-		<script src="test/tests.js" type="text/javascript"></script>
-    </head>
-    <body>
+    <!-- 3rd party libraries -->
+    <!-- <script src="cordova.js" type="text/javascript"></script> -->
+    <script src="scripts/jquery.js" type="text/javascript"></script>
+    <script src="scripts/iscroll.js" type="text/javascript"></script>
+    <script src="scripts/jquery.lettering-0.6.1.min.js" type="text/javascript"></script>
+    <script src="scripts/geo.js", type="text/javascript"></script>
+    <!-- my app -->
+    <script src="scripts/nextferry.js" type="text/javascript"></script>
+    <script src="scripts/serverio.js" type="text/javascript"></script>
+    <script src="scripts/app.js" type="text/javascript"></script>
+    <!-- tests -->
+    <script src="test/qunit.js" type="text/javascript"></script>
+    <script src="test/tests.js" type="text/javascript"></script>
+</head>
+<body>
 
-        <!--Main-->
-        <div id="main-page" class="page">
-            <span class="heading" id="direction" style="float: right">West</span>
-            <span class="heading" id="title" style="float: left">Next Ferry</span>
-            
-            <div class="settingsfloater">
-                <span class="icon settings"></span>
-            </div>
-            
-            <!--Content-->
-            <div id="outerwrap" class="scrollwrapper">
-                <div id="routescontainer" class="scrollee">
-                    <ul id="routes">CONTENT</ul>
-                    <div id="timesport">
-                        <div id="timeswrap" class="scrollwrapper">
-                            <ul id="times" class="scrollee">CONTENT</ul>
-                        </div>
+    <!--Main-->
+    <div id="main-page" class="page">
+        <span class="heading" id="direction" style="float: right">West</span>
+        <span class="heading" id="title" style="float: left">Next Ferry</span>
+
+        <div class="settingsfloater">
+            <span class="icon settings"></span>
+        </div>
+
+        <!--Content-->
+        <div id="outerwrap" class="scrollwrapper">
+            <div id="routescontainer" class="scrollee">
+                <ul id="routes">CONTENT</ul>
+                <div id="timesport">
+                    <div id="timeswrap" class="scrollwrapper">
+                        <ul id="times" class="scrollee">CONTENT</ul>
                     </div>
-                    <br style="clear:both"/>
                 </div>
-            </div>
-
-        </div>
-
-        <div id="schedule-page" class="page">
-            <ul id="schedule-nav" class="hnav">
-                <li id="sn-back"><span class="icon return" style="font-size: smaller"></span></li>
-                <li id="sn-sched">Schedule</li>
-                <li id="sn-alerts">Alerts</li>
-                <li id="sn-more">More</li>
-            </ul>
-            <div class="settingsfloater">
-                <span class="icon settings"></span>
-            </div>
-            <div id="schedule-tab-container">
-                <div id="schedule-tab" class="schedule-tab scrollwrapper">
-                    <ul id="schedule-list" class="scrollee">
-                        <li>
-                            <span class="icon closed"></span>
-                            <span class="deco">from</span> <span class="name" id="wname1">CONTENT</span> <span class="deco2">weekdays</span>
-                            <div class="slide">
-                                <table class="timetable" id="westdaystable">
-                                    <thead>
-                                        <tr>
-                                            <td class="amhead">AM</td>
-                                            <td class="pmhead">PM</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="westdaysbody">
-                                        <tr>
-                                            <td class="amtimes" id="wdam"></td>
-                                            <td class="pmtimes" id="wdpm"></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon closed"></span>                           
-                            <span class="deco">from</span> <span class="name" id="wname2">CONTENT</span> <span class="deco2">weekends</span>
-                            <div class="slide">
-                                <table class="timetable" id="westendstable">
-                                    <thead>
-                                        <tr>
-                                            <td class="amhead">AM</td>
-                                            <td class="pmhead">PM</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="westendsbody">
-                                        <td class="amtimes" id="weam"></td>
-                                        <td class="pmtimes" id="wepm"></td>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon closed"></span>
-                            <span class="deco">from</span> <span class="name" id="ename1">CONTENT</span> <span class="deco2">weekdays</span>
-                            <div class="slide">
-                                <table class="timetable" id="eastdaysstable">
-                                    <thead>
-                                        <tr>
-                                            <td class="amhead">AM</td>
-                                            <td class="pmhead">PM</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="eastdaysbody">
-                                        <td class="amtimes" id="edam"></td>
-                                        <td class="pmtimes" id="edpm"></td>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </li>
-                        <li>
-                            <span class="icon closed"></span>
-                            <span class="deco">from</span> <span class="name" id="ename2">CONTENT</span> <span class="deco2">weekends</span>
-                            <div class="slide">
-                                <table class="timetable" id="eastendstable">
-                                    <thead>
-                                        <tr>
-                                            <td class="amhead">AM</td>
-                                            <td class="pmhead">PM</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="eastendsbody">
-                                        <td class="amtimes" id="eeam"></td>
-                                        <td class="pmtimes" id="eepm"></td>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div id="alerts-tab" class="schedule-tab scrollwrapper">
-                    <ul id="alerts-list" class="scrollee">CONTENT</ul>
-                </div>
-                <div id="more-tab" class="schedule-tab">
-                </div>
+                <br style="clear:both"/>
             </div>
         </div>
+    </div>
 
-        <div id="settings" class="page">
-            <ul>
-                <li>Routes</li>
-                <li>Options</li>
-                <li>About</li>
-            </ul>
+    <!-- Schedule -->
+    <div id="schedule-page" class="page">
+        <ul id="schedule-nav" class="hnav">
+            <li id="sn-back">
+                <span class="icon return" style="font-size: smaller"></span></li>
+            <li id="sn-sched">Schedule</li>
+            <li id="sn-alerts">Alerts</li>
+            <li id="sn-more">More</li>
+        </ul>
+        <div class="settingsfloater">
+            <span class="icon settings"></span>
         </div>
-        
-        <div id="test-page" class="page">
-            <h1 id="qunit-header">Testing</h1>
-            <h2 id="qunit-banner"></h2>
-            <ol id="qunit-tests"></ol>
-            <div id="qunit-fixture">test markup, will be hidden</div>
-        </div>
-        
-        <script type="text/javascript">
-            $(document).one('ready', app.init);
-        </script>
-    </body>
+        <div id="schedule-tab-container">
+            <div id="schedule-tab" class="schedule-tab scrollwrapper">
+                <ul id="schedule-list" class="scrollee">
+                    <li>
+                        <span class="icon closed"></span>
+                        <span class="deco">from</span>
+                        <span class="name" id="wname1">CONTENT</span>
+                        <span class="deco2">weekdays</span>
+                        <div class="slide">
+                            <table class="timetable" id="westdaystable">
+                                <thead>
+                                    <tr>
+                                        <td class="amhead">AM</td>
+                                        <td class="pmhead">PM</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="westdaysbody">
+                                    <tr>
+                                        <td class="amtimes" id="wdam"></td>
+                                        <td class="pmtimes" id="wdpm"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="icon closed"></span>
+                        <span class="deco">from</span>
+                        <span class="name" id="wname2">CONTENT</span>
+                        <span class="deco2">weekends</span>
+                        <div class="slide">
+                            <table class="timetable" id="westendstable">
+                                <thead>
+                                    <tr>
+                                        <td class="amhead">AM</td>
+                                        <td class="pmhead">PM</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="westendsbody">
+                                    <td class="amtimes" id="weam"></td>
+                                    <td class="pmtimes" id="wepm"></td>
+                                </tbody>
+                            </table>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="icon closed"></span>
+                        <span class="deco">from</span>
+                        <span class="name" id="ename1">CONTENT</span>
+                        <span class="deco2">weekdays</span>
+                        <div class="slide">
+                            <table class="timetable" id="eastdaysstable">
+                                <thead>
+                                    <tr>
+                                        <td class="amhead">AM</td>
+                                        <td class="pmhead">PM</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="eastdaysbody">
+                                    <td class="amtimes" id="edam"></td>
+                                    <td class="pmtimes" id="edpm"></td>
+                                </tbody>
+                            </table>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="icon closed"></span>
+                        <span class="deco">from</span>
+                        <span class="name" id="ename2">CONTENT</span>
+                        <span class="deco2">weekends</span>
+                        <div class="slide">
+                            <table class="timetable" id="eastendstable">
+                                <thead>
+                                    <tr>
+                                        <td class="amhead">AM</td>
+                                        <td class="pmhead">PM</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="eastendsbody">
+                                    <td class="amtimes" id="eeam"></td>
+                                    <td class="pmtimes" id="eepm"></td>
+                                </tbody>
+                            </table>
+                        </div>
+                    </li>
+                </ul>
+            </div> <!-- end schedule-tab -->
+            <div id="alerts-tab" class="schedule-tab scrollwrapper">
+                <ul id="alerts-list" class="scrollee">
+                    CONTENT
+                </ul>
+            </div>
+        </div> <!-- end schedule-tab-container -->
+    </div> <!-- end schedule-page -->
+
+    <!-- Settings -->
+    <div id="settings-page" class="page scrollwrapper">
+        <div id="settings-container" class="scrollee">
+            <div id="settings-list">
+                <span class="icon return setnav" dest="exit"></span>
+                <h2>Settings</h2>
+                <ul>
+                    <li class="setnav" dest="settings-routes">Routes</li>
+                    <li class="setnav" dest="settings-options">Options</li>
+                    <li class="setnav" dest="settings-about">About</li>
+                </ul>
+            </div>
+            <div id="settings-routes" class="settings-part">
+                <span class="icon return setnav" dest="list"></span>
+                <h2>Routes</h2>
+                <p class="explain">Choose ferry routes to display.</p>
+                <form id="settings-routes-form">
+                    CONTENT
+                </form>
+            </div>
+            <div id="settings-options" class="settings-part">
+                <span class="icon return setnav" dest="list"></span>
+                <h2>Options</h2>
+                <ul>
+                    <li> <!-- time format -->
+                        <form>
+                            <p>Time Format</p>
+                            <input type="radio" id="tf12" name="tf">
+                            <label for="tf12">12 hour</label>
+                            <input type="radio" id="tf24" name="tf">
+                            <label for="tf24">24 hour</label>
+                        </form>
+                    </li>
+                    <li> <!-- use location -->
+                        <input type="checkbox" id="useloc">
+                        <label for="useloc">Use Location</label>
+                        <p class="explain">Use location to calculate drive times
+                            to ferry terminals.</p>
+                    </li>
+                    <li> <!-- buffer time -->
+                        <input type="range" id="buftime" min="0" max="60">
+                        <label for="buftime">Buffer Time</label>
+                        <p class="explain">How much time (in minutes) to add
+                            as buffer for drive time</p>
+                    </li>
+                    <li> <!-- vashon direction -->
+                        <input type="radio" id="vdw" name="b">
+                        <label for="vdw">Vashon to Pt Defiance is
+                            <em>West</em></label>
+                        <input type="radio" id="vde" name="b">
+                        <label for="vde">Vashon to Pt Defiance is
+                            <em>East</em></label>
+                        <p class="explain">Mostly useful for Vashon residents:
+                            if you are traveling off of Vashon via the Pt Defiance
+                            ferry, would you prefer to see this listed as a
+                            <em>West-bound</em> route or an
+                            <em>East-bound</em> route?
+                        </p>
+                    </li>
+                </ul>
+            </div> <!-- end settings-options -->
+            <div id="settings-about" class="settings-part">
+                <span class="icon return setnav" dest="list"></span>
+                <h2>About</h2>
+
+                <p>The NextFerry app was created by Denise Draper, because I often
+                    want to know whether I should take the Edmonds or the Bainbridge
+                    ferry.  Email denisesandbox@mailup.net for information, feedback
+                    or requests.</p>
+
+                <p>The NextFerry app is not affiliated with WSDOT.
+                    The NextFerry schedule is updated every season when the WSDOT schedule changes, however delayed updates or errors are possible.
+                    Also, NextFerry uses a simplified weekday/weekend schedule,
+                    which misses some irregular departures on some routes
+                    (typically Friday-only or Saturday-only).
+                    Consult the official WSDOT schedule or website
+                    (http://wsdot.gov/ferries) for definitive information.</p>
+
+                <p id="aboutsched">The current schedule is
+                    <span id="curschedule">CONTENT</span>.</p>
+                <p id="resetsched">Reload Schedule</p>
+
+                <p>This version of the NextFerry app is an HTML5 cross-platform
+                    mobile application that communicates with a backend service hosted
+                    on the Google App Engine.  The code for app and server can be
+                    found at https://github.com/denised/nextferry.
+                    The client uses jQuery, iScroll and the Dosis font; liscencing
+                    info for each can be found in the github source.
+                    Travel times are provided by MapQuest.</p>
+            </div> <!-- end settings-part -->
+        </div> <!-- end settings-container -->
+    </div> <!-- end settings-page -->
+
+    <!-- Test -->
+    <div id="test-page" class="page">
+        <h1 id="qunit-header">Testing</h1>
+        <h2 id="qunit-banner"></h2>
+        <ol id="qunit-tests"></ol>
+        <div id="qunit-fixture">test markup, will be hidden</div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).one('ready', app.init);
+    </script>
+</body>
 </html>

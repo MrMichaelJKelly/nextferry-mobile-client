@@ -162,6 +162,7 @@ var NextFerry = (function ($) {
                 _displayList[_allRoutes[i].code] = true;
             }
         }
+        console.log( _displayList );
 
         _readList = window.localStorage["readList"] || [];
         NFTime.setDisplayFormat( window.localStorage["tf"] || "tf12" );
@@ -215,7 +216,7 @@ var NextFerry = (function ($) {
             var r = _allRoutes[i];
             if (r.displayName.west === name ||
                 r.displayName.east === name ||
-                r.code === name ) {
+                r.code == name ) {
                 return r;
             }
         }
