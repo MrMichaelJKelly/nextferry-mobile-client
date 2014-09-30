@@ -139,7 +139,7 @@ var NextFerry = (function ($) {
     var _readList = [];     // list of alerts the user has already read
 
     var init = function() {
-        _allRoutes = [
+        _allRoutes = [  // routes are "schedule-less" until main app init.
             new Route(1, 7, 3, "bainbridge", "bainbridge"),
             new Route(1 << 2, 8, 12, "edmonds", "edmonds"),
             new Route(1 << 3, 14, 5, "mukilteo", "mukilteo"),
@@ -152,20 +152,25 @@ var NextFerry = (function ($) {
             new Route(1 << 10, 1, 10, "friday harbor", "friday harbor"),
             new Route(1 << 11, 1, 15, "orcas", "orcas")
         ];
-        // routes are "schedule-less" until main app init.
 
-        _displayList = window.localStorage["displayList"];
-        if ( ! _displayList ) {
+
+        // initialize settings from window.localStorage (or default)
+        NFTime.setDisplayFormat( window.localStorage["tf"] || "tf12" );
+        if ( window.localStorage["displayList"] ) {
+            _displayList = JSON.parse( window.localStorage["displayList"] );
+        }
+        else {
             // default: display all routes
             _displayList = {};
             for( var i in _allRoutes ) {
                 _displayList[_allRoutes[i].code] = true;
             }
+            window.localStorage["displayList"] = JSON.stringify( _displayList );
         }
-        console.log( _displayList );
 
-        _readList = window.localStorage["readList"] || [];
-        NFTime.setDisplayFormat( window.localStorage["tf"] || "tf12" );
+        if ( window.localStorage["readList"] ) {
+            _readList = JSON.parse( window.localStorage["readList"] );
+        }
     };
 
 
@@ -209,7 +214,7 @@ var NextFerry = (function ($) {
         }
     }
     Route.saveDisplaySettings = function() {
-        window.localStorage["displayList"] = _displayList;
+        window.localStorage["displayList"] = JSON.stringify( _displayList );
     }
     Route.find = function(name) {
         for (var i in _allRoutes) {

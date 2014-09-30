@@ -234,7 +234,7 @@ var app = (function ($) {
                     "</p>");
         }));
         var tf = window.localStorage["timeformat"] || "tf12";
-        $("#" + tf).prop( "checked", true );
+        $("#" + tf).prop( "checked", true );    // checks either tf12 or tf24
 
         /*
         $("#useloc").checked( window.localStorage["useloc"] );
@@ -345,6 +345,7 @@ var app = (function ($) {
     var module = {
         init : init,
         // for testing
+        renderSettingsPage : renderSettingsPage,
         saveSettings : saveSettings
     };
 

@@ -239,12 +239,50 @@ function nextFerryTests() {
     QUnit.test("Route display", function(assert) {
     	copyLS();
     	window.localStorage["displayList"] = "";
+    	// initial display list
     	NextFerry.init();
+    	var pt = NextFerry.Route.find("pt townsend");
+    	var other = NextFerry.Route.find("edmonds");
     	var dl = NextFerry.Route.displayRoutes();
     	assert.equal( dl.length, 11, "initially all routes are displayed");
-    	assert.ok( dl[1].displayName.west, "it really is a route");
+    	assert.ok( dl.indexOf( pt ) > -1, "including pt townsend");
+    	assert.ok( pt.isDisplayed(), "route display property works");
+
+    	// as shown on app page.
+    	app.renderSettingsPage();
+    	assert.equal( $(".routedisplay").length, 11, "showing all routes");
+    	assert.ok( $("#r16").prop( "checked" ), "initially is checked");
+
+    	// set pt townsend to false
+    	$("#r16").prop( "checked", false );
+    	assert.ok( ! $("#r16").prop( "checked "), "check is removed" );
+    	app.saveSettings();
+
+    	// is it correctly reflected in internal state?
+    	dl = NextFerry.Route.displayRoutes();
+    	assert.equal( dl.length, 10, "one less route to display" );
+    	assert.equal( dl.indexOf(pt), -1, "pt townsend has been removed");
+    	assert.ok( dl.indexOf( other ) > -1, "but others still there");
+    	var ls = JSON.parse( window.localStorage["displayList"] );
+    	assert.ok( ! (1<<4 in ls), "reflected in LS");
+    	assert.ok( other.isDisplayed() );
+    	assert.ok( ! pt.isDisplayed() );
+
+    	// and is it remembered next time we generate the settings page?
+    	app.renderSettingsPage();
+    	assert.equal( $(".routedisplay").length, 11, "length doesn't change");
+    	assert.ok( ! $("#r16").prop("checked"), "r16 is not checked");
+    	assert.ok( $("#r32").prop("checked"), "but other things are");
+
+    	// what about next time we init (re-initialize from LS)
+    	NextFerry.init();
+    	pt = NextFerry.Route.find("pt townsend");  // don't really have to re-assign, but being paranoid...
+    	other = NextFerry.Route.find("edmonds");
+    	assert.ok( other.isDisplayed() );
+    	assert.ok( ! pt.isDisplayed() );
 
     	restoreLS();
+    	NextFerry.init(); // make internal state match
     });
 
     // Alerts
