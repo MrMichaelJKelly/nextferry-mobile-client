@@ -40,6 +40,8 @@ var ServerIO = (function($) {
         // the reply is text format, with sections indicated by
         // lines beginning with '#'
         // So start by breaking on that...
+        console.log("****process reply:");
+        console.log(data);
         var chunks = data.split("\n#");
         if (chunks[0][0] === "#") {
             chunks[0] = chunks[0].slice(1);
@@ -57,7 +59,11 @@ var ServerIO = (function($) {
                 loadSchedule(body);
             }
             else if (header === "traveltimes") {
-                loadTravelTimes(body);
+                // if the user turned off useloc in the meantime,
+                // don't process the results.
+                if ( window.localStorage["useloc"] == "true" ) {
+                    loadTravelTimes(body);
+                }
             }
             else if (header === "allalerts") {
                 loadAlerts(body);
@@ -79,7 +85,8 @@ var ServerIO = (function($) {
 
     var _requestTTdelay = false;
     var requestTravelTimes = function() {
-        if ( _requestTTdelay ) {
+        if ( window.localStorage["useloc"] != "true" || _requestTTdelay ) {
+            // if the user doesn't want this, or we've just called, then skip.
             return;
         }
         else {
@@ -88,16 +95,17 @@ var ServerIO = (function($) {
             setTimeout( function() { _requestTTdelay = false; }, 20000);
             // asynch request to get current position which
             //   calls asynch request to get travel times
-            getAccuratePosition( function(loc) {
-                console.log(loc);
-                // loc.coords.latitude = 47.860904;	// for spoofing in simulator
-                // loc.coords.longitude = -122.549452;
-                $.ajax({
-                    url: travelURL +  loc.coords.latitude + "," + loc.coords.longitude,
-                    dataType: "text",
-                    success: processReply
-                });
-            });
+            getAccuratePosition(
+                function(loc) {
+                    console.log(loc);
+                    $.ajax({
+                        url: travelURL +  loc.coords.latitude + "," + loc.coords.longitude,
+                        dataType: "text",
+                        success: processReply
+                    });
+                },
+                function(err) { console.log("getpos error:"); console.log(err); }
+            );
         }
     };
 
@@ -117,6 +125,7 @@ var ServerIO = (function($) {
         requestUpdate : requestUpdate,
         requestTravelTimes : requestTravelTimes,
         loadSchedule : loadSchedule,
+        // for testing
         loadAlerts : loadAlerts,
         loadTravelTimes : loadTravelTimes,
     };

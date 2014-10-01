@@ -74,6 +74,7 @@ var app = (function ($) {
         $("#direction").text(dir);
         renderRoutes();
         renderTimes();
+        ServerIO.requestTravelTimes();
     };
 
     var renderRoutes = function() {
@@ -236,8 +237,9 @@ var app = (function ($) {
         var tf = window.localStorage["timeformat"] || "tf12";
         $("#" + tf).prop( "checked", true );    // checks either tf12 or tf24
 
+         $("#useloc").prop( "checked", (window.localStorage["useloc"] === "true"));
+
         /*
-        $("#useloc").checked( window.localStorage["useloc"] );
         $("#buftime").value( window.localStorage["buffertime"] );
         if ( window.localStorage["vashondir"] ) {
             // etc.
@@ -262,13 +264,19 @@ var app = (function ($) {
         window.localStorage["timeformat"] = timeformat;
         NextFerry.NFTime.setDisplayFormat(timeformat);
 
-/*
-        var useLoc = $("#useloc")[0].isChecked();
-        if ( useloc !== window.localStorage["useloc"] ) {
+        var useloc = $("#useloc").prop("checked");
+        if ( useloc.toString() !== window.localStorage["useloc"]) {
             window.localStorage["useloc"] = useloc;
-            // TODO: actually use this info here.
+            if ( ! useloc ) {
+                // immediately remove any travel times we've previously computed
+                // (really this should be a subscription point for anything that
+                // theoretically might be using locations).
+                NextFerry.Terminal.clearTTs();
+                // we don't have to update the goodness codes directly b/c
+                // they will be re-computed when we re-visit the page.
+            }
         }
-
+/*
         var buffertime = $("#buftime").value();
         window.localStorage["buffertime"] = buffertime;
         // TODO: use

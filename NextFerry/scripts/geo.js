@@ -24,10 +24,11 @@ Obtained from https://github.com/gwilson/getAccurateCurrentPosition,
 
 I've made the following modifications:
     * Defined function in global namespace instead of inside navigator.geolocation
-      in order to avoid conflict with navigator.geolocation initialization.
+      in order to avoid conflict with navigator initialization.
+    * Allow callbacks other than success to be omitted.
     * Added a spoofing capability for testing purposes.  To control the behavior
-      of the function, set these options by setting the properties _on the function
-      object_:
+      of the function, set these options by setting the properties on the function
+      object (e.g. getAccuratePosition.spoof_value = ...):
         * spoof_value: return this location value
         * spoof_error: return this error
       todo: could add spoofing of progress indicator, timeouts, etc.
@@ -88,8 +89,8 @@ function getAccuratePosition(geolocationSuccess, geolocationError, geoprogress, 
 
     var onError = function (error) {
         if ( !spoofed() ) {
-            clearTimeout(timerID);
-            navigator.geolocation.clearWatch(watchID);
+            timerID && clearTimeout(timerID);
+            watchID && navigator.geolocation.clearWatch(watchID);
             geolocationError && geolocationError(error);
         }
     };
@@ -109,6 +110,11 @@ function getAccuratePosition(geolocationSuccess, geolocationError, geoprogress, 
     options.maximumAge = 0; // Force current locations only
     options.enableHighAccuracy = true; // Force high accuracy (otherwise, why are you using this function?)
 
-    watchID = navigator.geolocation.watchPosition(checkLocation, onError, options);
-    timerID = setTimeout(stopTrying, options.maxWait); // Set a timeout that will abandon the location loop
+    if( navigator && navigator.geolocation ) {
+        watchID = navigator.geolocation.watchPosition(checkLocation, onError, options);
+        timerID = setTimeout(stopTrying, options.maxWait); // Set a timeout that will abandon the location loop
+    }
+    else {
+        onError( { code: 2, message: "Geolocation not initialized" });
+    }
 }
