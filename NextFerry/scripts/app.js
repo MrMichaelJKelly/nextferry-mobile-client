@@ -56,6 +56,13 @@ var app = (function ($) {
             $(".settingsfloater").on("click", gogoPage("#settings-page"));
             $(".setnav").on("click", inSettingsNav);
 
+            $("#buftime").rangeslider({
+                polyfill: false,
+                onSlide: function(pos,val) {
+                    $("#buftimeval").text( val.toString() );
+                }
+            });
+
             //feedback.initialize('50377a40-30e3-11e4-9c7b-3512796cc48e');
         }
     };
@@ -68,7 +75,7 @@ var app = (function ($) {
     };
 
 
-    //======= Main Page Rendering and events
+    //======= Main Page Rendering
 
     var renderMainPage = function() {
         $("#direction").text(dir);
@@ -100,6 +107,7 @@ var app = (function ($) {
 
     var updateTravelTimes = function() {
         // let's wait and see if we need to be clever or not.
+        console.log("updating travel times");
         renderTimes();
     };
 
@@ -118,7 +126,6 @@ var app = (function ($) {
     var renderSchedulePage = function(e) {
         if ( e ) {
             _routename = e.target.innerText;
-            console.log( "changing schedule page to " + _routename);
         }
         if ( ! _routename ) {
             alert("error! called SchedulePage without route! (bug in code, please report)");
@@ -223,8 +230,10 @@ var app = (function ($) {
 
     //======= Settings Page
 
+    var _btdisplay; // the numeric version
     var renderSettingsPage = function() {
-        $(".setting-parts").hide();
+        $(".settings-part").hide();
+        $("#settings-list").show();
         $("#settings-routes-form").empty();
         $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
             function(r) {
@@ -234,13 +243,18 @@ var app = (function ($) {
                     "<label for='" + id + "'>" + r.displayName.west + "</label>" +
                     "</p>");
         }));
-        var tf = window.localStorage["timeformat"] || "tf12";
+        var tf = window.localStorage["tf"];
         $("#" + tf).prop( "checked", true );    // checks either tf12 or tf24
 
-         $("#useloc").prop( "checked", (window.localStorage["useloc"] === "true"));
+        $("#useloc").prop( "checked", (window.localStorage["useloc"] === "true"));
+
+        if ( _btdisplay === undefined ) {
+            _btdisplay = parseInt( window.localStorage["bt"] );
+        }
+        $("#buftime").val( _btdisplay ).change();
+        $("#buftimeval").text( _btdisplay.toString() );
 
         /*
-        $("#buftime").value( window.localStorage["buffertime"] );
         if ( window.localStorage["vashondir"] ) {
             // etc.
         }
@@ -252,6 +266,11 @@ var app = (function ($) {
 
         updateScroller(settingsScroll);
     };
+
+    var updateBT = function(e) {
+        _btdisplay = $("#buftime");
+        $("buftimeval").text( _btdisplay.toString() );
+    }
 
     var saveSettings = function() {
         $(".routedisplay").each( function() {
@@ -276,11 +295,13 @@ var app = (function ($) {
                 // they will be re-computed when we re-visit the page.
             }
         }
-/*
-        var buffertime = $("#buftime").value();
-        window.localStorage["buffertime"] = buffertime;
-        // TODO: use
 
+        if ( window.localStorage["bt"] != $("#buftime").val() ) {
+            window.localStorage["bt"] = $("#buftime").val();
+            renderTimes();
+        }
+        _btdisplay = undefined;
+        /*
         var vashondir = true; // TODO
         window.localStorage["vashondir"] = vashondir;
         // TODO: use

@@ -153,11 +153,13 @@ var NextFerry = (function ($) {
             new Route(1 << 11, 1, 15, "orcas", "orcas")
         ];
 
+        // initialize LS if necessary
+        if ( ! ("tf" in window.localStorage)) window.localStorage["tf"] = "tf12";
+        if ( ! ("bt" in window.localStorage)) window.localStorage["bt"] = "15";
+        if ( ! ("rl" in window.localStorage)) window.localStorage["rl"] = "[]";
 
-        // initialize settings from window.localStorage (or default)
-        NFTime.setDisplayFormat( window.localStorage["tf"] || "tf12" );
-        if ( window.localStorage["displayList"] ) {
-            _displayList = JSON.parse( window.localStorage["displayList"] );
+        if ( window.localStorage["dl"] ) {
+            _displayList = JSON.parse( window.localStorage["dl"] );
         }
         else {
             // default: display all routes
@@ -165,12 +167,11 @@ var NextFerry = (function ($) {
             for( var i in _allRoutes ) {
                 _displayList[_allRoutes[i].code] = true;
             }
-            window.localStorage["displayList"] = JSON.stringify( _displayList );
+            window.localStorage["dl"] = JSON.stringify( _displayList );
         }
 
-        if ( window.localStorage["readList"] ) {
-            _readList = JSON.parse( window.localStorage["readList"] );
-        }
+        NFTime.setDisplayFormat( window.localStorage["tf"] );
+        _readList = JSON.parse( window.localStorage["rl"] );
     };
 
 
