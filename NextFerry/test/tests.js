@@ -73,7 +73,6 @@ function nextFerryTests() {
 		delete window.localStorage["zzqq"];
 	});
 
-
   QUnit.asyncTest( "Test infrastructure: location spoofing", function( assert ) {
   	// all this complexity is so that we can chain the tests properly, and
   	// keep that mechanism separate from the content of the tests themselves.
@@ -258,33 +257,42 @@ function nextFerryTests() {
     // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
     //
     // If our expected arrival time is:
-    //     more than a couple minutes after departure time it is definitely too late.
-    //     right around departure time it is risky.   (our buffer is entirely consumed.)
-    //     between arrival time and two hours later, it is good
-    //     after that, we don't care (we'll catch an earlier ferry for sure).
+    //     after departure (with a fudge factor), it is too late
+    //     less than buffer time before departure, it is risky
+    //     otherwise okay.
 
     var faunt = NextFerry.Route.find("fauntleroy-southworth"); // 20 minutes to southworth
     var departure = 1500;
-    // buffer = zero, for now.
 
+    // buffer = zero.
+    window.localStorage["bt"] = 0;
+    NextFerry.synchSettings();
     assert.equal( faunt.tGoodness("west", departure, departure), "Unknown", "We don't know tt for west terminal" );
     assert.equal( faunt.tGoodness("east", departure, departure+10), "TooLate", "It already left");
     assert.equal( faunt.tGoodness("east", departure, departure-10), "TooLate", "We can't get there in time");
-    assert.equal( faunt.tGoodness("east", departure, departure-18), "Risky", "Maybe if we're lucky");
+    assert.equal( faunt.tGoodness("east", departure, departure-19), "Risky", "Maybe if we're lucky");
     assert.equal( faunt.tGoodness("east", departure, departure-20), "Risky", "If all goes perfectly");
-    assert.equal( faunt.tGoodness("east", departure, departure-22), "Good", "Within our buffer zone");
     assert.equal( faunt.tGoodness("east", departure, departure-100), "Good", "80 minutes to spare is plenty good" );
     assert.equal( faunt.tGoodness("east", departure, departure-300), "Indifferent", "yeah, whatever" );
+
+    // buffer = one hour
+    window.localStorage["bt"] = 60;
+    NextFerry.synchSettings();
+    assert.equal( faunt.tGoodness("east", departure, departure-20), "Risky", "still risky to arrive exactly at departure");
+    assert.equal( faunt.tGoodness("east", departure, departure-60), "Risky", "we have less than an hour buffer");
+    assert.equal( faunt.tGoodness("east", departure, departure-140), "Good", "travel time and buffer time both satisfied");
+    assert.equal( faunt.tGoodness("east", departure, departure-300), "Indifferent", "still indifferent");
 
     //teardown
     NextFerry.Route.clearAllTimes();
     NextFerry.Terminal.clearTTs();
     restoreLS();
+    NextFerry.synchSettings();
 	});
 
 	QUnit.test("Route display", function(assert) {
 		copyLS();
-		window.localStorage["displayList"] = "";
+		window.localStorage["dl"] = "";
 		// initial display list
 		NextFerry.init();
 		var pt = NextFerry.Route.find("pt townsend");
@@ -309,7 +317,7 @@ function nextFerryTests() {
 		assert.equal( dl.length, 10, "one less route to display" );
 		assert.equal( dl.indexOf(pt), -1, "pt townsend has been removed");
 		assert.ok( dl.indexOf( other ) > -1, "but others still there");
-		var ls = JSON.parse( window.localStorage["displayList"] );
+		var ls = JSON.parse( window.localStorage["dl"] );
 		assert.ok( ! (1<<4 in ls), "reflected in LS");
 		assert.ok( other.isDisplayed() );
 		assert.ok( ! pt.isDisplayed() );

@@ -137,6 +137,7 @@ var NextFerry = (function ($) {
     var _displayList = {};  // user-chosen *set* of routes to display (route id's are keys)
     var _alertList = [];    // list of all alerts (not persisted)
     var _readList = [];     // list of alerts the user has already read
+    var _buffertime;
 
     var init = function() {
         _allRoutes = [  // routes are "schedule-less" until main app init.
@@ -172,6 +173,16 @@ var NextFerry = (function ($) {
 
         NFTime.setDisplayFormat( window.localStorage["tf"] );
         _readList = JSON.parse( window.localStorage["rl"] );
+        _buffertime = parseInt( window.localStorage["bt"] );
+    };
+
+    var synchSettings = function() {
+        // OK, this looks weird, but here's what's happening:
+        // for displaylist, the "master copy" is in memory (_displayList),
+        // while for buffertime, the master copy is the one in localStorage.
+        // either way, this makes sure the master's value is propagated.
+        window.localStorage["dl"] = JSON.stringify( _displayList );
+        _buffertime = parseInt( window.localStorage["bt"] );
     };
 
 
@@ -213,9 +224,6 @@ var NextFerry = (function ($) {
         else {
             delete _displayList[this.code];
         }
-    }
-    Route.saveDisplaySettings = function() {
-        window.localStorage["displayList"] = JSON.stringify( _displayList );
     }
     Route.find = function(name) {
         for (var i in _allRoutes) {
@@ -288,7 +296,7 @@ var NextFerry = (function ($) {
     Route.prototype.tGoodness = function(dir,departuretime,now) {
         now = now || NFTime.now();
         var term = _allTerminals[ this.terminals[ dir === "east" ? "west" : "east" ] ];
-        return term.tGoodness(now,0,departuretime);
+        return term.tGoodness(now,_buffertime,departuretime);
     }
 
 
@@ -326,16 +334,16 @@ var NextFerry = (function ($) {
         // If we don't know the travel time, we can't estimate goodness
         // If we do know the travel time, our expected arrival is now + travel time,
         // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
+        // buffer time primarily affects what will appear "risky"
         //
         // If our expected arrival time is:
-        //     more than a couple minutes after departure time it is definitely too late.
-        //     right at departure time it is risky.   (our buffer is entirely consumed.)
-        //     between arrival time and two hours later, it is good
-        //     after that, we don't care (we'll catch an earlier ferry for sure).
+        //     after departure (with a fudge factor), it is too late
+        //     less than buffer time before departure, it is risky
+        //     otherwise okay.
         //
         if (this.tt === false) // ! not just falsey
             return "Unknown";
-        else if (now + 0.9*this.tt + 0.5*buffer > departuretime)
+        else if (now + (0.9 * this.tt) >= departuretime)
             return "TooLate";
         else if (now + this.tt + buffer >= departuretime)
             return "Risky";
@@ -436,6 +444,7 @@ var NextFerry = (function ($) {
 
     var module = {
         init : init,
+        synchSettings : synchSettings,
         NFTime : NFTime,
         Route : Route,
         Terminal : Terminal,

@@ -267,17 +267,12 @@ var app = (function ($) {
         updateScroller(settingsScroll);
     };
 
-    var updateBT = function(e) {
-        _btdisplay = $("#buftime");
-        $("buftimeval").text( _btdisplay.toString() );
-    }
-
     var saveSettings = function() {
         $(".routedisplay").each( function() {
             var code = $(this).prop("id").substr(1);
             NextFerry.Route.find(code).display( this.checked );
         });
-        NextFerry.Route.saveDisplaySettings();
+
 
         var timeformat = $("input:radio[name=tf]:checked").prop( "id" );
         window.localStorage["timeformat"] = timeformat;
@@ -298,8 +293,8 @@ var app = (function ($) {
 
         if ( window.localStorage["bt"] != $("#buftime").val() ) {
             window.localStorage["bt"] = $("#buftime").val();
-            renderTimes();
         }
+        NextFerry.synchSettings();
         _btdisplay = undefined;
         /*
         var vashondir = true; // TODO
