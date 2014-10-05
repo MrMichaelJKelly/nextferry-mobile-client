@@ -37,68 +37,69 @@ I've made the following modifications:
       it's behavior as it is running.
 */
 
-function getAccuratePosition(geolocationSuccess, geolocationError, geoprogress, options) {
+function getAccuratePosition(onSuccess, onError, onProgress, options) {
     var lastCheckedPosition,
         locationEventCount = 0,
         watchID,
         timerID,
-        self;
+        self,
+        cleared = false;
 
     options = options || {};
     self = getAccuratePosition;
 
+    var clear = function() {
+        timerID && clearTimeout(timerID);
+        watchID && navigator.geolocation.clearWatch(watchID);
+        cleared = true;
+    }
+
     var spoofed = function() {
-        if (self.spoof_value) {
-            timerID && clearTimeout(timerID);
-            watchID && navigator.geolocation.clearWatch(watchID);
-            geolocationSuccess(self.spoof_value);
-            return true;
-        }
-        else if (self.spoof_error) {
-            timerID && clearTimeout(timerID);
-            watchID && navigator.geolocation.clearWatch(watchID);
-            geolocationError && geolocationError(self.spoof_error);
-            return true;
+        if ( !cleared ) {
+            if (self.spoof_value) {
+                clear();
+                onSuccess(self.spoof_value);
+                return true;
+            }
+            else if (self.spoof_error) {
+                clear();
+                onError && onError(self.spoof_error);
+                return true;
+            }
         }
         return false;
     };
 
     var checkLocation = function (position) {
-        if ( !spoofed() ) {
+        if ( !spoofed() && !cleared ) {
             lastCheckedPosition = position;
             locationEventCount = locationEventCount + 1;
             // We ignore the first event unless it's the only one received because some devices seem to send a cached
             // location even when maxaimumAge is set to zero
             if ((position.coords.accuracy <= options.desiredAccuracy) && (locationEventCount > 1)) {
-                clearTimeout(timerID);
-                navigator.geolocation.clearWatch(watchID);
-                foundPosition(position);
+                clear();
+                onSuccess(position);
             }
             else {
-                geoprogress && geoprogress(position);
+                onProgress && onProgress(position);
             }
         }
     };
 
     var stopTrying = function () {
-        if ( !spoofed() ) {
-            navigator.geolocation.clearWatch(watchID);
-            foundPosition(lastCheckedPosition);
+        if ( !spoofed() && !cleared ) {
+            clear();
+            onSuccess(lastCheckedPosition);
         }
     };
 
-    var onError = function (error) {
-        if ( !spoofed() ) {
-            timerID && clearTimeout(timerID);
-            watchID && navigator.geolocation.clearWatch(watchID);
-            geolocationError && geolocationError(error);
+    var geoError = function (error) {
+        if ( !spoofed() && !cleared ) {
+            clear();
+            onError && onError(error);
         }
     };
 
-    var foundPosition = function (position) {
-        // spoofing already handled in checkposition & stopTrying
-        geolocationSuccess(position);
-    };
 
     if (!options.maxWait)
         options.maxWait = 10000; // Default 10 seconds
@@ -111,7 +112,7 @@ function getAccuratePosition(geolocationSuccess, geolocationError, geoprogress, 
     options.enableHighAccuracy = true; // Force high accuracy (otherwise, why are you using this function?)
 
     if( navigator && navigator.geolocation ) {
-        watchID = navigator.geolocation.watchPosition(checkLocation, onError, options);
+        watchID = navigator.geolocation.watchPosition(checkLocation, geoError, options);
         timerID = setTimeout(stopTrying, options.maxWait); // Set a timeout that will abandon the location loop
     }
     else {

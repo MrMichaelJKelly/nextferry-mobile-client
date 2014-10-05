@@ -29,19 +29,16 @@ var ServerIO = (function($) {
     loadAlerts.listeners = $.Callbacks();
 
     var loadTravelTimes = function(text) {
-        console.log("received travel times:\n" + text);
         NextFerry.Terminal.loadTTs(text);
         loadTravelTimes.listeners.fire();
     };
     loadTravelTimes.listeners = $.Callbacks();
 
     var processReply = function(data, status, jqXHR) {
-        // we use the same function to look through all data sent to us
-        // the reply is text format, with sections indicated by
-        // lines beginning with '#'
-        // So start by breaking on that...
-        console.log("****process reply:");
-        console.log(data);
+        //console.log("****process reply:");
+        //console.log(data);
+        // the same format is used for all responses.  it consists of a number
+        // of sections separated by lines beginning with '#'
         var chunks = data.split("\n#");
         if (chunks[0][0] === "#") {
             chunks[0] = chunks[0].slice(1);
@@ -82,11 +79,32 @@ var ServerIO = (function($) {
                });
     };
 
+    var _calls = {};
+    var _callcount = 0;
+    var _addCall = function() {
+        _callcount++;
+        var e = new Error('dummy');
+        var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '')
+            .replace(/^\s+at\s+/gm, '')
+            .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@');
+        _calls[_callcount] = { "stack" : stack, "results" : [] };
+        return _callcount;
+    }
+    var _wrapCallback = function(callback,id,result) {
+        return function(arg) {
+            console.log("callback " + id + ": " + result);
+            _calls[id].results.push(result);
+            callback(arg);
+        }
+    }
 
     var _requestTTdelay = false;
     var requestTravelTimes = function() {
+        var marker = _addCall();
         if ( window.localStorage["useloc"] != "true" || _requestTTdelay ) {
             // if the user doesn't want this, or we've just called, then skip.
+            console.log("skipped " + marker);
+            _calls[marker].results.push("skipped");
             return;
         }
         else {
@@ -95,16 +113,25 @@ var ServerIO = (function($) {
             setTimeout( function() { _requestTTdelay = false; }, 20000);
             // asynch request to get current position which
             //   calls asynch request to get travel times
+
+            // for right now, in the simulator:
+            if ( "Position" in window ) {
+                getAccuratePosition.spoof_value = new Position(new Coordinates(47.581688,-122.702252,100,150));
+            }
+
             getAccuratePosition(
-                function(loc) {
-                    console.log(loc);
-                    $.ajax({
-                        url: travelURL +  loc.coords.latitude + "," + loc.coords.longitude,
-                        dataType: "text",
-                        success: processReply
-                    });
-                },
-                function(err) { console.log("getpos error:"); console.log(err); }
+                _wrapCallback(
+                    function(loc) {
+                        console.log(loc);
+                        $.ajax({
+                            url: travelURL +  loc.coords.latitude + "," + loc.coords.longitude,
+                            dataType: "text",
+                            success: processReply
+                        });
+                    }, marker, "success"),
+                _wrapCallback(
+                    function(err) { console.log("getpos error:"); console.log(err); },
+                    marker, "error")
             );
         }
     };
@@ -128,6 +155,7 @@ var ServerIO = (function($) {
         // for testing
         loadAlerts : loadAlerts,
         loadTravelTimes : loadTravelTimes,
+        calls : _calls
     };
     return module;
 }(jQuery));
