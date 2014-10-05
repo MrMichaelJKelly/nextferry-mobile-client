@@ -79,32 +79,10 @@ var ServerIO = (function($) {
                });
     };
 
-    var _calls = {};
-    var _callcount = 0;
-    var _addCall = function() {
-        _callcount++;
-        var e = new Error('dummy');
-        var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '')
-            .replace(/^\s+at\s+/gm, '')
-            .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@');
-        _calls[_callcount] = { "stack" : stack, "results" : [] };
-        return _callcount;
-    }
-    var _wrapCallback = function(callback,id,result) {
-        return function(arg) {
-            console.log("callback " + id + ": " + result);
-            _calls[id].results.push(result);
-            callback(arg);
-        }
-    }
-
     var _requestTTdelay = false;
     var requestTravelTimes = function() {
-        var marker = _addCall();
         if ( window.localStorage["useloc"] != "true" || _requestTTdelay ) {
             // if the user doesn't want this, or we've just called, then skip.
-            console.log("skipped " + marker);
-            _calls[marker].results.push("skipped");
             return;
         }
         else {
@@ -120,18 +98,13 @@ var ServerIO = (function($) {
             }
 
             getAccuratePosition(
-                _wrapCallback(
-                    function(loc) {
-                        console.log(loc);
-                        $.ajax({
-                            url: travelURL +  loc.coords.latitude + "," + loc.coords.longitude,
-                            dataType: "text",
-                            success: processReply
-                        });
-                    }, marker, "success"),
-                _wrapCallback(
-                    function(err) { console.log("getpos error:"); console.log(err); },
-                    marker, "error")
+                function(loc) {
+                    $.ajax({
+                        url: travelURL +  loc.coords.latitude + "," + loc.coords.longitude,
+                        dataType: "text",
+                        success: processReply
+                    });
+                }
             );
         }
     };
@@ -154,8 +127,7 @@ var ServerIO = (function($) {
         loadSchedule : loadSchedule,
         // for testing
         loadAlerts : loadAlerts,
-        loadTravelTimes : loadTravelTimes,
-        calls : _calls
+        loadTravelTimes : loadTravelTimes
     };
     return module;
 }(jQuery));
