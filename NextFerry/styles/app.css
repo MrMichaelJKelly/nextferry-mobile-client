@@ -33,11 +33,14 @@ li {
 .icon.open::before { content: "\F3C7"; }
 .icon.info::before { content: "\F315"; }
 .icon.alert::before { content: "\F05A"; }
-.icon.return::before { content: "\F31A"; }
+.icon.return::before { content: "\F489"; }
 .icon.settings::before { content: "\F00F"; }
 .icon[glyph]::before { content: attr(glyph); }
 .icon.open, .icon.closed {
     vertical-align: -10%;
+    font-size: 90%;
+}
+.icon.return {
     font-size: 90%;
 }
 
@@ -258,4 +261,33 @@ li {
 
 #settings-page .disabled, #settings-page .disabled .explain {
     color: #ccc;
+}
+
+/* customize input elements */
+
+input[type="radio"] {
+    display: none;
+}
+
+input[type="radio"] + label {
+    vertical-align: middle;
+}
+
+input[type="radio"] + label:before {
+    content: "";
+    display: inline-block;
+    width: 15pt;
+    height: 15pt;
+    border: 1px solid;
+    margin: 4pt;
+    margin-bottom: -3pt;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+    border-radius: 50%;
+}
+
+input[type="radio"]:checked + label:before {
+    background-color: black;
 }
