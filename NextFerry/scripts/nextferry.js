@@ -158,6 +158,7 @@ var NextFerry = (function ($) {
         if ( ! ("tf" in window.localStorage)) window.localStorage["tf"] = "tf12";
         if ( ! ("bt" in window.localStorage)) window.localStorage["bt"] = "15";
         if ( ! ("rl" in window.localStorage)) window.localStorage["rl"] = "[]";
+        if ( ! ("useloc" in window.localStorage)) window.localStorage["useloc"] = "false";
 
         if ( window.localStorage["dl"] ) {
             _displayList = JSON.parse( window.localStorage["dl"] );

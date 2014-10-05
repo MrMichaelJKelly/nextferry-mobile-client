@@ -354,7 +354,7 @@ function nextFerryTests() {
 
 	QUnit.test("Loading an Alert", function(assert) {
 		copyLS();
-		window.localStorage["readlist"] = "";
+		window.localStorage["rl"] = "";
 		NextFerry.init();
 		expect(5);
 
@@ -371,7 +371,7 @@ function nextFerryTests() {
 
 	QUnit.test("Working with Alerts", function(assert) {
 		copyLS();
-		window.localStorage["readlist"] = "";
+		window.localStorage["rl"] = "";
 		NextFerry.init();
 		expect(10);
 

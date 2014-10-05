@@ -255,3 +255,7 @@ li {
     font-size: smaller;
     color: #324151;
 }
+
+#settings-page .disabled, #settings-page .disabled .explain {
+    color: #ccc;
+}

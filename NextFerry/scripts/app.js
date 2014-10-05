@@ -55,6 +55,7 @@ var app = (function ($) {
             $("#schedule-list>li").on("click", toggleSchedulePart);
             $(".settingsfloater").on("click", gogoPage("#settings-page"));
             $(".setnav").on("click", inSettingsNav);
+            $("#useloc").on("change",updateDisable);
 
             $("#buftime").rangeslider({
                 polyfill: false,
@@ -248,12 +249,14 @@ var app = (function ($) {
 
         $("#useloc").prop( "checked", (window.localStorage["useloc"] === "true"));
 
+
         if ( _btdisplay === undefined ) {
             _btdisplay = parseInt( window.localStorage["bt"] );
         }
         $("#buftime").val( _btdisplay ).change();
         $("#buftimeval").text( _btdisplay.toString() );
 
+        updateDisable();
         /*
         if ( window.localStorage["vashondir"] ) {
             // etc.
@@ -275,7 +278,7 @@ var app = (function ($) {
 
 
         var timeformat = $("input:radio[name=tf]:checked").prop( "id" );
-        window.localStorage["timeformat"] = timeformat;
+        window.localStorage["tf"] = timeformat;
         NextFerry.NFTime.setDisplayFormat(timeformat);
 
         var useloc = $("#useloc").prop("checked");
@@ -321,6 +324,20 @@ var app = (function ($) {
             updateScroller(settingsScroll);
         }
         return false;
+    };
+
+    var updateDisable = function(e) {
+        var buftimeEnabled = $("#useloc").prop("checked");
+        var buftime = $("#buftime");
+        if (buftimeEnabled) {
+            $("#buftimeitem").removeClass("disabled");
+            buftime.prop("disabled",false);
+        }
+        else {
+            $("#buftimeitem").addClass("disabled");
+            buftime.prop("disabled",true);
+        }
+        buftime.rangeslider("update");
     };
 
     //======= Page Transitions
