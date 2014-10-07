@@ -1,64 +1,69 @@
 {
-	"ProjectGuid": "69b8438c-3edb-4985-9a9c-4cf1ea10664d",
-	"ProjectTypeGuids": "{070BCB52-5A75-4F8C-A973-144AF0EAFCC9}",
-	"AppIdentifier": "sandbox.co.NextFerry",
-	"ProjectName": "NextFerry",
-	"IsRunnable": "true",
-	"FrameworkVersion": "3.2.0",
-	"AndroidPermissions": [
-		"android.permission.ACCESS_COARSE_LOCATION",
-		"android.permission.ACCESS_FINE_LOCATION",
-		"android.permission.ACCESS_LOCATION_EXTRA_COMMANDS",
-		"android.permission.ACCESS_NETWORK_STATE",
-		"android.permission.ACCOUNT_MANAGER",
-		"android.permission.BROADCAST_STICKY",
-		"android.permission.CAMERA",
-		"android.permission.GET_ACCOUNTS",
-		"android.permission.INTERNET",
-		"android.permission.MANAGE_ACCOUNTS",
-		"android.permission.MODIFY_AUDIO_SETTINGS",
-		"android.permission.READ_CONTACTS",
-		"android.permission.READ_PHONE_STATE",
-		"android.permission.RECEIVE_SMS",
-		"android.permission.RECORD_AUDIO",
-		"android.permission.VIBRATE",
-		"android.permission.WRITE_CONTACTS",
-		"android.permission.WRITE_EXTERNAL_STORAGE"
-	],
-	"CorePlugins": [
-		"org.apache.cordova.geolocation",
-		"org.apache.cordova.network-information",
-		"org.apache.cordova.dialogs",
-		"com.telerik.plugin.eqatecanalytics",
-		"com.telerik.feedback"
-	],
-	"DeviceOrientations": [
-		"Portrait",
-		"Landscape"
-	],
-	"iOSStatusBarStyle": "Default",
-	"AndroidHardwareAcceleration": "true",
-	"WP8SupportedResolutions": [
-		"ID_RESOLUTION_WVGA",
-		"ID_RESOLUTION_WXGA",
-		"ID_RESOLUTION_HD720P"
-	],
-	"BundleVersion": "1.0",
-	"Framework": "Cordova",
-	"DisplayName": "denisesandbox@gmail.com",
-	"Author": "denisesandbox@gmail.com",
-	"Description": "NextFerry",
-	"iOSDeviceFamily": [
-		"1",
-		"2"
-	],
-	"iOSBackgroundMode": [],
-	"AndroidVersionCode": "1",
-	"WP8TileTitle": "NextFerry",
-	"WP8ProductID": "{69b8438c-3edb-4985-9a9c-4cf1ea10664d}",
-	"WP8PublisherID": "{decd56f9-d056-43c3-9287-9735346bb520}",
-	"WP8Publisher": "denisesandbox@gmail.com",
-	"WP8Capabilities": [],
-	"WP8Requirements": [],
-	"projectVersion": 1
+  "ProjectGuid": "69b8438c-3edb-4985-9a9c-4cf1ea10664d",
+  "ProjectTypeGuids": "{070BCB52-5A75-4F8C-A973-144AF0EAFCC9}",
+  "AppIdentifier": "sandbox.co.NextFerry",
+  "ProjectName": "NextFerry",
+  "IsRunnable": "true",
+  "FrameworkVersion": "3.5.0",
+  "AndroidPermissions": [
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_LOCATION_EXTRA_COMMANDS",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.ACCOUNT_MANAGER",
+    "android.permission.BROADCAST_STICKY",
+    "android.permission.CAMERA",
+    "android.permission.GET_ACCOUNTS",
+    "android.permission.INTERNET",
+    "android.permission.MANAGE_ACCOUNTS",
+    "android.permission.MODIFY_AUDIO_SETTINGS",
+    "android.permission.READ_CONTACTS",
+    "android.permission.READ_PHONE_STATE",
+    "android.permission.RECEIVE_SMS",
+    "android.permission.RECORD_AUDIO",
+    "android.permission.VIBRATE",
+    "android.permission.WRITE_CONTACTS",
+    "android.permission.WRITE_EXTERNAL_STORAGE"
+  ],
+  "CorePlugins": [
+    "org.apache.cordova.geolocation",
+    "org.apache.cordova.network-information",
+    "org.apache.cordova.dialogs",
+    "com.telerik.plugin.eqatecanalytics",
+    "com.telerik.feedback"
+  ],
+  "DeviceOrientations": [
+    "Portrait",
+    "Landscape"
+  ],
+  "iOSStatusBarStyle": "Default",
+  "AndroidHardwareAcceleration": "true",
+  "WP8SupportedResolutions": [
+    "ID_RESOLUTION_WVGA",
+    "ID_RESOLUTION_WXGA",
+    "ID_RESOLUTION_HD720P"
+  ],
+  "BundleVersion": "1.0",
+  "Framework": "Cordova",
+  "DisplayName": "denisesandbox@gmail.com",
+  "Author": "denisesandbox@gmail.com",
+  "Description": "NextFerry",
+  "iOSDeviceFamily": [
+    "1",
+    "2"
+  ],
+  "iOSBackgroundMode": [],
+  "AndroidVersionCode": "1",
+  "WP8TileTitle": "NextFerry",
+  "WP8ProductID": "{69b8438c-3edb-4985-9a9c-4cf1ea10664d}",
+  "WP8PublisherID": "{decd56f9-d056-43c3-9287-9735346bb520}",
+  "WP8Publisher": "denisesandbox@gmail.com",
+  "WP8Capabilities": [],
+  "WP8Requirements": [],
+  "projectVersion": 1,
+  "CordovaPluginVariables": {
+    "com.telerik.mobiletesting": {
+      "IOS_APP_URL": ""
+    }
+  }
 }

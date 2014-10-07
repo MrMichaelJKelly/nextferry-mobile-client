@@ -1,7 +1,7 @@
 /* normalizing */
 body {
 	overflow: hidden;
-    font-family: Dosis;
+
     -ms-touch-action: none;
     -webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -10,6 +10,10 @@ body {
 	user-select: none;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
     -webkit-tap-highlight-color: transparent; /* For some Androids */
+
+    font-family: Dosis;
+    font-size: 20pt;
+    color: #324151;
 }
 * {
 	margin: 0;
@@ -77,12 +81,16 @@ li {
     z-index: 20;
 }
 
-
 /* main page */
 #main-page {
     background: url("images/background.jpg") no-repeat left bottom;
     background-size: cover;
-    color: #324151;
+    transition: background 1s ease-in-out;
+
+}
+#main-page.east {
+    background: url("images/dnuorgkcab.jpg") no-repeat right bottom;
+    background-size: cover;
 }
 .heading {
     margin: 10pt;
@@ -94,13 +102,22 @@ li {
 }
 
 #direction {
-    margin-right: 15pt;
+    position: absolute;
+    left: 4.2em;
+    top: 0;
     text-transform: capitalize;
+    padding: 0 5pt;
+    border: 1px solid;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+    border-radius: 10px;
 }
 #outerwrap {
 	position: absolute;
 	width: 100%;
-    top: 50pt;
+    top: 80pt;
     left: 11pt;
     right: 10pt;
     bottom: 10pt;
@@ -137,14 +154,14 @@ li {
 
 
 #routes, #times {
-	font-size: 20pt;
 	line-height: 2.22em;
 }
 
 
 /* schedule page panorama structure */
 #schedule-page {
-    background-image: url("images/clouds.jpg");
+    background: url("images/background.jpg") no-repeat -500px bottom;
+    background-size: cover;
     font-size: 16pt;
 }
 #schedule-nav {
@@ -152,7 +169,6 @@ li {
     margin-left: 2pt;
 }
 #schedule-nav>li {
-    font-size: 20pt;
     font-weight: 500;
     padding: 20pt 9pt 5pt;
 }
@@ -226,31 +242,35 @@ li {
 /* settings page */
 #settings-page {
     background-color: #324151;
-    font-size: 14pt;
 }
 #settings-container {
     position: relative;
     top: 20pt;
     margin: auto;
-    width: 200pt;
+    width: 240pt;
     overflow: hidden;
     background-color: white;
-    border: groove;
+    border: solid;
     border-color: #ADB3B9;
 }
 #settings-page .icon.return {
     float: left;
+    margin: 10pt 0 0 5pt;
 }
 #settings-page h2 {
     padding: 8pt;
+    font-size: 22pt;
     text-align: center;
-    font-size: 16pt;
 }
 #settings-page li {
     padding: 8pt;
     border-style: solid none none none;
     border-width: 1px;
     border-color: #ADB3B9;
+}
+
+#settings-page p {
+    margin: 0.5em;
 }
 
 .explain {
@@ -261,6 +281,11 @@ li {
 
 #settings-page .disabled, #settings-page .disabled .explain {
     color: #ccc;
+}
+
+#settings-about p {
+    font-size: 16pt;
+    font-family: serif;
 }
 
 /* customize input elements */

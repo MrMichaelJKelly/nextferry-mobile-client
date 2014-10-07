@@ -93,9 +93,9 @@ var ServerIO = (function($) {
             //   calls asynch request to get travel times
 
             // for right now, in the simulator:
-            if ( "Position" in window ) {
-                getAccuratePosition.spoof_value = new Position(new Coordinates(47.581688,-122.702252,100,150));
-            }
+            //if ( "Position" in window ) {
+            //    getAccuratePosition.spoof_value = new Position(new Coordinates(47.581688,-122.702252,100,150));
+            //}
 
             getAccuratePosition(
                 function(loc) {

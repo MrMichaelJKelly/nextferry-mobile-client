@@ -45,7 +45,7 @@ var app = (function ($) {
 
             schedScroll = new IScroll("#schedule-tab", { click: true });
             alertScroll = new IScroll("#alerts-tab");
-            settingsScroll = new IScroll("#settings-page");
+            //settingsScroll = new IScroll("#settings-page");
 
             // wire up all the event actions
             $("#direction").on("click", toggleDirection);
@@ -116,6 +116,12 @@ var app = (function ($) {
     var toggleDirection = function(e) {
         e.preventDefault();
 		dir = ( dir === "west" ? "east" : "west" );
+        if (dir === "east") {
+            $("#main-page").addClass("east");
+        }
+        else {
+            $("#main-page").removeClass("east");
+        }
 		renderMainPage();
         ServerIO.requestTravelTimes();
         return false;
