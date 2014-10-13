@@ -10,7 +10,6 @@ var app = (function ($) {
     var timeScroll;
     var schedScroll;
     var alertScroll;
-    var settingsScroll;
 
     //======= Initialization and event wiring
 
@@ -37,15 +36,11 @@ var app = (function ($) {
             }
             ServerIO.requestUpdate();
 
-            // initialize scrollers
+            // initialize main page scrollers
             mainScroll = new IScroll("#outerwrap", { tap: true });
             timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
-            updateScroller(mainScroll);
+            updateScroller(mainScroll,100);
             updateScroller(timeScroll);
-
-            schedScroll = new IScroll("#schedule-tab", { click: true });
-            alertScroll = new IScroll("#alerts-tab");
-            //settingsScroll = new IScroll("#settings-page");
 
             // wire up all the event actions
             $("#direction").on("click", toggleDirection);
@@ -82,6 +77,7 @@ var app = (function ($) {
         $("#direction").text(dir);
         renderRoutes();
         renderTimes();
+        updateScroller(mainScroll);
         ServerIO.requestTravelTimes();
     };
 
@@ -95,14 +91,15 @@ var app = (function ($) {
         var now = NextFerry.NFTime.now();
         // <li><span class='timegoodness'>time</span> <span>...</li>
         $("#times").empty();
+        $("#times").width(1500); // wider than needed; will be recalculated below.
         $("#times").append( NextFerry.Route.displayRoutes().map( function(r) {
-            return $( "<li>" + "".concat( r.futureDepartures(dir).map( function(tt) {
+            return $( "<li><span>" + "".concat( r.futureDepartures(dir).map( function(tt) {
                 return "<span class='" + r.tGoodness(dir,tt,now) + "'> " +
                        NextFerry.NFTime.display(tt) +
                        "</span>";
-            } )) + "</li>");
+            } )) + "<span></li>");
         }));
-        updateScroller(mainScroll);
+        fixWidth();
         updateScroller(timeScroll);
     };
 
@@ -112,6 +109,23 @@ var app = (function ($) {
         renderTimes();
     };
 
+
+    // Calculate native width of text in each list item, and truncate the
+    // width of the container to that.
+    // Based on solutions found at http://stackoverflow.com/questions/1582534/calculating-text-width-with-jquery
+    // but using slightly different trick: (a) we've added an extra <span>
+    // element inside the <li> so that we have an inline element to measure against,
+    // and (b) we set the width of $("#times") so that it is wide enough to
+    // guarantee no line-breaking.
+    // (amazing how much hassle this little bit of functionality was to figure out...)
+    var fixWidth = function( ) {
+        var max = 0;
+        $("#times li>span").each( function(i,e) {
+            var x = $(e).width();
+            if (x > max) { max = x; }
+        });
+        $("#times").width( max );
+    };
 
     var toggleDirection = function(e) {
         e.preventDefault();
@@ -165,6 +179,7 @@ var app = (function ($) {
         $("#eeam").html(renderTimeList(r.beforeNoon("east", "weekend")));
         $("#eepm").html(renderTimeList(r.afterNoon("east", "weekend")));
 
+        schedScroll = (schedScroll || new IScroll("#schedule-tab", { click: true }));
         updateScroller(schedScroll,700);
     };
 
@@ -201,6 +216,7 @@ var app = (function ($) {
 			$("#alerts-list").append( alist.map(function(a) { return "<li>" + a.body + "</li>"; }));
             $("#sn-alerts").show();
             $("#alerts-tab").show();
+            alertScroll = (alertScroll || new IScroll("#alerts-tab"));
             updateScroller(alertScroll);
         }
         else {
@@ -245,10 +261,9 @@ var app = (function ($) {
         $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
             function(r) {
                 var id = "r" + r.code;
-                return $( "<p><input type='checkbox' class='routedisplay' id='" + id +
+                return $( "<input type='checkbox' class='routedisplay' id='" + id +
                     ( r.isDisplayed() ? "' checked>" : "'>") +
-                    "<label for='" + id + "'>" + r.displayName.west + "</label>" +
-                    "</p>");
+                    "<label for='" + id + "'>" + r.displayName.west + "</label><br>");
         }));
         var tf = window.localStorage["tf"];
         $("#" + tf).prop( "checked", true );    // checks either tf12 or tf24
@@ -272,8 +287,6 @@ var app = (function ($) {
         }
         // TODO: set the schedule name on about.
         */
-
-        updateScroller(settingsScroll);
     };
 
     var saveSettings = function() {
@@ -312,6 +325,11 @@ var app = (function ($) {
         */
     };
 
+    var settingsScrollers = {
+        "settings-routes": undefined,
+        "settings-options": undefined,
+        "settings-about": undefined
+    };
     var inSettingsNav = function(e) {
         e.preventDefault();
         var dest = e.currentTarget.getAttribute("dest");
@@ -322,12 +340,13 @@ var app = (function ($) {
         else if ( dest === "list" ) {
             $(".settings-part").hide();
             $("#settings-list").show();
-            updateScroller(settingsScroll);
         }
         else {
             $("#settings-list").hide();
             $("#" + dest).show();
-            updateScroller(settingsScroll);
+            settingsScrollers[dest] = settingsScrollers[dest] ||
+                new IScroll("#" + dest + "-wrapper", { click: true });
+            updateScroller(settingsScrollers[dest]);
         }
         return false;
     };
@@ -386,8 +405,7 @@ var app = (function ($) {
         // (hence, the 2nd "back" always goes to the #main-page.)
         prevPage = false;
         return false;
-    }
-
+    };
 
     var module = {
         init : init,

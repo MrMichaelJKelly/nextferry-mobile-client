@@ -157,8 +157,8 @@
     </div> <!-- end schedule-page -->
 
     <!-- Settings -->
-    <div id="settings-page" class="page scrollwrapper">
-        <div id="settings-container" class="scrollee">
+    <div id="settings-page" class="page">
+        <div id="settings-container">
             <div id="settings-list">
                 <span class="icon return setnav" dest="exit"></span>
                 <h2>Settings</h2>
@@ -171,80 +171,93 @@
             <div id="settings-routes" class="settings-part">
                 <span class="icon return setnav" dest="list"></span>
                 <h2>Routes</h2>
-                <p class="explain">Choose ferry routes to display.</p>
-                <form id="settings-routes-form">
-                    CONTENT
-                </form>
+                <p class="explain">Choose ferry routes to display</p>
+                <div id="settings-routes-wrapper" class="scrollwrapper">
+                    <form id="settings-routes-form" class="scrollee">
+                        CONTENT
+                    </form>
+                </div>
             </div>
             <div id="settings-options" class="settings-part">
                 <span class="icon return setnav" dest="list"></span>
                 <h2>Options</h2>
-                <ul>
-                    <li> <!-- time format -->
-                        <form>
-                            <p>Time Format</p>
-                            <input type="radio" id="tf12" name="tf">
-                            <label for="tf12">12 hour</label>
-                            <input type="radio" id="tf24" name="tf">
-                            <label for="tf24">24 hour</label>
-                        </form>
-                    </li>
-                    <li> <!-- use location -->
-                        <input type="checkbox" id="useloc">
-                        <label for="useloc">Use Location</label>
-                        <p class="explain">Use location to calculate drive times
-                            to ferry terminals.</p>
-                    </li>
-                    <li id="buftimeitem"> <!-- buffer time -->
-                        <input type="range" id="buftime" min="0" max="60" step="5">
-                        <p>Buffer Time <output id="buftimeval"></output> minutes</p>
-                        <p class="explain">How much time (in minutes) to add
-                            as buffer for drive time</p>
-                    </li>
-                    <li> <!-- vashon direction -->
-                        <input type="radio" id="vdw" name="b">
-                        <label for="vdw">Vashon to Pt Defiance is
-                            <em>West</em></label>
-                        <input type="radio" id="vde" name="b">
-                        <label for="vde">Vashon to Pt Defiance is
-                            <em>East</em></label>
-                        <p class="explain">Mostly useful for Vashon residents:
-                            if you are traveling off of Vashon via the Pt Defiance
-                            ferry, would you prefer to see this listed as a
-                            <em>West-bound</em> route or an
-                            <em>East-bound</em> route?
-                        </p>
-                    </li>
-                </ul>
+                <div id="settings-options-wrapper" class="scrollwrapper">
+                    <ul class="scrollee">
+                        <li> <!-- time format -->
+                            <form>
+                                <h3>Time Format</h3>
+                                <input type="radio" id="tf12" name="tf">
+                                <label for="tf12">12 hour</label>
+                                <input type="radio" id="tf24" name="tf">
+                                <label for="tf24">24 hour</label>
+                            </form>
+                        </li>
+                        <li> <!-- use location -->
+                            <h3>Use Location</h3>
+                            <input type="checkbox" id="useloc">
+                            <label for="useloc"><span class="explain special-label">Use location to calculate drive time to terminal.
+                            </span></label>
+                        </li>
+                        <li id="buftimeitem"> <!-- buffer time -->
+                            <h3>Buffer Time</h3>
+                            <input type="range" id="buftime" min="0" max="60" step="5">
+                            <output id="buftimeval"></output> min
+                            <p class="explain special-label2">Arrive how far ahead of departure? (Determines risky departures.)</p>
+                        </li>
+                        <li> <!-- vashon direction -->
+                            <h3>Vashon/Pt Defiance Direction</h3>
+                            <input type="radio" id="vdw" name="b">
+                            <label for="vdw">West<br>
+                            <input type="radio" id="vde" name="b">
+                            <label for="vde">East</label>
+                            <p class="explain special-label2">
+                                Mostly useful for Vashon residents:
+                                if you are traveling off of Vashon via the Pt Defiance
+                                ferry, would you prefer to see this listed as a
+                                <em>West-bound</em> route or an
+                                <em>East-bound</em> route?
+                            </p>
+                        </li>
+                    </ul>
+                </div>
             </div> <!-- end settings-options -->
             <div id="settings-about" class="settings-part">
                 <span class="icon return setnav" dest="list"></span>
                 <h2>About</h2>
+                <div id="settings-about-wrapper" class="scrollwrapper">
+                    <div class="scrollee">
+                        <p id="aboutsched">The current schedule is
+                            <span id="curschedule">CONTENT</span>.</p>
+                        <p id="resetsched">Reload Schedule</p>
 
-                <p>The NextFerry app was created by Denise Draper, because I often
-                    want to know whether I should take the Edmonds or the Bainbridge
-                    ferry.  Email denisesandbox@mailup.net for information, feedback
-                    or requests.</p>
+                        <div class="br"></div>
+                        <p>The NextFerry app was created by Denise Draper,
+                            because I often want to know whether I should take the Edmonds
+                            or the Bainbridge ferry.  </p>
+                        <p> Email denisesandbox@mailup.net for information,
+                            feedback or requests.</p>
 
-                <p>The NextFerry app is not affiliated with WSDOT.
-                    The NextFerry schedule is updated every season when the WSDOT schedule changes, however delayed updates or errors are possible.
-                    Also, NextFerry uses a simplified weekday/weekend schedule,
-                    which misses some irregular departures on some routes
-                    (typically Friday-only or Saturday-only).
-                    Consult the official WSDOT schedule or website
-                    (http://wsdot.gov/ferries) for definitive information.</p>
+                        <div class="br"></div>
+                        <p>The NextFerry app is not affiliated with WSDOT.
+                            The NextFerry schedule is updated every season when the WSDOT schedule changes, however delayed updates or errors are
+                            possible.</p>
+                        <p> Also, NextFerry uses a simplified weekday/weekend schedule,
+                            which misses some irregular departures on some routes
+                            (typically Friday-only or Saturday-only).
+                            Consult the official WSDOT schedule or website
+                            (http://wsdot.gov/ferries) for definitive information.</p>
 
-                <p id="aboutsched">The current schedule is
-                    <span id="curschedule">CONTENT</span>.</p>
-                <p id="resetsched">Reload Schedule</p>
-
-                <p>This version of the NextFerry app is an HTML5 cross-platform
-                    mobile application that communicates with a backend service hosted
-                    on the Google App Engine.  The code for app and server can be
-                    found at https://github.com/denised/nextferry.
-                    The client uses jQuery, iScroll and the Dosis font; liscencing
-                    info for each can be found in the github source.
-                    Travel times are provided by MapQuest.</p>
+                        <div class="br"></div>
+                        <p>This version of the NextFerry app is an HTML5
+                            cross-platform
+                            mobile application that communicates with a backend service hosted
+                            on the Google App Engine.  The code for app and server can be
+                            found at https://github.com/denised/nextferry.</p>
+                        <p> The client uses jQuery, iScroll and the Dosis font; liscencing
+                            info for each can be found in the github source.</p>
+                        <p> Travel times are provided by MapQuest.</p>
+                    </div> <!-- scroller wrappee -->
+                </div> <!-- scroller wrapper -->
             </div> <!-- end settings-part -->
         </div> <!-- end settings-container -->
     </div> <!-- end settings-page -->
