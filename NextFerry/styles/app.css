@@ -32,6 +32,17 @@ li {
 }
 .icon {
 	font-family: Icons;
+    font-size: 90%;
+}
+.icon.outline {
+    font-size: 75%;
+    padding: 0.1em;
+    border: solid 1px;
+    -webkit-border-radius: 20%;
+    -moz-border-radius: 20%;
+    -ms-border-radius: 20%;
+    -o-border-radius: 20%;
+    border-radius: 20%;
 }
 .icon.closed::before { content: "\F3C9"; }
 .icon.open::before { content: "\F3C7"; }
@@ -43,20 +54,34 @@ li {
 .icon[glyph]::before { content: attr(glyph); }
 .icon.open, .icon.closed {
     vertical-align: -10%;
-    font-size: 90%;
-}
-.icon.return {
-    font-size: 90%;
 }
 
 
 /* general page & tab structure */
+#footer {
+    position: fixed;
+    bottom: 0;
+    height: 22pt;
+    width: 100%;
+    border: solid 1px;
+    background-color: #ADB3B9;
+}
+#footer ul {
+    position: absolute;
+    left: 50%;
+    margin-left: -69pt;
+}
+#footer li {
+    font-size: 14pt;
+    color: white;
+    padding: 2pt 16pt;
+}
 .page {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: 22pt;
     overflow: hidden;
 }
 #schedule-page, #settings-page, #test-page { /* init visibility */
@@ -73,13 +98,7 @@ li {
 .scrollwrapper {
     overflow: hidden;
 }
-.settingsfloater {
-    font-size: 24pt;
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    z-index: 20;
-}
+
 
 /* main page */
 #main-page {
@@ -88,7 +107,7 @@ li {
     transition: background-image 1s ease-in;
 }
 #main-page.east {
-    background: url("images/dnuorgkcab.jpg") no-repeat right bottom;
+    background: url("images/dnuorgkcab2.jpg") no-repeat right bottom;
     background-size: cover;
 }
 
@@ -117,7 +136,7 @@ li {
 #outerwrap {
 	position: absolute;
 	width: 100%;
-    top: 80pt;
+    top: 45pt;
     left: 11pt;
     right: 10pt;
     bottom: 10pt;
@@ -161,7 +180,7 @@ li {
 
 /* schedule page panorama structure */
 #schedule-page {
-    background: url("images/background.jpg") no-repeat -500px bottom;
+    background: url("images/background_clipped.jpg") no-repeat 0 bottom;
     background-size: cover;
     font-size: 16pt;
 }
@@ -193,9 +212,6 @@ li {
 }
 #alerts-tab {
     left: 325pt;
-}
-#more-tab {
-    left: 650pt;
 }
 
 
@@ -247,8 +263,8 @@ li {
     background-color: #324151;
 }
 
-/* nested divs.  the position absolute and top/bottom setting is necessary
- * at each level to propagate the height.  Not my favorite css...
+/* nested divs.  it is necessary to specifically position each level
+ * to connect the height/width from page to scroll-window.  Not my favorite css...
  */
 #settings-container {
     position: absolute;
@@ -310,27 +326,22 @@ li {
     text-align: center;
     border-bottom: 1px solid #ADB3B9;
 }
-
 #settings-page h3 {
     font-size: 20pt;
     font-weight: 400;
 }
-
 #settings-page li {
     padding: 8pt;
     border-bottom: solid 1px #ADB3B9;
 }
-
 #settings-page p {
     padding: 0.5em;
 }
-
 .explain {
     font-family: serif;
     font-size: smaller;
     color: #324151;
 }
-
 .special-label {
     display: inline-block;
     width: 180pt;
@@ -338,7 +349,6 @@ li {
     margin-top: 2pt;
     margin-left: 4pt;
 }
-
 .special-label2 {
     margin-left: 28pt;
 }
@@ -348,7 +358,6 @@ li {
     width: 140pt;
     margin: 0 10pt 3pt 5pt;
 }
-
 #settings-page .rangeslider__handle {
     border-color: #324151;
     color: #ADB3B9;
@@ -373,11 +382,9 @@ li {
 input[type="radio"] {
     display: none;
 }
-
 input[type="radio"] + label {
     vertical-align: middle;
 }
-
 input[type="radio"] + label:before {
     content: "";
     display: inline-block;
@@ -391,15 +398,14 @@ input[type="radio"] + label:before {
     -o-border-radius: 50%;
     border-radius: 50%;
 }
-
 input[type="radio"]:checked + label:before {
     background-color: #324151;
 }
 
+
 input[type="checkbox"] {
     display: none;
 }
-
 input[type="checkbox"] + label:before {
     content: "\2713";
     font-family: Icons;
@@ -416,7 +422,6 @@ input[type="checkbox"] + label:before {
     -o-border-radius: 20%;
     border-radius: 20%;
 }
-
 input[type="checkbox"]:checked + label:before {
     background-color: #324151;
 }

@@ -43,13 +43,14 @@ var app = (function ($) {
             updateScroller(timeScroll);
 
             // wire up all the event actions
+
             $("#direction").on("click", toggleDirection);
             $("#routes").on("tap", gogoPage("#schedule-page"));   // tap because that's what Iscroll sends
             $("#schedule-page").on("swipe",navigateTabs);
             $("#schedule-nav>li").on("click",navigateTabs);
             $("#schedule-list>li").on("click", toggleSchedulePart);
-            $(".settingsfloater").on("click", gogoPage("#settings-page"));
-            $(".setnav").on("click", inSettingsNav);
+            $("#settings-nav>li").on("click", settingsNav);
+            $(".settings-exit").on("click", settingsExit);
             $("#useloc").on("change",updateDisable);
 
             $("#buftime").rangeslider({
@@ -225,13 +226,12 @@ var app = (function ($) {
         }
     };
 
-    //======= Tab Transitions
+    //======= Schedule Page Tab Transitions
 
     var currentTab;
     var scrollPoints = {
         "sn-sched" : 0,
         "sn-alerts" : 325,
-        "sn-more" : 650
     };
 
     var navigateTabs = function(e) {
@@ -251,12 +251,44 @@ var app = (function ($) {
     };
 
 
-    //======= Settings Page
+    //======= Settings Page(s)
+    // If I were writing this over, I would probably make three different
+    // pages.  The reason for keeping it this way now is that
+    // a) "return" works the way I want it to
+    // b) the setttings state is only saved on exit, hence re-rendering
+    //    the pagelets when moving between them would not work.
+
+    var settingsScrollers = {
+        "#settings-routes": undefined,
+        "#settings-options": undefined,
+        "#settings-about": undefined
+    };
+
+    var settingsNav = function(e) {
+        e.preventDefault();
+        if (currentPage !== "#settings-page") {
+            goPage("#settings-page");
+        }
+        else {
+            $(".settings-part").hide();
+        }
+
+        var dest = "#settings-" + e.currentTarget.getAttribute("dest");
+        $(dest).show();
+        settingsScrollers[dest] = settingsScrollers[dest] ||
+            new IScroll(dest + "-wrapper", { click: true });
+        updateScroller(settingsScrollers[dest]);
+        return false;
+    }
+
+    var settingsExit = function() {
+        saveSettings();
+        backPage();
+    }
 
     var _btdisplay; // the numeric version
     var renderSettingsPage = function() {
         $(".settings-part").hide();
-        $("#settings-list").show();
         $("#settings-routes-form").empty();
         $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
             function(r) {
@@ -323,32 +355,6 @@ var app = (function ($) {
         window.localStorage["vashondir"] = vashondir;
         // TODO: use
         */
-    };
-
-    var settingsScrollers = {
-        "settings-routes": undefined,
-        "settings-options": undefined,
-        "settings-about": undefined
-    };
-    var inSettingsNav = function(e) {
-        e.preventDefault();
-        var dest = e.currentTarget.getAttribute("dest");
-        if ( dest === "exit" ) {
-            saveSettings();
-            backPage();
-        }
-        else if ( dest === "list" ) {
-            $(".settings-part").hide();
-            $("#settings-list").show();
-        }
-        else {
-            $("#settings-list").hide();
-            $("#" + dest).show();
-            settingsScrollers[dest] = settingsScrollers[dest] ||
-                new IScroll("#" + dest + "-wrapper", { click: true });
-            updateScroller(settingsScrollers[dest]);
-        }
-        return false;
     };
 
     var updateDisable = function(e) {
