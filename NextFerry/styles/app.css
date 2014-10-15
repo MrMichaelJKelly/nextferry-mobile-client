@@ -63,7 +63,6 @@ li {
     bottom: 0;
     height: 22pt;
     width: 100%;
-    border: solid 1px;
     background-color: #ADB3B9;
 }
 #footer ul {
@@ -162,6 +161,9 @@ li {
 	white-space: nowrap;
 	width: 1000pt;
 }
+#routes, #times {
+    line-height: 2.22em;
+}
 .TooLate {
     color: Red;
 }
@@ -170,11 +172,6 @@ li {
 }
 .Good {
     color: Green;
-}
-
-
-#routes, #times {
-	line-height: 2.22em;
 }
 
 
@@ -352,6 +349,10 @@ li {
 .special-label2 {
     margin-left: 28pt;
 }
+#settings-page #aboutsched {
+    font-family: Dosis;
+    font-size: 18pt;
+}
 
 #settings-page .rangeslider {
     display: inline-block;
@@ -378,7 +379,7 @@ li {
 }
 
 /* customize input elements */
-
+/*
 input[type="radio"] {
     display: none;
 }
@@ -425,3 +426,4 @@ input[type="checkbox"] + label:before {
 input[type="checkbox"]:checked + label:before {
     background-color: #324151;
 }
+*/

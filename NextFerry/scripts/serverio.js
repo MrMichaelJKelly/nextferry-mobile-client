@@ -45,8 +45,8 @@ var ServerIO = (function($) {
         }
         for (var i in chunks) {
             var firstnewline = chunks[i].indexOf("\n");
-            var header = chunks[i].slice(0, firstnewline);
-            var body = chunks[i].slice(firstnewline);
+            var header = (firstnewline > 0 ? chunks[i].slice(0, firstnewline) : chunks[i]);
+            var body = (firstnewline > 0 ? chunks[i].slice(firstnewline) : "");
             if (beginsWith(header, "schedule")) {
                 loadSchedule(body);
                 window.localStorage["cachedate"] = header.slice("schedule ".length);
@@ -64,6 +64,9 @@ var ServerIO = (function($) {
             }
             else if (header === "allalerts") {
                 loadAlerts(body);
+            }
+            else if (beginsWith(header, "name")) {
+                window.localStorage["schedulename"] = header.slice("name ".length);
             }
 			// else IGNORE
         }

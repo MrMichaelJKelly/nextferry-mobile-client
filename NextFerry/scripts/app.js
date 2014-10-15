@@ -43,7 +43,6 @@ var app = (function ($) {
             updateScroller(timeScroll);
 
             // wire up all the event actions
-
             $("#direction").on("click", toggleDirection);
             $("#routes").on("tap", gogoPage("#schedule-page"));   // tap because that's what Iscroll sends
             $("#schedule-page").on("swipe",navigateTabs);
@@ -65,10 +64,9 @@ var app = (function ($) {
     };
 
     var updateScroller = function(scr,delay) {
-        delay = delay || 10;
         setTimeout(function() {
             scr && scr.refresh();
-        }, delay);
+        }, delay || 10);
     };
 
 
@@ -125,7 +123,7 @@ var app = (function ($) {
             var x = $(e).width();
             if (x > max) { max = x; }
         });
-        $("#times").width( max );
+        $("#times").width( max+10 );
     };
 
     var toggleDirection = function(e) {
@@ -138,7 +136,6 @@ var app = (function ($) {
             $("#main-page").removeClass("east");
         }
 		renderMainPage();
-        ServerIO.requestTravelTimes();
         return false;
     };
 
@@ -180,7 +177,11 @@ var app = (function ($) {
         $("#eeam").html(renderTimeList(r.beforeNoon("east", "weekend")));
         $("#eepm").html(renderTimeList(r.afterNoon("east", "weekend")));
 
-        schedScroll = (schedScroll || new IScroll("#schedule-tab", { click: true }));
+        schedScroll = (schedScroll ||
+            new IScroll("#schedule-tab", {
+                click: true,
+                preventDefault: false,
+                eventPassthrough: "horizontal" }));
         updateScroller(schedScroll,700);
     };
 
@@ -253,7 +254,8 @@ var app = (function ($) {
 
     //======= Settings Page(s)
     // If I were writing this over, I would probably make three different
-    // pages.  The reason for keeping it this way now is that
+    // pages sharing a common style, instead of three pagelets on a single
+    // page.  The reason for keeping it this way now is that
     // a) "return" works the way I want it to
     // b) the setttings state is only saved on exit, hence re-rendering
     //    the pagelets when moving between them would not work.
@@ -302,14 +304,16 @@ var app = (function ($) {
 
         $("#useloc").prop( "checked", (window.localStorage["useloc"] === "true"));
 
-
         if ( _btdisplay === undefined ) {
             _btdisplay = parseInt( window.localStorage["bt"] );
         }
         $("#buftime").val( _btdisplay ).change();
         $("#buftimeval").text( _btdisplay.toString() );
-
         updateDisable();
+
+        $("#aboutsched").text( "Current schedule: " +
+            (window.localStorage["schedulename"] || "unknown" ));
+
         /*
         if ( window.localStorage["vashondir"] ) {
             // etc.
@@ -317,7 +321,6 @@ var app = (function ($) {
         else {
             // etc.
         }
-        // TODO: set the schedule name on about.
         */
     };
 
@@ -326,7 +329,6 @@ var app = (function ($) {
             var code = $(this).prop("id").substr(1);
             NextFerry.Route.find(code).display( this.checked );
         });
-
 
         var timeformat = $("input:radio[name=tf]:checked").prop( "id" );
         window.localStorage["tf"] = timeformat;
