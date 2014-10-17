@@ -174,20 +174,16 @@
                 <h2>Options</h2>
                 <div id="settings-options-wrapper" class="scrollwrapper">
                     <ul class="scrollee">
-                        <li> <!-- time format -->
-                            <form>
-                                <h3>Time Format</h3>
-                                <input type="radio" id="tf12" name="tf">
-                                <label for="tf12">12 hour</label>
-                                <input type="radio" id="tf24" name="tf">
-                                <label for="tf24">24 hour</label>
-                            </form>
+                        <li id="tf"> <!-- time format -->
+                            <h3>Time Format</h3>
+                            <span type="radio" id="tf12">12 hour</span>
+                            <span type="radio" id="tf24">24 hour</span>
                         </li>
                         <li> <!-- use location -->
                             <h3>Use Location</h3>
-                            <input type="checkbox" id="useloc">
-                            <label for="useloc"><span class="explain special-label">Use location to calculate drive time to terminal.
-                            </span></label>
+                            <span type="checkbox" id="useloc" class="explain">
+                                Use location to calculate drive time to terminal.
+                            </span>
                         </li>
                         <li id="buftimeitem"> <!-- buffer time -->
                             <h3>Buffer Time</h3>
@@ -197,10 +193,8 @@
                         </li>
                         <li> <!-- vashon direction -->
                             <h3>Vashon/Pt Defiance Direction</h3>
-                            <input type="radio" id="vdw" name="b">
-                            <label for="vdw">West<br>
-                            <input type="radio" id="vde" name="b">
-                            <label for="vde">East</label>
+                            <span type="radio" id="vdw">West</span><br>
+                            <span type="radio" id="vde">East</span><br>
                             <p class="explain special-label2">
                                 Mostly useful for Vashon residents:
                                 if you are traveling off of Vashon via the Pt Defiance

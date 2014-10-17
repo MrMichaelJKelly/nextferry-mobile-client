@@ -307,6 +307,10 @@ li {
     width: 100%;
     overflow: hidden;
 }
+#settings-page #settings-routes-wrapper {
+    top: 80pt;
+    line-height: 130%;
+}
 #settings-page .scrollee {
     position: absolute;
     width: 100%;
@@ -326,6 +330,7 @@ li {
 #settings-page h3 {
     font-size: 20pt;
     font-weight: 400;
+    margin-bottom: 0.25em;
 }
 #settings-page li {
     padding: 8pt;
@@ -339,15 +344,14 @@ li {
     font-size: smaller;
     color: #324151;
 }
-.special-label {
-    display: inline-block;
-    width: 180pt;
-    vertical-align: top;
-    margin-top: 2pt;
-    margin-left: 4pt;
+#useloc {
+    display: block;
+    margin-top: 0.5em;
+    margin-left: 1.9em;
+    text-indent: -2em;
 }
 .special-label2 {
-    margin-left: 28pt;
+    margin-left: 1.25em;
 }
 #settings-page #aboutsched {
     font-family: Dosis;
@@ -378,52 +382,45 @@ li {
     margin: 2pt 0;
 }
 
-/* customize input elements */
-/*
-input[type="radio"] {
-    display: none;
-}
-input[type="radio"] + label {
-    vertical-align: middle;
-}
-input[type="radio"] + label:before {
+/* we do our own inputs for two reasons:
+ * 1) to get the style we like and
+ * 2) so we can get around the iscroll/preventdefault issue.
+ */
+
+span[type="radio"]:before {
     content: "";
     display: inline-block;
-    width: 1em;
-    height: 1em;
+    width: 0.9em;
+    height: 0.9em;
     border: 1px solid #324151;
-    margin: 0.25em 0.25em -0.2em 0.25em;
+    margin: 0 0.25em -0.05em;
     -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     -ms-border-radius: 50%;
     -o-border-radius: 50%;
     border-radius: 50%;
 }
-input[type="radio"]:checked + label:before {
+span[type="radio"].checked:before {
     background-color: #324151;
 }
 
 
-input[type="checkbox"] {
-    display: none;
-}
-input[type="checkbox"] + label:before {
+span[type="checkbox"]:before {
     content: "\2713";
     font-family: Icons;
-    font-size: 65%;
+    font-size: 80%;
     color: white;
-    display: inline-block;
     border: 1px solid #324151;
-    vertical-align: 1.5pt;
-    padding: 0.1em;
-    margin: 0.25em 0.3em 0.4em 0.55em;
+    vertical-align: 1pt;
+    padding: 0.1em 0.15em;
+    margin: 0 0.25em 0 0.6em;
     -webkit-border-radius: 20%;
     -moz-border-radius: 20%;
     -ms-border-radius: 20%;
     -o-border-radius: 20%;
     border-radius: 20%;
 }
-input[type="checkbox"]:checked + label:before {
+span[type="checkbox"].checked:before {
     background-color: #324151;
 }
-*/
+

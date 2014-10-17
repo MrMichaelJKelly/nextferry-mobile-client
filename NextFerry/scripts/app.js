@@ -42,6 +42,9 @@ var app = (function ($) {
             updateScroller(mainScroll,100);
             updateScroller(timeScroll);
 
+            // one-time rendering for options page
+            optionsRenderOnce();
+
             // wire up all the event actions
             $("#direction").on("click", toggleDirection);
             $("#routes").on("tap", gogoPage("#schedule-page"));   // tap because that's what Iscroll sends
@@ -50,6 +53,7 @@ var app = (function ($) {
             $("#schedule-list>li").on("click", toggleSchedulePart);
             $("#settings-nav>li").on("click", settingsNav);
             $(".settings-exit").on("click", settingsExit);
+            $("span[type]").on("click", handleClicks);
             $("#useloc").on("change",updateDisable);
 
             $("#buftime").rangeslider({
@@ -76,7 +80,7 @@ var app = (function ($) {
         $("#direction").text(dir);
         renderRoutes();
         renderTimes();
-        updateScroller(mainScroll);
+        updateScroller(mainScroll,200);
         ServerIO.requestTravelTimes();
     };
 
@@ -88,7 +92,7 @@ var app = (function ($) {
     };
     var renderTimes = function() {
         var now = NextFerry.NFTime.now();
-        // <li><span class='timegoodness'>time</span> <span>...</li>
+        // <li><span><span class='timegoodness'>time</span> <span>...</span></li>
         $("#times").empty();
         $("#times").width(1500); // wider than needed; will be recalculated below.
         $("#times").append( NextFerry.Route.displayRoutes().map( function(r) {
@@ -99,7 +103,7 @@ var app = (function ($) {
             } )) + "<span></li>");
         }));
         fixWidth();
-        updateScroller(timeScroll);
+        updateScroller(timeScroll,100);
     };
 
     var updateTravelTimes = function() {
@@ -114,7 +118,7 @@ var app = (function ($) {
     // Based on solutions found at http://stackoverflow.com/questions/1582534/calculating-text-width-with-jquery
     // but using slightly different trick: (a) we've added an extra <span>
     // element inside the <li> so that we have an inline element to measure against,
-    // and (b) we set the width of $("#times") so that it is wide enough to
+    // and (b) we initially set the width of $("#times") so that it is wide enough to
     // guarantee no line-breaking.
     // (amazing how much hassle this little bit of functionality was to figure out...)
     var fixWidth = function( ) {
@@ -160,7 +164,6 @@ var app = (function ($) {
         // build the schedule page for this schedule
         var r = NextFerry.Route.find(name);
         $("#schedule-list .slide").hide();
-        tapdance = false; // see below
 
         $("#wname1").text(r.termName("east"));
         $("#wname2").text(r.termName("east"));
@@ -180,7 +183,6 @@ var app = (function ($) {
         schedScroll = (schedScroll ||
             new IScroll("#schedule-tab", {
                 click: true,
-                preventDefault: false,
                 eventPassthrough: "horizontal" }));
         updateScroller(schedScroll,700);
     };
@@ -194,17 +196,12 @@ var app = (function ($) {
         return result;
     };
 
-    var tapdance = false;	// prevent inadvertant double-click behavior on my android.
     var toggleSchedulePart = function(e) {
         e.preventDefault();
-        if ( !tapdance ) {	// don't respond to event until previous event is done.
-            tapdance = true;
-            //console.log(e);
-            //console.log(e.type + ":" + e.currentTarget.tagName);
+        if ( debounced() ) {
             $(this).children(".slide").slideToggle(200);
             $(this).children(".icon").toggleClass("open closed");
             updateScroller(schedScroll,350);
-            setTimeout(function() { tapdance = false; }, 400);
         }
         return false;
     };
@@ -288,21 +285,33 @@ var app = (function ($) {
         backPage();
     }
 
-    var _btdisplay; // the numeric version
-    var renderSettingsPage = function() {
-        $(".settings-part").hide();
+    var optionsRenderOnce = function() {
+        // fill in the route list, which we only need to do once.
         $("#settings-routes-form").empty();
         $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
             function(r) {
                 var id = "r" + r.code;
-                return $( "<input type='checkbox' class='routedisplay' id='" + id +
-                    ( r.isDisplayed() ? "' checked>" : "'>") +
-                    "<label for='" + id + "'>" + r.displayName.west + "</label><br>");
+                return $( "<span type='checkbox' id='" +
+                    id + "' class='routedisplay'>" +
+                    r.displayName.west + "</span><br>");
         }));
-        var tf = window.localStorage["tf"];
-        $("#" + tf).prop( "checked", true );    // checks either tf12 or tf24
+    }
 
-        $("#useloc").prop( "checked", (window.localStorage["useloc"] === "true"));
+    var _btdisplay; // the numeric version
+    var renderSettingsPage = function() {
+        $(".settings-part").hide();
+        $("#settings-page span[type]").removeClass("checked");
+        NextFerry.Route.displayRoutes().map(
+            function(r) {
+                $("#r" + r.code).addClass("checked");
+            });
+
+        var tf = window.localStorage["tf"];
+        $("#" + tf).addClass("checked");    // checks either tf12 or tf24
+
+        if ( window.localStorage["useloc"] === "true" ) {
+            $("#useloc").addClass("checked");
+        }
 
         if ( _btdisplay === undefined ) {
             _btdisplay = parseInt( window.localStorage["bt"] );
@@ -327,14 +336,14 @@ var app = (function ($) {
     var saveSettings = function() {
         $(".routedisplay").each( function() {
             var code = $(this).prop("id").substr(1);
-            NextFerry.Route.find(code).display( this.checked );
+            NextFerry.Route.find(code).display( $(this).hasClass("checked") );
         });
 
-        var timeformat = $("input:radio[name=tf]:checked").prop( "id" );
+        var timeformat = $("#tf span[type='radio'].checked").prop( "id" );
         window.localStorage["tf"] = timeformat;
         NextFerry.NFTime.setDisplayFormat(timeformat);
 
-        var useloc = $("#useloc").prop("checked");
+        var useloc = $("#useloc").hasClass("checked");
         if ( useloc.toString() !== window.localStorage["useloc"]) {
             window.localStorage["useloc"] = useloc;
             if ( ! useloc ) {
@@ -359,8 +368,34 @@ var app = (function ($) {
         */
     };
 
+    /* our own implementation of checkboxes and radio boxes,
+     * because iScroll has problems with the native implementation.
+     * NB: unbelievable that this is all it takes...
+     */
+    var handleClicks = function(e) {
+        e.preventDefault();
+        if ( debounced() ) {
+            var target = $(e.target);
+            if ( target.attr("type") === "checkbox" ) {
+                target.toggleClass("checked");
+                target.trigger( $.Event("change") );
+            }
+            else { // radio boxes
+                if ( ! target.hasClass("checked") ) {
+                    var oldval = target.parent().children("span[type='radio'].checked");
+                    oldval.length > 0 && oldval.removeClass( "checked" );
+                    target.addClass("checked");
+
+                    oldval.length > 0 && oldval.trigger( $.Event("change") );
+                    target.trigger( $.Event("change") );
+                }
+            }
+        }
+        return false;
+    }
+
     var updateDisable = function(e) {
-        var buftimeEnabled = $("#useloc").prop("checked");
+        var buftimeEnabled = $("#useloc").hasClass("checked");
         var buftime = $("#buftime");
         if (buftimeEnabled) {
             $("#buftimeitem").removeClass("disabled");
@@ -372,6 +407,25 @@ var app = (function ($) {
         }
         buftime.rangeslider("update");
     };
+
+    // Iscroll sometimes sends duplicate click events, so we debounce them.
+    // The same debouncing timer is used for all events, which works fine,
+    // assuming that the user cannot intend to issue events
+    // faster than every 300 ms.
+    var debouncing_on = false;
+    var debounced = function() {
+        if ( debouncing_on ) {
+            return false;
+        }
+        else {
+            debouncing_on = true;
+            setTimeout(function() { debouncing_on = false; }, 300);
+            return true;
+        }
+    }
+    var clear_debounce = function() {
+        debouncing_on = false;
+    }
 
     //======= Page Transitions
     // goPage and backPage are for page *transitions*.
