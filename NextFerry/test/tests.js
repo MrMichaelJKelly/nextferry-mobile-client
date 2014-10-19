@@ -292,9 +292,9 @@ function nextFerryTests() {
 
 	QUnit.test("Route display", function(assert) {
 		copyLS();
-		window.localStorage["dl"] = "";
-		// initial display list
+		delete window.localStorage["dl"];
 		NextFerry.init();
+
 		var pt = NextFerry.Route.find("pt townsend");
 		var other = NextFerry.Route.find("edmonds");
 		var dl = NextFerry.Route.displayRoutes();
@@ -304,12 +304,11 @@ function nextFerryTests() {
 
 		// as shown on app page.
 		app.renderSettingsPage();
-		assert.equal( $(".routedisplay").length, 11, "showing all routes");
-		assert.ok( $("#r16").prop( "checked" ), "initially is checked");
+		assert.equal( $(".routedisplay.checked").length, 11, "initially all routes are checked");
 
 		// set pt townsend to false
-		$("#r16").prop( "checked", false );
-		assert.ok( ! $("#r16").prop( "checked "), "check is removed" );
+		$("#r16").removeClass( "checked" );
+		assert.equal( $("#r16").hasClass( "checked "), false, "check is removed" );
 		app.saveSettings();
 
 		// is it correctly reflected in internal state?
@@ -325,8 +324,8 @@ function nextFerryTests() {
 		// and is it remembered next time we generate the settings page?
 		app.renderSettingsPage();
 		assert.equal( $(".routedisplay").length, 11, "length doesn't change");
-		assert.ok( ! $("#r16").prop("checked"), "r16 is not checked");
-		assert.ok( $("#r32").prop("checked"), "but other things are");
+		assert.equal( $("#r16").hasClass("checked"), false, "r16 is not checked");
+		assert.equal( $(".routedisplay.checked").length, 10, "but everything else is");
 
 		// what about next time we init (re-initialize from LS)
 		NextFerry.init();
@@ -354,7 +353,7 @@ function nextFerryTests() {
 
 	QUnit.test("Loading an Alert", function(assert) {
 		copyLS();
-		window.localStorage["rl"] = "";
+		delete window.localStorage["rl"];
 		NextFerry.init();
 		expect(5);
 
@@ -371,7 +370,7 @@ function nextFerryTests() {
 
 	QUnit.test("Working with Alerts", function(assert) {
 		copyLS();
-		window.localStorage["rl"] = "";
+		delete window.localStorage["rl"];
 		NextFerry.init();
 		expect(10);
 
@@ -403,7 +402,7 @@ function nextFerryTests() {
   QUnit.asyncTest( "First Contact", function( assert ) {
 		//setup
 		NextFerry.Route.clearAllTimes();
-		window.localStorage["cachedate"] = "";
+		delete window.localStorage["cachedate"];
 		expect(3);
 
 		//test

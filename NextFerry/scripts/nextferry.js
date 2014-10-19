@@ -177,6 +177,19 @@ var NextFerry = (function ($) {
         _buffertime = parseInt( window.localStorage["bt"] );
     };
 
+    var reset = function() {
+        delete( window.localStorage["cache"] );
+        delete( window.localStorage["cachedate"] );
+        delete( window.localStorage["schedulename"] );
+        delete( window.localStorage["rl"] );
+        Terminal.clearTTs();
+        _allRoutes = [];
+        _displayList = {};
+        _alertList = [];
+        _readList = [];
+        init();
+    };
+
     var synchSettings = function() {
         // OK, this looks weird, but here's what's happening:
         // for displaylist, the "master copy" is in memory (_displayList),

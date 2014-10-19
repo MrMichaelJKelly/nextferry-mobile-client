@@ -103,11 +103,6 @@ li {
 #main-page {
     background: url("images/background.jpg") no-repeat left bottom;
     background-size: cover;
-    transition: background-image 1s ease-in;
-}
-#main-page.east {
-    background: url("images/dnuorgkcab2.jpg") no-repeat right bottom;
-    background-size: cover;
 }
 
 .heading {
@@ -424,3 +419,8 @@ span[type="checkbox"].checked:before {
     background-color: #324151;
 }
 
+#qunit-scroll-container {
+    height: 30ex;
+    overflow: hidden;
+    position: relative;
+}

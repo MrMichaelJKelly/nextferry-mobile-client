@@ -15,56 +15,61 @@ var app = (function ($) {
 
     var init = function() {
         NextFerry.init();
+
+        // immediately show the main page
+        $("#title").lettering();
+        goPage("#main-page");
+
+        // wire up asynch responses
+        ServerIO.loadSchedule.listeners.add(renderTimes);
+        ServerIO.loadTravelTimes.listeners.add(updateTravelTimes);
+
+        // initialize main page travel times and generalized update
+        if ( window.localStorage["cache"] ) {
+            ServerIO.loadSchedule( window.localStorage["cache"] );
+        }
+        ServerIO.requestUpdate();
+
+        // initialize main page scrollers
+        mainScroll = new IScroll("#outerwrap", { tap: true });
+        timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
+        updateScroller(mainScroll,100);
+        updateScroller(timeScroll);
+
+        // one-time rendering for settings page
+        settingsRenderOnce();
+
+        // wire up all the event actions
+        $("#direction").on("click", toggleDirection);
+        $("#routes").on("tap", gogoPage("#schedule-page"));   // tap because that's what Iscroll sends
+        $("#schedule-page").on("swipe",navigateTabs);
+        $("#schedule-nav>li").on("click",navigateTabs);
+        $("#schedule-list>li").on("click", toggleSchedulePart);
+        $("#settings-nav>li").on("click", settingsNav);
+        $(".settings-exit").on("click", settingsExit);
+        $("span[type]").on("click", handleClicks);
+        $("#useloc").on("change",updateDisable);
+
+        $("#buftime").rangeslider({
+            polyfill: false,
+            onSlide: function(pos,val) {
+                $("#buftimeval").text( val.toString() );
+            }
+        });
+
+        // done with app construction
+        // if test run, divert to test page
         if (testrun) {
-            // for now just go to test page; later, make it a tab?
             $("#test-page").show();
             $("#main-page").hide();
             nextFerryTests();
+            new IScroll("#qunit-scroll-container");
         }
-        else {
-            // immediately show the main page
-            $("#title").lettering();
-            goPage("#main-page");
+    };
 
-            // wire up asynch responses
-            ServerIO.loadSchedule.listeners.add(renderTimes);
-            ServerIO.loadTravelTimes.listeners.add(updateTravelTimes);
-
-            // initialize main page travel times and generalized update
-            if ( window.localStorage["cache"] ) {
-                ServerIO.loadSchedule( window.localStorage["cache"] );
-            }
-            ServerIO.requestUpdate();
-
-            // initialize main page scrollers
-            mainScroll = new IScroll("#outerwrap", { tap: true });
-            timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
-            updateScroller(mainScroll,100);
-            updateScroller(timeScroll);
-
-            // one-time rendering for options page
-            optionsRenderOnce();
-
-            // wire up all the event actions
-            $("#direction").on("click", toggleDirection);
-            $("#routes").on("tap", gogoPage("#schedule-page"));   // tap because that's what Iscroll sends
-            $("#schedule-page").on("swipe",navigateTabs);
-            $("#schedule-nav>li").on("click",navigateTabs);
-            $("#schedule-list>li").on("click", toggleSchedulePart);
-            $("#settings-nav>li").on("click", settingsNav);
-            $(".settings-exit").on("click", settingsExit);
-            $("span[type]").on("click", handleClicks);
-            $("#useloc").on("change",updateDisable);
-
-            $("#buftime").rangeslider({
-                polyfill: false,
-                onSlide: function(pos,val) {
-                    $("#buftimeval").text( val.toString() );
-                }
-            });
-
-            //feedback.initialize('50377a40-30e3-11e4-9c7b-3512796cc48e');
-        }
+    var reset = function() {
+        NextFerry.reset();
+        ServerIO.requestUpdate();
     };
 
     var updateScroller = function(scr,delay) {
@@ -278,14 +283,14 @@ var app = (function ($) {
             new IScroll(dest + "-wrapper", { click: true });
         updateScroller(settingsScrollers[dest]);
         return false;
-    }
+    };
 
     var settingsExit = function() {
         saveSettings();
         backPage();
-    }
+    };
 
-    var optionsRenderOnce = function() {
+    var settingsRenderOnce = function() {
         // fill in the route list, which we only need to do once.
         $("#settings-routes-form").empty();
         $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
@@ -295,7 +300,7 @@ var app = (function ($) {
                     id + "' class='routedisplay'>" +
                     r.displayName.west + "</span><br>");
         }));
-    }
+    };
 
     var _btdisplay; // the numeric version
     var renderSettingsPage = function() {
@@ -392,7 +397,7 @@ var app = (function ($) {
             }
         }
         return false;
-    }
+    };
 
     var updateDisable = function(e) {
         var buftimeEnabled = $("#useloc").hasClass("checked");
@@ -422,10 +427,10 @@ var app = (function ($) {
             setTimeout(function() { debouncing_on = false; }, 300);
             return true;
         }
-    }
+    };
     var clear_debounce = function() {
         debouncing_on = false;
-    }
+    };
 
     //======= Page Transitions
     // goPage and backPage are for page *transitions*.
