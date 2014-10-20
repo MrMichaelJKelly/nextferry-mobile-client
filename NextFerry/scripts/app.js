@@ -23,18 +23,13 @@ var app = (function ($) {
         // wire up asynch responses
         ServerIO.loadSchedule.listeners.add(renderTimes);
         ServerIO.loadTravelTimes.listeners.add(updateTravelTimes);
+        ServerIO.loadAlerts.listeners.add(updateAlerts);
 
         // initialize main page travel times and generalized update
         if ( window.localStorage["cache"] ) {
             ServerIO.loadSchedule( window.localStorage["cache"] );
         }
         ServerIO.requestUpdate();
-
-        // initialize main page scrollers
-        mainScroll = new IScroll("#outerwrap", { tap: true });
-        timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
-        updateScroller(mainScroll,100);
-        updateScroller(timeScroll);
 
         // one-time rendering for settings page
         settingsRenderOnce();
@@ -49,6 +44,7 @@ var app = (function ($) {
         $(".settings-exit").on("click", settingsExit);
         $("span[type]").on("click", handleClicks);
         $("#useloc").on("change",updateDisable);
+        $("#reload").on("click",reset);
 
         $("#buftime").rangeslider({
             polyfill: false,
@@ -56,6 +52,12 @@ var app = (function ($) {
                 $("#buftimeval").text( val.toString() );
             }
         });
+
+        // initialize main page scrollers
+        mainScroll = new IScroll("#outerwrap", { tap: true });
+        timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
+        //updateScroller(timeScroll);
+        //updateScroller(mainScroll,100);
 
         // done with app construction
         // if test run, divert to test page
@@ -67,9 +69,11 @@ var app = (function ($) {
         }
     };
 
-    var reset = function() {
+    var reset = function(e) {
+        e && e.preventDefault();
         NextFerry.reset();
         ServerIO.requestUpdate();
+        return false;
     };
 
     var updateScroller = function(scr,delay) {
@@ -92,8 +96,11 @@ var app = (function ($) {
     var renderRoutes = function() {
         $("#routes").empty();
         $("#routes").append( NextFerry.Route.displayRoutes().map( function(r) {
-            return $( "<li>" + r.displayName[dir] + "</li>" );
+            return $( "<li id='rr" + r.code + "'>" +
+                "<span class='icon alert' astate='alerts_none'></span> " +
+                r.displayName[dir] + "</li>" );
         }));
+        updateAlerts();
     };
     var renderTimes = function() {
         var now = NextFerry.NFTime.now();
@@ -117,6 +124,13 @@ var app = (function ($) {
         renderTimes();
     };
 
+    var updateAlerts = function() {
+        // this is not at all efficient, but it doesn't matter.
+        $("#routes>li").each( function(i,e) {
+            var route = NextFerry.Route.find( $(e).prop("id").substr(2) );
+            $(e).children("span").attr("astate", route.hasAlerts());
+        });
+    };
 
     // Calculate native width of text in each list item, and truncate the
     // width of the container to that.
@@ -325,8 +339,7 @@ var app = (function ($) {
         $("#buftimeval").text( _btdisplay.toString() );
         updateDisable();
 
-        $("#aboutsched").text( "Current schedule: " +
-            (window.localStorage["schedulename"] || "unknown" ));
+        $("#aboutsched").text( window.localStorage["schedulename"] || "unknown" );
 
         /*
         if ( window.localStorage["vashondir"] ) {
@@ -477,6 +490,7 @@ var app = (function ($) {
     var module = {
         init : init,
         // for testing
+        reset : reset,
         renderSettingsPage : renderSettingsPage,
         saveSettings : saveSettings
     };

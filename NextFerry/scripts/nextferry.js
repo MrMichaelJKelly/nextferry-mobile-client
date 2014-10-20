@@ -304,8 +304,9 @@ var NextFerry = (function ($) {
     Route.prototype.termName = function(dir) {
         return _allTerminals[this.terminals[dir]].name;
     }
-    Route.prototype.hasNewAlerts = function() {
-		return Alert.hasAlerts(this,true);
+    Route.prototype.hasAlerts = function() {
+        // returns one of 'alerts_none' 'alerts_read' 'alerts_unread'
+        return Alert.hasAlerts(this);
     };
     Route.prototype.tGoodness = function(dir,departuretime,now) {
         now = now || NFTime.now();
@@ -412,17 +413,18 @@ var NextFerry = (function ($) {
         }
         return results;
     };
-    Alert.hasAlerts = function (r,unreadonly) {
-        if ( typeof r === "string" ) {
-            r = Route.find(r);
-        }
+    Alert.hasAlerts = function (r) {
+        var found = false;
         for (var i in _alertList) {
             var a = _alertList[i];
-            if ((a.codes & r.code) && (a.unread || !unreadonly)) {
-                return true;
+            if (a.codes & r.code) {
+                if (a.unread)
+                    return 'alerts_unread';
+                else
+                    found = true;
             }
         }
-        return false;
+        return found? 'alerts_read' : 'alerts_none';
     };
     Alert.loadAlerts = function(text) {
         _alertList = [];
@@ -458,6 +460,7 @@ var NextFerry = (function ($) {
 
     var module = {
         init : init,
+        reset : reset,
         synchSettings : synchSettings,
         NFTime : NFTime,
         Route : Route,
