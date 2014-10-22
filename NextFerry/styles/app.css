@@ -13,7 +13,7 @@ body {
 
     font-family: Dosis;
     font-size: 20pt;
-    color: #324151;
+    color: #3E556D;
 }
 * {
 	margin: 0;
@@ -63,7 +63,7 @@ li {
     bottom: 0;
     height: 22pt;
     width: 100%;
-    background-color: #ADB3B9;
+    background-color: #6D8299; /* #ADB3B9; */
 }
 #footer ul {
     position: absolute;
@@ -101,8 +101,7 @@ li {
 
 /* main page */
 #main-page {
-    background: url("images/background.jpg") no-repeat left bottom;
-    background-size: cover;
+    background: #DBEEF6;
 }
 
 .heading {
@@ -136,9 +135,8 @@ li {
     bottom: 10pt;
 }
 #routes {
-	position: absolute;
-	top: 0;
-	left: 0;
+    float: left;
+    margin-right: -200pt; /* allow overlap with timesport */
     font-weight: 300;
 }
 #timesport {
@@ -166,7 +164,7 @@ li {
     color: #e8d100;
 }
 .Good {
-    color: #9f0;
+    color: #0c0;
     font-weight: bold;
 }
 #routes span[astate] {
@@ -182,8 +180,7 @@ li {
 
 /* schedule page panorama structure */
 #schedule-page {
-    background: url("images/background_clipped.jpg") no-repeat 0 bottom;
-    background-size: cover;
+    background-color: white;
     font-size: 16pt;
 }
 #schedule-nav {
@@ -262,7 +259,7 @@ li {
 /* settings page */
 
 #settings-page {
-    background-color: #324151;
+    background-color: #6D8299; /* #324151; */
 }
 
 /* nested divs.  it is necessary to specifically position each level

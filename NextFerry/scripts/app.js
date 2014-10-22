@@ -427,9 +427,11 @@ var app = (function ($) {
     };
 
     // Iscroll sometimes sends duplicate click events, so we debounce them.
-    // The same debouncing timer is used for all events, which works fine,
-    // assuming that the user cannot intend to issue events
-    // faster than every 300 ms.
+    // The same debouncing timer is used for all click/tap events, which works
+    // fine, assuming that the user cannot intend to issue events
+    // faster than every 400 ms.
+    // (We don't have any double-clicks/taps, but if we did we would identify
+    // them before we got here.)
     var debouncing_on = false;
     var debounced = function() {
         if ( debouncing_on ) {
@@ -437,7 +439,7 @@ var app = (function ($) {
         }
         else {
             debouncing_on = true;
-            setTimeout(function() { debouncing_on = false; }, 300);
+            setTimeout(function() { debouncing_on = false; }, 400);
             return true;
         }
     };
