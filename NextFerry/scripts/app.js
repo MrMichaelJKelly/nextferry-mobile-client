@@ -98,7 +98,7 @@ var app = (function ($) {
         $("#routes").empty();
         $("#routes").append( NextFerry.Route.displayRoutes().map( function(r) {
             return $( "<li id='rr" + r.code + "'>" +
-                "<span class='icon outline alert' astate='alerts_none'></span>" +
+                "<span class='icon alert' astate='alerts_none'></span>" +
                 r.displayName[dir] + "</li>" );
         }));
         updateAlerts();
@@ -165,7 +165,6 @@ var app = (function ($) {
     // information about the curent route whose details we are viewing
     var _routename;
     var _r;
-    var _alist;
     var _alertsStatus;
 
     var renderDetailsPage = function(e) {
@@ -235,8 +234,7 @@ var app = (function ($) {
     };
 
     var renderAlerts = function(name) {
-    	// build the alerts page if there are any, otherwise hide the alerts page.
-        _alist = _alist || NextFerry.Alert.alertsFor(_r);
+        var alist = NextFerry.Alert.alertsFor(_r);
 
         $("#alerts-list").empty();
 		$("#alerts-list").append( alist.map(function(a) {
@@ -247,7 +245,7 @@ var app = (function ($) {
 
         $(".details-part").hide();
         $("#alerts").show();
-        alertScroll = (alertScroll || new IScroll("#alerts-tab"));
+        alertScroll = (alertScroll || new IScroll("#alerts"));
         updateScroller(alertScroll);
 
         // after rendering, we can update the "read" attribute for next time.

@@ -178,7 +178,8 @@ h3 {
     font-weight: bold;
 }
 #routes span[astate] {
-    font-size: 14pt;
+    display: inline block;
+    font-size: 12pt;
     padding: 2pt;
     margin-right: 2pt;
 }
@@ -194,12 +195,12 @@ h3 {
 
 /* details page */
 #details-page {
-    background-color: #DBEEF6;
+    background-color: white;
     font-size: 16pt;
 }
 /* details-nav subpage */
 #details-nav {
-    width: 270px;
+    width: 200pt;
     margin: auto;
 }
 #dn-h2 {
@@ -207,8 +208,8 @@ h3 {
     margin-top: -20pt;
 }
 #details-nav li {
-    width: 120px;
-    height: 120px;
+    width: 90pt;
+    height: 90pt;
     padding: 5pt;
     float: left;
     text-align: center;
@@ -239,13 +240,14 @@ h3 {
     font-size: smaller;
     margin-top: 5pt;
 }
-#dn-alerts {
-    width: 280pt;
+#details-nav #dn-alerts {
+    width: 190pt;
+    padding-top: 10pt;
 }
 #dn-alerts[astate=alerts_none] {
     display: none;
 }
-#dn-alerts span[astate=alerts_unread] {
+#dn-alerts[astate=alerts_unread] {
     background-color: yellow;
 }
 
@@ -294,6 +296,8 @@ h3 {
 
 /* details-alerts subpage */
 #alerts-list>li {
+    width: 240px;
+    margin: auto;
     margin-bottom: 5pt;
 }
 #alerts-list>li[.unread]:before {
@@ -303,6 +307,7 @@ h3 {
     color: yellow;
 }
 .posted {
+    font-family: monospace;
     font-size: smaller;
     color: gray;
 }
