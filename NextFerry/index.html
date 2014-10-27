@@ -53,108 +53,55 @@
         </div>
     </div>
 
-    <!-- Schedule -->
-    <div id="schedule-page" class="page">
-        <ul id="schedule-nav" class="hnav">
-            <li id="sn-back">
-                <span class="icon return" style="font-size: smaller"></span></li>
-            <li id="sn-sched">Schedule</li>
-            <li id="sn-alerts">Alerts</li>
+    <!-- Details -->
+    <div id="details-page" class="page">
+        <span id="details-exit" class="icon return"></span>
+        <h2 id="details-header">Details</h2>
+        <ul id="details-nav" class="details-part">
+            <li dir="west" day="weekday"></li>
+            <li dir="east" day="weekday"></li>
+            <li dir="west" day="weekend"></li>
+            <li dir="east" day="weekend"></li>
+            <li id="dn-alerts">Alerts</li>
         </ul>
-        <div id="schedule-tab-container">
-            <div id="schedule-tab" class="schedule-tab scrollwrapper">
-                <ul id="schedule-list" class="scrollee">
-                    <li>
-                        <span class="icon closed"></span>
-                        <span class="deco">from</span>
-                        <span class="name" id="wname1">CONTENT</span>
-                        <span class="deco2">weekdays</span>
-                        <div class="slide">
-                            <table class="timetable" id="westdaystable">
-                                <thead>
-                                    <tr>
-                                        <td class="amhead">AM</td>
-                                        <td class="pmhead">PM</td>
-                                    </tr>
-                                </thead>
-                                <tbody id="westdaysbody">
-                                    <tr>
-                                        <td class="amtimes" id="wdam"></td>
-                                        <td class="pmtimes" id="wdpm"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </li>
-                    <li>
-                        <span class="icon closed"></span>
-                        <span class="deco">from</span>
-                        <span class="name" id="wname2">CONTENT</span>
-                        <span class="deco2">weekends</span>
-                        <div class="slide">
-                            <table class="timetable" id="westendstable">
-                                <thead>
-                                    <tr>
-                                        <td class="amhead">AM</td>
-                                        <td class="pmhead">PM</td>
-                                    </tr>
-                                </thead>
-                                <tbody id="westendsbody">
-                                    <td class="amtimes" id="weam"></td>
-                                    <td class="pmtimes" id="wepm"></td>
-                                </tbody>
-                            </table>
-                        </div>
-                    </li>
-                    <li>
-                        <span class="icon closed"></span>
-                        <span class="deco">from</span>
-                        <span class="name" id="ename1">CONTENT</span>
-                        <span class="deco2">weekdays</span>
-                        <div class="slide">
-                            <table class="timetable" id="eastdaysstable">
-                                <thead>
-                                    <tr>
-                                        <td class="amhead">AM</td>
-                                        <td class="pmhead">PM</td>
-                                    </tr>
-                                </thead>
-                                <tbody id="eastdaysbody">
-                                    <td class="amtimes" id="edam"></td>
-                                    <td class="pmtimes" id="edpm"></td>
-                                </tbody>
-                            </table>
-                        </div>
-                    </li>
-                    <li>
-                        <span class="icon closed"></span>
-                        <span class="deco">from</span>
-                        <span class="name" id="ename2">CONTENT</span>
-                        <span class="deco2">weekends</span>
-                        <div class="slide">
-                            <table class="timetable" id="eastendstable">
-                                <thead>
-                                    <tr>
-                                        <td class="amhead">AM</td>
-                                        <td class="pmhead">PM</td>
-                                    </tr>
-                                </thead>
-                                <tbody id="eastendsbody">
-                                    <td class="amtimes" id="eeam"></td>
-                                    <td class="pmtimes" id="eepm"></td>
-                                </tbody>
-                            </table>
-                        </div>
-                    </li>
-                </ul>
-            </div> <!-- end schedule-tab -->
-            <div id="alerts-tab" class="schedule-tab scrollwrapper">
-                <ul id="alerts-list" class="scrollee">
-                    CONTENT
-                </ul>
+        <div id="schedule" class="details-part">
+            <div id="schedule-header">
+                <table>
+                    <tr>
+                        <td class="sh-deco">from</td>
+                        <td class="sh-deco2" id="sh-termfrom"></td>
+                        <td class="sh-deco3" id="sh-dir"></td>
+                    </tr>
+                    <tr>
+                        <td class="sh-deco">to</td>
+                        <td class="sh-deco2" id="sh-termto"></td>
+                        <td class="sh-deco3"><span id="sh-type"></span>s</td>
+                    </tr>
+                </table>
             </div>
-        </div> <!-- end schedule-tab-container -->
-    </div> <!-- end schedule-page -->
+            <div id="schedule-body" class="scrollwrapper">
+                <table id="timetable" class="scrollee">
+                    <thead>
+                        <tr>
+                            <td id="amhead">AM</td>
+                            <td id="pmhead">PM</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="amtimes"></td>
+                            <td id="pmtimes"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="alerts" class="details-part scrollwrapper">
+            <ul id="alerts-list" class="scrollee">
+                CONTENT
+            </ul>
+        </div>
+    </div> <!-- end details-page -->
 
     <!-- Settings -->
     <div id="settings-page" class="page">

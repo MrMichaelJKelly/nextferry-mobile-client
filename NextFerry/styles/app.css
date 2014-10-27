@@ -4,10 +4,10 @@ body {
 
     -ms-touch-action: none;
     -webkit-touch-callout: none;
+
+    -ms-user-select: none;
 	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
+
     -webkit-tap-highlight-color: rgba(0,0,0,0);
     -webkit-tap-highlight-color: transparent; /* For some Androids */
 
@@ -22,6 +22,7 @@ body {
 li {
 	list-style-type: none;
 }
+
 
 /* Icons */
 @font-face {
@@ -38,23 +39,14 @@ li {
     font-size: 75%;
     padding: 0.1em;
     border: solid 1px;
-    -webkit-border-radius: 20%;
-    -moz-border-radius: 20%;
-    -ms-border-radius: 20%;
-    -o-border-radius: 20%;
     border-radius: 20%;
 }
-.icon.closed::before { content: "\F3C9"; }
-.icon.open::before { content: "\F3C7"; }
 .icon.info::before { content: "\F315"; }
 .icon.alert::before { content: "\F05A"; }
 .icon.return::before { content: "\F489"; }
 .icon.settings::before { content: "\F00F"; }
 .icon.checkmark::before { content: "\2713"; }
 .icon[glyph]::before { content: attr(glyph); }
-.icon.open, .icon.closed {
-    vertical-align: -10%;
-}
 
 
 /* general page & tab structure */
@@ -63,18 +55,19 @@ li {
     bottom: 0;
     height: 22pt;
     width: 100%;
-    background-color: #6D8299; /* #ADB3B9; */
+    background-color: #6D8299;
 }
 #footer ul {
     position: absolute;
     left: 50%;
-    margin-left: -69pt;
+    margin-left: -69pt; /* half the width, to center it */
 }
 #footer li {
     font-size: 14pt;
     color: white;
     padding: 2pt 16pt;
 }
+
 .page {
     position: absolute;
     top: 0;
@@ -83,11 +76,11 @@ li {
     bottom: 22pt;
     overflow: hidden;
 }
-#schedule-page, #settings-page, #test-page { /* init visibility */
+#details-page, #settings-page, #test-page { /* init visibility */
     display: none;
 }
 
-/* some basic structures */
+/* some basic common structures */
 .hnav {
     overflow: hidden;
 }
@@ -97,20 +90,41 @@ li {
 .scrollwrapper {
     overflow: hidden;
 }
+span.icon.return {
+    display: block;
+    position: absolute;
+    left: 10pt;
+    top: 14pt;
+    margin-right: -20pt; /* make it invisible to other things on page */
+    font-size: 14pt;
+}
+h2 {
+    padding: 8pt;
+    font-size: 22pt;
+    font-weight: 500;
+    text-align: center;
+}
+h3 {
+    font-size: 20pt;
+    font-weight: 400;
+    margin-bottom: 0.25em;
+}
 
 
 /* main page */
 #main-page {
     background: #DBEEF6;
 }
-
 .heading {
-    margin: 10pt;
-    font-size: 30pt;
+    margin: 15pt 10pt;
+    font-size: 28pt;
     font-weight: 500;
 }
+#title>.char1 {
+    letter-spacing: -1px;
+}
 #title>.char6 {
-    letter-spacing: -5pt;
+    letter-spacing: -4pt;
 }
 
 #direction {
@@ -120,10 +134,6 @@ li {
     text-transform: capitalize;
     padding: 0 5pt;
     border: 1px solid;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    -ms-border-radius: 10px;
-    -o-border-radius: 10px;
     border-radius: 10px;
 }
 #outerwrap {
@@ -169,85 +179,88 @@ li {
 }
 #routes span[astate] {
     font-size: 14pt;
+    padding: 2pt;
+    margin-right: 2pt;
 }
 #routes span[astate=alerts_none] {
     display: none;
 }
 #routes span[astate=alerts_unread] {
     color: yellow;
+    border-color: #6D8299;
+    background-color: #6D8299;
 }
 
 
-/* schedule page panorama structure */
-#schedule-page {
+/* details page */
+#details-page {
     background-color: white;
     font-size: 16pt;
 }
-#schedule-nav {
-    width: 450pt;
-    margin-left: 2pt;
+#details-nav {
+    width: 300px;
+    margin-left: 10pt;
 }
-#schedule-nav>li {
-    font-weight: 600;
-    font-size: 20pt;
-    padding: 20pt 9pt 5pt;
+#details-nav li {
+    width: 120px;
+    height: 120px;
+    float: left;
+    border: 1px solid;
 }
-#schedule-tab-container {
-    position: absolute;
-    top: 55pt;
-    bottom: 0;
-    width: 870pt;
-    overflow: hidden;
+#details-nav li:before {
+    content: attr(dir);
 }
-.schedule-tab {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 320pt;
-    overflow: hidden;
+#details-nav li:after {
+    content: attr(day);
 }
-#schedule-tab {
-    left: 0;
+#dn-alerts[astate=alerts_none] {
+    display: none;
 }
-#alerts-tab {
-    left: 325pt;
+#dn-alerts span[astate=alerts_unread] {
+    background-color: yellow;
+}
+#schedule-header>table {
+    border-spacing: 10pt 0pt;
+    margin-left: 10pt;
+}
+#schedule-header tbody {
+    vertical-align: baseline;
 }
 
-
-/* timetable styling */
-#schedule-list {
-    padding-left: 10pt;
-}
-#schedule-list>li {
-    font-size: 18pt;
-    margin-bottom: 10pt;
-}
-.timetable {
-    font-size: 16pt;
-    margin-left: 20pt;
-    margin-bottom: 5pt;
-}
-.deco, .deco2 {
+.sh-deco {
+    text-align: right;
+    font-size: smaller;
     font-style: italic;
-    font-weight: 300;
-    font-size: 15pt;
 }
-.deco::after {
-    content: " ";
-    letter-spacing: 4pt;
+.sh-deco2 {
+    font-weight: bold;
+    vertical-align: -1px;
 }
-.name {
-    font-weight: 600;
+.sh-deco3 {
+    font-size: smaller;
+    font-weight: bold;
+    text-align: left;
 }
-.amhead, .pmhead {
-    text-align: center;
-    padding-right: 2em;
+
+#schedule-body {
+    position: absolute;
+    top: 90pt;
+    bottom: 0;
+    width: 100%;
 }
-.amtimes, .pmtimes {
+/* timetable styling */
+#timetable {
     font-family: monospace;
+    font-size: 16pt;
+    border-spacing: 15pt 0pt;
+    margin-left: 25pt;
+}
+#amhead, #pmhead {
+    text-align: center;
+}
+#amtimes, #pmtimes {
     text-align: right;
     vertical-align: top;
-    padding-right: 2em;
 }
 
 /* alert styling */
@@ -255,11 +268,21 @@ li {
 #alerts-list>li {
     margin-bottom: 5pt;
 }
+#alerts-list>li[.unread]:before {
+    content: "New!";
+    font-size: smaller;
+    font-weight: bold;
+    color: yellow;
+}
+.posted {
+    font-size: smaller;
+    color: gray;
+}
 
 /* settings page */
 
 #settings-page {
-    background-color: #6D8299; /* #324151; */
+    background-color: #6D8299;
 }
 
 /* nested divs.  it is necessary to specifically position each level
@@ -292,8 +315,6 @@ li {
         margin-left: -200pt;
     }
 }
-
-
 .settings-part {
     position: absolute;
     top: 0;
@@ -301,7 +322,6 @@ li {
     width: 100%;
     overflow: hidden;
 }
-
 #settings-page .scrollwrapper {
     position: absolute;
     top: 45pt;
@@ -318,21 +338,8 @@ li {
     width: 100%;
 }
 
-#settings-page .icon.return {
-    float: left;
-    margin: 10pt 0 0 5pt;
-}
 #settings-page h2 {
-    padding: 8pt;
-    font-size: 22pt;
-    font-weight: 500;
-    text-align: center;
     border-bottom: 1px solid #ADB3B9;
-}
-#settings-page h3 {
-    font-size: 20pt;
-    font-weight: 400;
-    margin-bottom: 0.25em;
 }
 #settings-page li {
     padding: 8pt;
@@ -359,8 +366,6 @@ li {
     width: 50pt;
     border: 1px solid;
     background-color: #ADB3B9;
-    -webkit-border-radius: 5px;
-    -ms-border-radius: 5px;
     border-radius: 5px;
     -webkit-transition: background-color .4s ease-out;
     transition: background-color .4s ease-out;
@@ -409,16 +414,11 @@ span[type="radio"]:before {
     height: 0.9em;
     border: 1px solid #324151;
     margin: 0 0.25em -0.05em;
-    -webkit-border-radius: 50%;
-    -moz-border-radius: 50%;
-    -ms-border-radius: 50%;
-    -o-border-radius: 50%;
     border-radius: 50%;
 }
 span[type="radio"].checked:before {
     background-color: #324151;
 }
-
 
 span[type="checkbox"]:before {
     content: "\2713";
@@ -429,15 +429,13 @@ span[type="checkbox"]:before {
     vertical-align: 1pt;
     padding: 0.1em 0.15em;
     margin: 0 0.25em 0 0.6em;
-    -webkit-border-radius: 20%;
-    -moz-border-radius: 20%;
-    -ms-border-radius: 20%;
-    -o-border-radius: 20%;
     border-radius: 20%;
 }
 span[type="checkbox"].checked:before {
     background-color: #324151;
 }
+
+
 
 #qunit-scroll-container {
     height: 30ex;

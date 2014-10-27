@@ -15,20 +15,20 @@ var app = (function ($) {
 
     var init = function() {
         NextFerry.init();
-
-        // immediately show the main page
         $("#title").lettering();
-        goPage("#main-page");
 
         // wire up asynch responses
         ServerIO.loadSchedule.listeners.add(renderTimes);
         ServerIO.loadTravelTimes.listeners.add(updateTravelTimes);
         ServerIO.loadAlerts.listeners.add(updateAlerts);
 
-        // initialize main page travel times and generalized update
+        // immediately show old schedule, if we have it
         if ( window.localStorage["cache"] ) {
             ServerIO.loadSchedule( window.localStorage["cache"] );
         }
+        goPage("#main-page");
+
+        // ask for new schedule, travel times, etc.
         ServerIO.requestUpdate();
 
         // one-time rendering for settings page
@@ -36,13 +36,13 @@ var app = (function ($) {
 
         // wire up all the event actions
         $("#direction").on("click", toggleDirection);
-        $("#routes").on("tap", gogoPage("#schedule-page"));   // tap because that's what Iscroll sends
-        $("#schedule-page").on("swipe",navigateTabs);
-        $("#schedule-nav>li").on("click",navigateTabs);
-        $("#schedule-list>li").on("click", toggleSchedulePart);
+        $("#routes").on("tap", gogoPage("#details-page"));
+        $("#details-nav>li").on("click", detailsNav);
+        $("#details-header").on("click", detailsNav);
+        $("#details-exit").on("click",backPage);
         $("#settings-nav>li").on("click", settingsNav);
         $(".settings-exit").on("click", settingsExit);
-        $("span[type]").on("click", handleClicks);
+        $("span[type]").on("click", settingsClicks);
         $("#useloc").on("change",updateDisable);
         $("#reload").on("click",reset);
 
@@ -56,8 +56,9 @@ var app = (function ($) {
         // initialize main page scrollers
         mainScroll = new IScroll("#outerwrap", { tap: true });
         timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
-        //updateScroller(timeScroll);
-        //updateScroller(mainScroll,100);
+        // asynch update allows scrollers to re-check after page rendering is done.
+        updateScroller(timeScroll);
+        updateScroller(mainScroll,100);
 
         // done with app construction
         // if test run, divert to test page
@@ -97,7 +98,7 @@ var app = (function ($) {
         $("#routes").empty();
         $("#routes").append( NextFerry.Route.displayRoutes().map( function(r) {
             return $( "<li id='rr" + r.code + "'>" +
-                "<span class='icon alert' astate='alerts_none'></span> " +
+                "<span class='icon outline alert' astate='alerts_none'></span>" +
                 r.displayName[dir] + "</li>" );
         }));
         updateAlerts();
@@ -119,7 +120,7 @@ var app = (function ($) {
     };
 
     var updateTravelTimes = function() {
-        // let's wait and see if we need to be clever or not.
+        // let's just redraw; if there are perf issues we can be cleverer.
         console.log("updating travel times");
         renderTimes();
     };
@@ -133,13 +134,11 @@ var app = (function ($) {
     };
 
     // Calculate native width of text in each list item, and truncate the
-    // width of the container to that.
-    // Based on solutions found at http://stackoverflow.com/questions/1582534/calculating-text-width-with-jquery
-    // but using slightly different trick: (a) we've added an extra <span>
-    // element inside the <li> so that we have an inline element to measure against,
-    // and (b) we initially set the width of $("#times") so that it is wide enough to
-    // guarantee no line-breaking.
-    // (amazing how much hassle this little bit of functionality was to figure out...)
+    // width of the container to that.  The trick is to (a) have a span inside
+    // the <li> that will have a text-width, and (b) init the container-width to
+    // wide enough that the spans won't wrap.
+    // (Thanks to http://stackoverflow.com/questions/1582534/calculating-text-width-with-jquery
+    // for inspiration; this was damned hard to figure out.)
     var fixWidth = function( ) {
         var max = 0;
         $("#times li>span").each( function(i,e) {
@@ -162,48 +161,68 @@ var app = (function ($) {
         return false;
     };
 
-    //======= Schedule Page Rendering and events
-
+    //======= Details Page Rendering
+    // information about the curent route whose details we are viewing
     var _routename;
-    var renderSchedulePage = function(e) {
+    var _r;
+    var _alist;
+    var _alertsStatus;
+
+    var renderDetailsPage = function(e) {
         if ( e ) {
-            _routename = e.target.innerText;
+            _routename = e.target.innerText || e.target.parentElement.innerText;
+            _routename = _routename.trim();
+            _r = NextFerry.Route.find(_routename);
+            _alertStatus = _r.hasAlerts();
+
+            $("#details-nav>li[dir=west]").text( _r.termFromName("west") );
+            $("#details-nav>li[dir=east]").text( _r.termFromName("east") );
         }
         if ( ! _routename ) {
-            alert("error! called SchedulePage without route! (bug in code, please report)");
+            alert("error! called DetailsPage without route! (bug in code, please report)");
             backPage();
         }
-        else {
-            renderSchedule(_routename);
-            renderAlerts(_routename);
-        }
+
+        _alertStatus = _r.hasAlerts();
+        $("#dn-alerts").attr("astate", _alertStatus);
+
+        // render and show the nav
+        $(".details-part").hide();
+        $("#details-nav").show();
     };
 
-    var renderSchedule = function(name) {
-        // build the schedule page for this schedule
-        var r = NextFerry.Route.find(name);
-        $("#schedule-list .slide").hide();
+    // manage navigation within details page
+    var detailsNav = function(e) {
+        e.preventDefault();
+        var target = $(e.target);
 
-        $("#wname1").text(r.termName("east"));
-        $("#wname2").text(r.termName("east"));
-        $("#ename1").text(r.termName("west"));
-        $("#ename2").text(r.termName("west"));
+        if ( target.prop("id") === "details-header") {
+            renderDetailsPage();  // re-display nav page
+        }
+        else if ( target.prop("id") === "dn-alerts") {
+            renderAlerts();
+        }
+        else {
+            renderSchedule( target.attr("dir"), target.attr("day") );
+        }
+        return false;
+    };
 
-        $("#wdam").html(renderTimeList(r.beforeNoon("west", "weekday")));
-        $("#wdpm").html(renderTimeList(r.afterNoon("west", "weekday")));
-        $("#weam").html(renderTimeList(r.beforeNoon("west", "weekend")));
-        $("#wepm").html(renderTimeList(r.afterNoon("west", "weekend")));
+    var renderSchedule = function(dir, day) {
+        // render the time table for this date/direction
+        $("#sh-dir").text( dir );
+        $("#sh-type").text( day );
+        $("#sh-termfrom").text( _r.termFromName(dir) );
+        $("#sh-termto").text( _r.termToName(dir) );
 
-        $("#edam").html(renderTimeList(r.beforeNoon("east", "weekday")));
-        $("#edpm").html(renderTimeList(r.afterNoon("east", "weekday")));
-        $("#eeam").html(renderTimeList(r.beforeNoon("east", "weekend")));
-        $("#eepm").html(renderTimeList(r.afterNoon("east", "weekend")));
+        $("#amtimes").html( renderTimeList( _r.beforeNoon(dir, day) ));
+        $("#pmtimes").html( renderTimeList( _r.afterNoon(dir, day) ));
 
-        schedScroll = (schedScroll ||
-            new IScroll("#schedule-tab", {
-                click: true,
-                eventPassthrough: "horizontal" }));
-        updateScroller(schedScroll,700);
+        $(".details-part").hide();
+        $("#schedule").show();
+
+        schedScroll = (schedScroll || new IScroll("#schedule-body"));
+        updateScroller(schedScroll,300);
     };
 
     var renderTimeList = function(lst) {
@@ -215,57 +234,27 @@ var app = (function ($) {
         return result;
     };
 
-    var toggleSchedulePart = function(e) {
-        e.preventDefault();
-        if ( debounced() ) {
-            $(this).children(".slide").slideToggle(200);
-            $(this).children(".icon").toggleClass("open closed");
-            updateScroller(schedScroll,350);
-        }
-        return false;
-    };
-
-
     var renderAlerts = function(name) {
     	// build the alerts page if there are any, otherwise hide the alerts page.
-        var alist = NextFerry.Alert.alertsFor(name);
-        if (alist.length) {
-            $("#alerts-list").empty();
-			$("#alerts-list").append( alist.map(function(a) { return "<li>" + a.body + "</li>"; }));
-            $("#sn-alerts").show();
-            $("#alerts-tab").show();
-            alertScroll = (alertScroll || new IScroll("#alerts-tab"));
-            updateScroller(alertScroll);
-        }
-        else {
-            $("#alerts-tab").hide();
-            $("#sn-alerts").hide();
-        }
+        _alist = _alist || NextFerry.Alert.alertsFor(_r);
+
+        $("#alerts-list").empty();
+		$("#alerts-list").append( alist.map(function(a) {
+            return "<li class='alert " + (a.unread? "unread" : "read") + "'>" +
+                "<span class='posted'>" + a.posted() + "</span><br>" +
+                "<span class='alertbody'>" + a.body + "</span></li>";
+        }));
+
+        $(".details-part").hide();
+        $("#alerts").show();
+        alertScroll = (alertScroll || new IScroll("#alerts-tab"));
+        updateScroller(alertScroll);
+
+        // after rendering, we can update the "read" attribute for next time.
+        _r.markAlerts();
     };
 
-    //======= Schedule Page Tab Transitions
 
-    var currentTab;
-    var scrollPoints = {
-        "sn-sched" : 0,
-        "sn-alerts" : 325,
-    };
-
-    var navigateTabs = function(e) {
-        e.preventDefault();
-        console.log(e);
-        if (e.type === "click") {
-            currentTab = e.currentTarget.id;
-        }
-
-        if (currentTab === "sn-back") {
-            backPage();
-        }
-        else {
-            $("#schedule-tab-container").scrollLeft( scrollPoints[currentTab] );
-        }
-        return false;
-    };
 
 
     //======= Settings Page(s)
@@ -390,7 +379,7 @@ var app = (function ($) {
      * because iScroll has problems with the native implementation.
      * NB: unbelievable that this is all it takes...
      */
-    var handleClicks = function(e) {
+    var settingsClicks = function(e) {
         e.preventDefault();
         if ( debounced() ) {
             var target = $(e.target);
@@ -456,7 +445,7 @@ var app = (function ($) {
 
     var renderers = {
         "#main-page" : renderMainPage,
-        "#schedule-page" : renderSchedulePage,
+        "#details-page" : renderDetailsPage,
         "#settings-page" : renderSettingsPage
     };
 

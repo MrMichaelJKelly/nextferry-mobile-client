@@ -301,18 +301,29 @@ var NextFerry = (function ($) {
             return (e >= NFTime.Noon);
         }) : []);
     };
-    Route.prototype.termName = function(dir) {
+    // traveling east, you are going *to* the east terminal
+    // and coming *from* the west terminal, and vice versa.
+    Route.prototype.termToName = function(dir) {
         return _allTerminals[this.terminals[dir]].name;
+    };
+    Route.prototype.termFromName = function(dir) {
+        return _allTerminals[this.terminals[dir === "west" ? "east" : "west"]].name;
     }
     Route.prototype.hasAlerts = function() {
         // returns one of 'alerts_none' 'alerts_read' 'alerts_unread'
         return Alert.hasAlerts(this);
     };
+    Route.prototype.markAlerts = function() {
+        var alerts = Alert.alertsFor(this);
+        for( var i in alerts ) {
+            alerts[i].markRead();
+        }
+    };
     Route.prototype.tGoodness = function(dir,departuretime,now) {
         now = now || NFTime.now();
         var term = _allTerminals[ this.terminals[ dir === "east" ? "west" : "east" ] ];
         return term.tGoodness(now,_buffertime,departuretime);
-    }
+    };
 
 
     function Terminal(c, n, l) {
@@ -396,6 +407,13 @@ var NextFerry = (function ($) {
         this.codes = codes;
         this.body = body;
         this.unread = true;
+    }
+    Alert.prototype.markRead = function() {
+        this.unread = false;
+        _readList.push(this.id);
+    }
+    Alert.prototype.posted = function() {
+        return this.id.substring(0,5); // the hack lives on...
     }
     Alert.allAlerts = function() {
         return _alertList;
