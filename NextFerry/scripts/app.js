@@ -37,7 +37,7 @@ var app = (function ($) {
         // wire up all the event actions
         $("#direction").on("click", toggleDirection);
         $("#routes").on("tap", gogoPage("#details-page"));
-        $("#details-nav>li").on("click", detailsNav);
+        $("#details-nav li").on("click", detailsNav);
         $("#details-header").on("click", detailsNav);
         $("#details-exit").on("click",backPage);
         $("#settings-nav>li").on("click", settingsNav);
@@ -175,8 +175,8 @@ var app = (function ($) {
             _r = NextFerry.Route.find(_routename);
             _alertStatus = _r.hasAlerts();
 
-            $("#details-nav>li[dir=west]").text( _r.termFromName("west") );
-            $("#details-nav>li[dir=east]").text( _r.termFromName("east") );
+            $("#details-nav [dir=west]").text( _r.termFromName("west") );
+            $("#details-nav [dir=east]").text( _r.termFromName("east") );
         }
         if ( ! _routename ) {
             alert("error! called DetailsPage without route! (bug in code, please report)");

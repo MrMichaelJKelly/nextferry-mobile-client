@@ -57,13 +57,18 @@
     <div id="details-page" class="page">
         <span id="details-exit" class="icon return"></span>
         <h2 id="details-header">Details</h2>
-        <ul id="details-nav" class="details-part">
-            <li dir="west" day="weekday"></li>
-            <li dir="east" day="weekday"></li>
-            <li dir="west" day="weekend"></li>
-            <li dir="east" day="weekend"></li>
-            <li id="dn-alerts">Alerts</li>
-        </ul>
+        <div id="details-nav" class="details-part">
+            <h2 id="dn-h2">
+                <span dir="west" class="dn-term"></span>~<span dir="east" class="dn-term"></span>
+            </h2>
+            <ul>
+                <li dir="west" day="weekday"></li>
+                <li dir="west" day="weekend"></li>
+                <li dir="east" day="weekday"></li>
+                <li dir="east" day="weekend"></li>
+                <li id="dn-alerts">Alerts</li>
+            </ul>
+        </div>
         <div id="schedule" class="details-part">
             <div id="schedule-header">
                 <table>
