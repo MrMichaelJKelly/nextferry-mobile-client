@@ -26,9 +26,8 @@
     "android.permission.WRITE_EXTERNAL_STORAGE"
   ],
   "CorePlugins": [
+    "org.apache.cordova.device",
     "org.apache.cordova.geolocation",
-    "org.apache.cordova.network-information",
-    "org.apache.cordova.dialogs",
     "com.telerik.plugin.eqatecanalytics",
     "com.telerik.feedback"
   ],
@@ -43,7 +42,7 @@
     "ID_RESOLUTION_WXGA",
     "ID_RESOLUTION_HD720P"
   ],
-  "BundleVersion": "1.0",
+  "BundleVersion": "4.0",
   "Framework": "Cordova",
   "DisplayName": "denisesandbox@gmail.com",
   "Author": "denisesandbox@gmail.com",
