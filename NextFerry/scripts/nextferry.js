@@ -192,10 +192,12 @@ var NextFerry = (function ($) {
 
     var synchSettings = function() {
         // OK, this looks weird, but here's what's happening:
-        // for displaylist, the "master copy" is in memory (_displayList),
+        // for displaylist and readlist the "master copy" is in memory
+        // (_displayList and _readList),
         // while for buffertime, the master copy is the one in localStorage.
         // either way, this makes sure the master's value is propagated.
         window.localStorage["dl"] = JSON.stringify( _displayList );
+        window.localStorage["rl"] = JSON.stringify( _readList );
         _buffertime = parseInt( window.localStorage["bt"] );
     };
 
@@ -310,7 +312,7 @@ var NextFerry = (function ($) {
         return _allTerminals[this.terminals[dir === "west" ? "east" : "west"]].name;
     }
     Route.prototype.hasAlerts = function() {
-        // returns one of 'alerts_none' 'alerts_read' 'alerts_unread'
+        // returns one of false 'alerts_read' 'alerts_unread'
         return Alert.hasAlerts(this);
     };
     Route.prototype.markAlerts = function() {
@@ -318,6 +320,7 @@ var NextFerry = (function ($) {
         for( var i in alerts ) {
             alerts[i].markRead();
         }
+        synchSettings();
     };
     Route.prototype.tGoodness = function(dir,departuretime,now) {
         now = now || NFTime.now();
@@ -326,6 +329,8 @@ var NextFerry = (function ($) {
     };
 
 
+    var _lastLoadTime;
+    var _oldTTThreshold = 1000 * 60 * 3; // three minutes
     function Terminal(c, n, l) {
         this.code = c;
         this.name = n;
@@ -335,6 +340,12 @@ var NextFerry = (function ($) {
     Terminal.clearTTs = function() {
         for (var t in _allTerminals) {
             _allTerminals[t].tt = false;
+        }
+        _lastLoadTime = undefined;
+    }
+    Terminal.clearOldTTs = function() {
+        if ( _lastLoadTime && (_lastLoadTime - Date.now()) > _oldTTThreshold ) {
+            clearTTs();
         }
     }
     Terminal.loadTTs = function(text) {
@@ -346,6 +357,7 @@ var NextFerry = (function ($) {
                 _allTerminals[pieces[0]].tt = parseInt(pieces[1]);
             }
         }
+        _lastLoadTime = Date.now();
     };
     Terminal.allTerminals = function() {
         return _allTerminals;
@@ -433,6 +445,9 @@ var NextFerry = (function ($) {
     };
     Alert.hasAlerts = function (r) {
         var found = false;
+        if ( typeof r === "string" ) {
+            r = Route.find(r);
+        }
         for (var i in _alertList) {
             var a = _alertList[i];
             if (a.codes & r.code) {
@@ -442,7 +457,7 @@ var NextFerry = (function ($) {
                     found = true;
             }
         }
-        return found? 'alerts_read' : 'alerts_none';
+        return found? 'alerts_read' : false;
     };
     Alert.loadAlerts = function(text) {
         _alertList = [];

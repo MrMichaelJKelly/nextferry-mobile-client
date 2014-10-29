@@ -3,7 +3,7 @@
  */
 
 var app = (function ($) {
-    var dir = "west";
+    var dir = window.localStorage["dir"] || "west";
     var testrun = false;
 
     var mainScroll;
@@ -28,7 +28,7 @@ var app = (function ($) {
         }
         goPage("#main-page");
 
-        // ask for new schedule, travel times, etc.
+        // ask for new schedule, alerts, etc.
         ServerIO.requestUpdate();
 
         // one-time rendering for settings page
@@ -36,7 +36,7 @@ var app = (function ($) {
 
         // wire up all the event actions
         $("#direction").on("click", toggleDirection);
-        $("#routes").on("tap", gogoPage("#details-page"));
+        $("#routes").on("click", gogoPage("#details-page"));
         $("#details-nav li").on("click", detailsNav);
         $("#details-header").on("click", detailsNav);
         $("#details-exit").on("click",backPage);
@@ -54,10 +54,10 @@ var app = (function ($) {
         });
 
         // initialize main page scrollers
-        mainScroll = new IScroll("#outerwrap", { tap: true });
+        mainScroll = new IScroll("#outerwrap", { click: true });
         timeScroll = new IScroll("#timeswrap", { scrollX: true, scrollY: false });
         // asynch update allows scrollers to re-check after page rendering is done.
-        updateScroller(timeScroll);
+        updateScroller(timeScroll,500);
         updateScroller(mainScroll,100);
 
         // done with app construction
@@ -91,7 +91,6 @@ var app = (function ($) {
         renderRoutes();
         renderTimes();
         updateScroller(mainScroll,200);
-        ServerIO.requestTravelTimes();
     };
 
     var renderRoutes = function() {
@@ -105,6 +104,7 @@ var app = (function ($) {
     };
     var renderTimes = function() {
         var now = NextFerry.NFTime.now();
+        NextFerry.Terminal.clearOldTTs();
         // <li><span><span class='timegoodness'>time</span> <span>...</span></li>
         $("#times").empty();
         $("#times").width(1500); // wider than needed; will be recalculated below.
@@ -117,6 +117,7 @@ var app = (function ($) {
         }));
         fixWidth();
         updateScroller(timeScroll,100);
+        ServerIO.requestTravelTimes();
     };
 
     var updateTravelTimes = function() {
@@ -158,6 +159,7 @@ var app = (function ($) {
             $("#main-page").removeClass("east");
         }
 		renderMainPage();
+        window.localStorage["dir"] = dir;
         return false;
     };
 
@@ -168,41 +170,47 @@ var app = (function ($) {
     var _alertsStatus;
 
     var renderDetailsPage = function(e) {
-        if ( e ) {
-            _routename = e.target.innerText || e.target.parentElement.innerText;
-            _routename = _routename.trim();
-            _r = NextFerry.Route.find(_routename);
+        e && e.preventDefault();
+        if ( e == undefined || debounced() ) {
+            if ( e ) {
+                _routename = e.target.innerText || e.target.parentElement.innerText;
+                _routename = _routename.trim();
+                _r = NextFerry.Route.find(_routename);
+                _alertStatus = _r.hasAlerts();
+
+                $("#details-nav [dir=west]").text( _r.termFromName("west") );
+                $("#details-nav [dir=east]").text( _r.termFromName("east") );
+            }
+            if ( ! _routename ) {
+                alert("error! called DetailsPage without route! (bug in code, please report)");
+                backPage();
+            }
+
             _alertStatus = _r.hasAlerts();
+            $("#dn-alerts").attr("astate", _alertStatus);
 
-            $("#details-nav [dir=west]").text( _r.termFromName("west") );
-            $("#details-nav [dir=east]").text( _r.termFromName("east") );
+            // render and show the nav
+            $(".details-part").hide();
+            $("#details-nav").show();
         }
-        if ( ! _routename ) {
-            alert("error! called DetailsPage without route! (bug in code, please report)");
-            backPage();
-        }
-
-        _alertStatus = _r.hasAlerts();
-        $("#dn-alerts").attr("astate", _alertStatus);
-
-        // render and show the nav
-        $(".details-part").hide();
-        $("#details-nav").show();
     };
+
 
     // manage navigation within details page
     var detailsNav = function(e) {
         e.preventDefault();
-        var target = $(e.target);
+        if ( debounced() ) {
+            var target = $(e.target);
 
-        if ( target.prop("id") === "details-header") {
-            renderDetailsPage();  // re-display nav page
-        }
-        else if ( target.prop("id") === "dn-alerts") {
-            renderAlerts();
-        }
-        else {
-            renderSchedule( target.attr("dir"), target.attr("day") );
+            if ( target.prop("id") === "details-header") {
+                renderDetailsPage();  // re-display nav page
+            }
+            else if ( target.prop("id") === "dn-alerts") {
+                renderAlerts();
+            }
+            else {
+                renderSchedule( target.attr("dir"), target.attr("day") );
+            }
         }
         return false;
     };
@@ -416,16 +424,18 @@ var app = (function ($) {
     // Iscroll sometimes sends duplicate click events, so we debounce them.
     // The same debouncing timer is used for all click/tap events, which works
     // fine, assuming that the user cannot intend to issue events
-    // faster than every 400 ms.
-    // (We don't have any double-clicks/taps, but if we did we would identify
-    // them before we got here.)
+    // faster than every 400 ms (and we don't have double-taps to worry about).
+    // In any case where there would be *intentional* chaining of events,
+    // use clear_debounce to pave the way.
     var debouncing_on = false;
     var debounced = function() {
         if ( debouncing_on ) {
+            // console.log("ignored dup event");
             return false;
         }
         else {
             debouncing_on = true;
+            //console.log("letting event through");
             setTimeout(function() { debouncing_on = false; }, 400);
             return true;
         }

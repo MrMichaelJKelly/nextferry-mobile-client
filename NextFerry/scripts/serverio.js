@@ -11,6 +11,11 @@ var ServerIO = (function($) {
     var initURL = "http://nextferry.appspot.com/init/" + appVersion + "/";
     var travelURL = "http://nextferry.appspot.com/traveltimes/" + appVersion + "/";
 
+    var handleError = function() {
+        console.log( "Received error" );
+        console.log( arguments );
+    }
+
     var loadSchedule = function(text) {
         var lines = text.split("\n");
         for (var i in lines) {
@@ -77,15 +82,17 @@ var ServerIO = (function($) {
         return $.ajax({
                   url : initURL + (window.localStorage["cachedate"] || ""),
                   dataType: "text",
-                  success: processReply
-                  // we just ignore failures
+                  success: processReply,
+                  error: handleError
                });
     };
 
     var _requestTTdelay = false;
     var requestTravelTimes = function() {
+        console.log("requesting travel times...");
         if ( window.localStorage["useloc"] != "true" || _requestTTdelay ) {
             // if the user doesn't want this, or we've just called, then skip.
+            console.log("not now");
             return;
         }
         else {
@@ -102,12 +109,15 @@ var ServerIO = (function($) {
 
             getAccuratePosition(
                 function(loc) {
+                    console.log("got position!");
                     $.ajax({
                         url: travelURL +  loc.coords.latitude + "," + loc.coords.longitude,
                         dataType: "text",
-                        success: processReply
+                        success: processReply,
+                        error: handleError
                     });
-                }
+                },
+                handleError // error handler for getAccuratePosition
             );
         }
     };

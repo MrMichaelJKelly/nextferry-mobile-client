@@ -351,6 +351,18 @@ function nextFerryTests() {
 	"And this is an alert for Edmonds\n"
 	"__";
 
+	// We have a problem when playing with alerts --- real ones might come in
+	// while the test is running.  To deal with that we have to do a little trickery.
+	// this still isn't foolproof due to asynch nature of things.
+	// this is hardwired for alert3, really ought to do one for alert1 too.
+	var theyreMine = function() {
+		// make sure the alerts are the ones we want, else re-load them.
+		var alerts = NextFerry.Alert.allAlerts();
+		if ( alerts.length != 3 || alerts[0].id != "00:45:53.308110" ) {
+			NextFerry.Alert.loadAlerts(alert3);
+		}
+	};
+
 	QUnit.test("Loading an Alert", function(assert) {
 		copyLS();
 		delete window.localStorage["rl"];
@@ -363,7 +375,7 @@ function nextFerryTests() {
 		var a = alerts[0];
 		assert.equal( a.id, "00:45:53.308110", "With id..." );
 		assert.equal( a.codes, 224, "Codes..." );
-		assert.equal( a.unread, true, "Read status...");
+		assert.strictEqual( a.unread, true, "Read status...");
 		assert.equal( a.body, "This is an alert for the Vashon ferries.  Some message here.\n", "and body.");
 		restoreLS();
 	});
@@ -372,24 +384,54 @@ function nextFerryTests() {
 		copyLS();
 		delete window.localStorage["rl"];
 		NextFerry.init();
-		expect(10);
+		expect(8);
 
+		ServerIO.loadAlerts.listeners.add( theyreMine );
 		NextFerry.Alert.loadAlerts(alert3);
+
 		assert.equal( NextFerry.Alert.allAlerts().length, 3, "Loading multiple alerts" );
 
 		var r = NextFerry.Route.find("fauntleroy-vashon");
-		assert.equal( NextFerry.Alert.hasAlerts(r), true, "checking when alerts present" );
-		assert.equal( NextFerry.Alert.hasAlerts(r,true), true, "...okay for unread alerts" );
 		var alerts = NextFerry.Alert.alertsFor(r);
 		assert.equal( alerts.length, 2, "Retrieval works" );
 		assert.equal( NextFerry.Alert.alertsFor("vashon-southworth").length, 2, "via another route");
 		assert.equal( NextFerry.Alert.alertsFor("bremerton").length, 0, "empty lookup works");
-		assert.equal( NextFerry.Alert.hasAlerts("bremerton"), false, "either way you do it" );
-		assert.equal( NextFerry.Alert.hasAlerts("edmonds"), true, "edmonds alert" );
+		assert.ok( ! NextFerry.Alert.hasAlerts("bremerton"), "hasAlerts works as boolean" );
+		assert.ok( NextFerry.Alert.hasAlerts("edmonds"), "hasAlerts works as boolean" );
 		alerts = NextFerry.Alert.alertsFor("edmonds");
 		assert.equal( alerts.length, 1, "we can retrieve it" );
 		assert.equal( alerts[0].body, "And this is an alert for Edmonds\n", "and it has the right body" );
 
+		ServerIO.loadAlerts.listeners.remove( theyreMine );
+		restoreLS();
+	});
+
+	QUnit.test("Alert read status", function(assert) {
+		copyLS();
+		delete window.localStorage["rl"];
+		NextFerry.init();
+		expect(7);
+
+		ServerIO.loadAlerts.listeners.add( theyreMine );
+		NextFerry.Alert.loadAlerts(alert3);
+		var r = NextFerry.Route.find("fauntleroy-vashon");
+		var alerts = NextFerry.Alert.alertsFor(r);
+
+		assert.equal( r.hasAlerts(), "alerts_unread", "there are unread alerts" );
+		alerts[0].markRead();
+		assert.equal( r.hasAlerts(), "alerts_unread", "...still");
+		r.markAlerts();
+		assert.equal( r.hasAlerts(), "alerts_read", "but no more");
+
+		// when we flush and reload alerts, the read status should be remembered.
+
+		NextFerry.Alert.loadAlerts(alert3);
+		assert.equal( NextFerry.Alert.alertsFor(r).length, 2, "right number of alerts" );
+		assert.equal( r.hasAlerts(), "alerts_read", "remembers they were read" );
+		assert.equal( NextFerry.Alert.alertsFor("edmonds").length, 1, "right number of alerts" );
+		assert.equal( NextFerry.Route.find("edmonds").hasAlerts(), "alerts_unread" );
+
+		ServerIO.loadAlerts.listeners.remove( theyreMine );
 		restoreLS();
 	});
 

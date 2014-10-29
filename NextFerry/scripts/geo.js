@@ -37,26 +37,34 @@ I've made the following modifications:
       it's behavior as it is running.
 */
 
+var callCount = 0;
+
 function getAccuratePosition(onSuccess, onError, onProgress, options) {
     var lastCheckedPosition,
         locationEventCount = 0,
         watchID,
         timerID,
         self,
-        cleared = false;
+        cleared = false,
+        myCallCount = callCount++;
 
     options = options || {};
     self = getAccuratePosition;
 
+    console.log("gAP call", myCallCount);
+
     var clear = function() {
+        console.log("gAP clear", myCallCount);
         timerID && clearTimeout(timerID);
         watchID && navigator.geolocation.clearWatch(watchID);
         cleared = true;
     }
 
     var spoofed = function() {
+        console.log("gAP: check spoof", myCallCount);
         if ( !cleared ) {
             if (self.spoof_value) {
+                console.log("gAP spoof", myCallCount);
                 clear();
                 onSuccess(self.spoof_value);
                 return true;
@@ -71,6 +79,7 @@ function getAccuratePosition(onSuccess, onError, onProgress, options) {
     };
 
     var checkLocation = function (position) {
+        console.log("gAP: check", myCallCount);
         if ( !spoofed() && !cleared ) {
             lastCheckedPosition = position;
             locationEventCount = locationEventCount + 1;
@@ -81,12 +90,14 @@ function getAccuratePosition(onSuccess, onError, onProgress, options) {
                 onSuccess(position);
             }
             else {
+                console.log("gAP: not yet", myCallCount);
                 onProgress && onProgress(position);
             }
         }
     };
 
     var stopTrying = function () {
+        console.log("gAP: stop", myCallCount);
         if ( !spoofed() && !cleared ) {
             clear();
             onSuccess(lastCheckedPosition);
@@ -94,6 +105,7 @@ function getAccuratePosition(onSuccess, onError, onProgress, options) {
     };
 
     var geoError = function (error) {
+        console.log("gAP: internal error", myCallCount);
         if ( !spoofed() && !cleared ) {
             clear();
             onError && onError(error);
@@ -114,6 +126,7 @@ function getAccuratePosition(onSuccess, onError, onProgress, options) {
     if( navigator && navigator.geolocation ) {
         watchID = navigator.geolocation.watchPosition(checkLocation, geoError, options);
         timerID = setTimeout(stopTrying, options.maxWait); // Set a timeout that will abandon the location loop
+        console.log("gAP: ready", myCallCount);
     }
     else {
         onError( { code: 2, message: "Geolocation not initialized" });

@@ -3,6 +3,7 @@ body {
 	overflow: hidden;
 
     -ms-touch-action: none;
+    touch-action: none;
     -webkit-touch-callout: none;
 
     -ms-user-select: none;
@@ -56,6 +57,7 @@ li {
     height: 22pt;
     width: 100%;
     background-color: #6D8299;
+    z-index: 10;
 }
 #footer ul {
     position: absolute;
@@ -75,6 +77,8 @@ li {
     right: 0;
     bottom: 22pt;
     overflow: hidden;
+    background: url("images/background.jpg") no-repeat right bottom;
+    background-size: cover;
 }
 #details-page, #settings-page, #test-page { /* init visibility */
     display: none;
@@ -112,9 +116,6 @@ h3 {
 
 
 /* main page */
-#main-page {
-    background: #DBEEF6;
-}
 .heading {
     margin: 15pt 10pt;
     font-size: 28pt;
@@ -139,7 +140,7 @@ h3 {
 #outerwrap {
 	position: absolute;
 	width: 100%;
-    top: 45pt;
+    top: 55pt;
     left: 11pt;
     right: 10pt;
     bottom: 10pt;
@@ -178,24 +179,23 @@ h3 {
     font-weight: bold;
 }
 #routes span[astate] {
-    display: inline block;
     font-size: 12pt;
-    padding: 2pt;
+    padding: 3px;
+    padding-top: 2px; /* for some reason... */
     margin-right: 2pt;
 }
-#routes span[astate=alerts_none] {
+#routes span[astate=false] {
     display: none;
 }
 #routes span[astate=alerts_unread] {
     color: yellow;
-    border-color: #6D8299;
     background-color: #6D8299;
+    border-radius: 50%;
 }
 
 
 /* details page */
 #details-page {
-    background-color: white;
     font-size: 16pt;
 }
 /* details-nav subpage */
@@ -243,12 +243,14 @@ h3 {
 #details-nav #dn-alerts {
     width: 190pt;
     padding-top: 10pt;
+    background-color: #6D8299;
+    color: white;
 }
-#dn-alerts[astate=alerts_none] {
+#details-nav #dn-alerts[astate=false] {
     display: none;
 }
-#dn-alerts[astate=alerts_unread] {
-    background-color: yellow;
+#details-nav #dn-alerts[astate=alerts_unread] {
+    color: yellow;
 }
 
 /* details-schedule subpage */
@@ -295,16 +297,23 @@ h3 {
 }
 
 /* details-alerts subpage */
-#alerts-list>li {
+#alerts {
+    position: absolute;
+    top: 40pt;
+    bottom: 0;
+    width: 100%;
+}
+.alert {
     width: 240px;
     margin: auto;
     margin-bottom: 5pt;
 }
-#alerts-list>li[.unread]:before {
+.alert.unread:before {
     content: "New!";
     font-size: smaller;
     font-weight: bold;
-    color: yellow;
+    padding-right: 2pt;
+    background-color: yellow;
 }
 .posted {
     font-family: monospace;
@@ -315,7 +324,7 @@ h3 {
 /* settings page */
 
 #settings-page {
-    background-color: #6D8299;
+    /* background-color: #6D8299; */
 }
 
 /* nested divs.  it is necessary to specifically position each level
