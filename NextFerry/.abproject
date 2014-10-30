@@ -1,7 +1,7 @@
 {
   "ProjectGuid": "69b8438c-3edb-4985-9a9c-4cf1ea10664d",
   "ProjectTypeGuids": "{070BCB52-5A75-4F8C-A973-144AF0EAFCC9}",
-  "AppIdentifier": "sandbox.co.NextFerry",
+  "AppIdentifier": "me.denisesandbox.NextFerry",
   "ProjectName": "NextFerry",
   "IsRunnable": "true",
   "FrameworkVersion": "3.5.0",
