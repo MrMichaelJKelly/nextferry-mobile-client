@@ -6,8 +6,8 @@
     <content src="index.html" />
 
     <log level="DEBUG"/>
-    <preference name="useBrowserHistory" value="true" />
-    <preference name="exit-on-suspend" value="false" />
+    <preference name="useBrowserHistory" value="false" />
+    <preference name="exit-on-suspend" value="true" />
 
     <!-- For projects that target Apache Cordova 3.0.0 only, this <feature></feature> block ensures that button events and App plugin-related functionality will work as expected. -->
     <feature name="App">
@@ -15,6 +15,7 @@
     </feature>
 
     <!-- For projects that target Apache Cordova 3.0 and later, comment out or delete the <plugins></plugins> block and its contents. -->
+    <!--
     <plugins>
         <plugin name="App" value="org.apache.cordova.App"/>
         <plugin name="Geolocation" value="org.apache.cordova.GeoBroker"/>
@@ -36,5 +37,6 @@
         <plugin name="Globalization" value="org.apache.cordova.Globalization"/>
         <plugin name="InAppBrowser" value="org.apache.cordova.InAppBrowser"/>
     </plugins>
+    -->
 </cordova>
 

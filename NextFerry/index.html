@@ -38,16 +38,18 @@
     </div>
     <!--Main-->
     <div id="main-page" class="page">
-        <span class="heading" id="direction" style="float: right">West</span>
-        <span class="heading" id="title" style="float: left">Next Ferry</span>
+        <h1>
+            <span id="title">Next Ferry</span>
+            <span id="direction">West</span>
+        </h1>
 
         <!--Content-->
         <div id="outerwrap" class="scrollwrapper">
             <div id="routescontainer" class="scrollee">
-                <ul id="routes">CONTENT</ul>
+                <ul id="routes"></ul>
                 <div id="timesport">
                     <div id="timeswrap" class="scrollwrapper">
-                        <ul id="times" class="scrollee">CONTENT</ul>
+                        <ul id="times" class="scrollee"></ul>
                     </div>
                 </div>
                 <br style="clear:both"/>
@@ -116,11 +118,10 @@
             <div id="settings-routes" class="settings-part">
                 <span class="icon return settings-exit"></span>
                 <h2>Routes</h2>
-                <p class="explain">Choose ferry routes to display</p>
                 <div id="settings-routes-wrapper" class="scrollwrapper">
-                    <form id="settings-routes-form" class="scrollee">
-                        CONTENT
-                    </form>
+                    <div id="settings-routes-form" class="scrollee">
+                        <p class="explain">Choose ferry routes to display</p>
+                    </div>
                 </div>
             </div>
             <div id="settings-options" class="settings-part">
@@ -151,18 +152,6 @@
                                 <span id="reload">Reload</span>
                                 ferry schedule, alerts etc.</p>
                         </li>
-                        <li> <!-- vashon direction -->
-                            <h3>Vashon/Pt Defiance Direction</h3>
-                            <span type="radio" id="vdw">West</span><br>
-                            <span type="radio" id="vde">East</span><br>
-                            <p class="explain special-label2">
-                                Mostly useful for Vashon residents:
-                                if you are traveling off of Vashon via the Pt Defiance
-                                ferry, would you prefer to see this listed as a
-                                <em>West-bound</em> route or an
-                                <em>East-bound</em> route?
-                            </p>
-                        </li>
                     </ul>
                 </div>
             </div> <!-- end settings-options -->
@@ -175,14 +164,15 @@
                         <span id="aboutsched">CONTENT</span></p>
 
                         <div class="br"></div>
-                        <p>The NextFerry app was created by Denise Draper,
+                        <p>NextFerry v4.0</p>
+                        <p> NextFerry was created by Denise Draper,
                             because I often want to know whether I should take the Edmonds
-                            or the Bainbridge ferry.  </p>
+                            or the Bainbridge ferry.</p>
                         <p> Email denisesandbox@mailup.net for information,
                             feedback or requests.</p>
 
                         <div class="br"></div>
-                        <p>The NextFerry app is not affiliated with WSDOT.
+                        <p> The NextFerry app is not affiliated with WSDOT.
                             The NextFerry schedule is updated every season when the WSDOT schedule changes, however delayed updates or errors are
                             possible.</p>
                         <p> Also, NextFerry uses a simplified weekday/weekend schedule,
@@ -192,15 +182,16 @@
                             (http://wsdot.gov/ferries) for definitive information.</p>
 
                         <div class="br"></div>
-                        <p>This version of the NextFerry app is an HTML5
-                            cross-platform
+                        <p> This version of the NextFerry app is an HTML5 cross-platform
                             mobile application that communicates with a backend service hosted
                             on the Google App Engine.  The code for app and server can be
                             found at https://github.com/denised/nextferry.</p>
+                        <p> Cross-platform mobile apps are hard to test.  Please report bugs
+                            to denisesandbox@mailup.net</p>
                         <p> The client uses jQuery, iScroll and the Dosis font; liscencing
                             info for each can be found in the github source.</p>
                         <p> Travel times are provided by MapQuest.</p>
-                    </div> <!-- scroller wrappee -->
+                    </div> <!-- scrollee -->
                 </div> <!-- scroller wrapper -->
             </div> <!-- end settings-part -->
         </div> <!-- end settings-container -->
@@ -217,7 +208,8 @@
     </div>
 
     <script type="text/javascript">
-        $(document).one('ready', app.init);
+        // per cordova docs, deviceready is signaled _after_ document.ready
+        document.addEventListener("deviceready", app.init);
     </script>
 </body>
 </html>

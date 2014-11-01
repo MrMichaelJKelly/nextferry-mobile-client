@@ -129,7 +129,7 @@ var NextFerry = (function ($) {
             _tsched = (dow < 1 || dow > 5) ? "weekend" : "weekday";
         }
         return _tsched;
-    }
+    };
     var _tsched = null;
 
 
@@ -149,7 +149,7 @@ var NextFerry = (function ($) {
             new Route(1 << 6, 9, 22, "fauntleroy-vashon", "vashon-fauntleroy"),
             new Route(1 << 7, 22, 20, "vashon-southworth", "southworth-vashon"),
             new Route(1 << 8, 7, 4, "bremerton", "bremerton"),
-            new Route(1 << 9, 21, 16, "vashon-pt defiance", "pt defiance-vashon"),
+            new Route(1 << 9, 16, 21, "pt defiance-vashon", "vashon-pt defiance"),
             new Route(1 << 10, 1, 10, "friday harbor", "friday harbor"),
             new Route(1 << 11, 1, 15, "orcas", "orcas")
         ];
@@ -208,7 +208,7 @@ var NextFerry = (function ($) {
             "west" : westCode,
             "east" : eastCode
         };
-        this.displayName = {	// subtlety: a westbound route goes from east terminal to west terminal
+        this.displayName = {
             "west" : westName,
             "east" : eastName
         };
@@ -221,26 +221,25 @@ var NextFerry = (function ($) {
     }
     Route.allRoutes = function() {
         return _allRoutes;
-    }
+    };
     Route.displayRoutes = function() {
         var result = [];
         for (var i in _displayList) {
             result.push(Route.find(i));
         }
         return result;
-    }
+    };
     Route.prototype.isDisplayed = function() {
         return this.code in _displayList;
-    }
+    };
     Route.prototype.display = function(b) {
-        // TODO: what is the real syntax?
         if (b) {
             _displayList[this.code] = true;
         }
         else {
             delete _displayList[this.code];
         }
-    }
+    };
     Route.find = function(name) {
         for (var i in _allRoutes) {
             var r = _allRoutes[i];
@@ -250,14 +249,14 @@ var NextFerry = (function ($) {
                 return r;
             }
         }
-    }
+    };
     Route.clearAllTimes = function() {
         for (var i in _allRoutes) {
             var r = _allRoutes[i]
             r.times.west = {};
             r.times.east = {};
         }
-    }
+    };
     // Syntax of line is <routename>,<code>,<time1>,<time2>,....
     Route.loadTimes = function(line) {
         var tokens = line.split(",");
@@ -310,7 +309,7 @@ var NextFerry = (function ($) {
     };
     Route.prototype.termFromName = function(dir) {
         return _allTerminals[this.terminals[dir === "west" ? "east" : "west"]].name;
-    }
+    };
     Route.prototype.hasAlerts = function() {
         // returns one of false 'alerts_read' 'alerts_unread'
         return Alert.hasAlerts(this);
@@ -320,7 +319,6 @@ var NextFerry = (function ($) {
         for( var i in alerts ) {
             alerts[i].markRead();
         }
-        synchSettings();
     };
     Route.prototype.tGoodness = function(dir,departuretime,now) {
         now = now || NFTime.now();
@@ -342,12 +340,12 @@ var NextFerry = (function ($) {
             _allTerminals[t].tt = false;
         }
         _lastLoadTime = undefined;
-    }
+    };
     Terminal.clearOldTTs = function() {
         if ( _lastLoadTime && (_lastLoadTime - Date.now()) > _oldTTThreshold ) {
             clearTTs();
         }
-    }
+    };
     Terminal.loadTTs = function(text) {
         Terminal.clearTTs();
         var lines = text.split("\n");
@@ -423,13 +421,13 @@ var NextFerry = (function ($) {
     Alert.prototype.markRead = function() {
         this.unread = false;
         _readList.push(this.id);
-    }
+    };
     Alert.prototype.posted = function() {
         return this.id.substring(0,5); // the hack lives on...
-    }
+    };
     Alert.allAlerts = function() {
         return _alertList;
-    }
+    };
     Alert.alertsFor = function(r) {
         var results = [];
         if ( typeof r === "string" ) {
@@ -441,7 +439,10 @@ var NextFerry = (function ($) {
                 results.push(a);
             }
         }
-        return results;
+        return results.sort( function(a,b) {
+            // reverse sort on id
+            return ( a.id < b.id ? 1 : (a.id > b.id ? -1 : 0 ));
+        });
     };
     Alert.hasAlerts = function (r) {
         var found = false;

@@ -79,10 +79,14 @@ li {
     overflow: hidden;
     background: url("images/background.jpg") no-repeat right bottom;
     background-size: cover;
-}
-#details-page, #settings-page, #test-page { /* init visibility */
+    /* initially, not showing */
     display: none;
 }
+#main-page {
+    /* initially visible page */
+    display: block;
+}
+
 
 /* some basic common structures */
 .hnav {
@@ -102,6 +106,11 @@ span.icon.return {
     margin-right: -20pt; /* make it invisible to other things on page */
     font-size: 14pt;
 }
+h1 {
+    margin: 15pt 10pt;
+    font-size: 28pt;
+    font-weight: 500;
+}
 h2 {
     padding: 8pt;
     font-size: 22pt;
@@ -116,11 +125,7 @@ h3 {
 
 
 /* main page */
-.heading {
-    margin: 15pt 10pt;
-    font-size: 28pt;
-    font-weight: 500;
-}
+
 #title>.char1 {
     letter-spacing: -1px;
 }
@@ -129,13 +134,11 @@ h3 {
 }
 
 #direction {
-    position: absolute;
-    left: 4.2em;
-    top: 0;
     text-transform: capitalize;
     padding: 0 5pt;
     border: 1px solid;
     border-radius: 10px;
+    margin-left: 6pt;
 }
 #outerwrap {
 	position: absolute;
@@ -312,7 +315,8 @@ h3 {
     content: "New!";
     font-size: smaller;
     font-weight: bold;
-    padding-right: 2pt;
+    padding: 0 1pt;
+    margin-right: 4pt;
     background-color: yellow;
 }
 .posted {
@@ -322,11 +326,6 @@ h3 {
 }
 
 /* settings page */
-
-#settings-page {
-    /* background-color: #6D8299; */
-}
-
 /* nested divs.  it is necessary to specifically position each level
  * to connect the height/width from page to scroll-window.  Not my favorite css...
  */
@@ -339,8 +338,6 @@ h3 {
     left: 50%;
     margin-left: -160pt;
     overflow: hidden;
-    background-color: white;
-    border: solid 1px #ADB3B9;
 }
 @media (max-width: 320pt) {
     #settings-container {
@@ -371,16 +368,18 @@ h3 {
     width: 100%;
     overflow: hidden;
 }
-#settings-page #settings-routes-wrapper {
-    top: 80pt;
+#settings-page #settings-routes-form {
     line-height: 130%;
+    padding-bottom: 0.5em;
 }
 #settings-page .scrollee {
     position: absolute;
     width: 100%;
+    background-color: white;
 }
 
 #settings-page h2 {
+    background-color: white;
     border-bottom: 1px solid #ADB3B9;
 }
 #settings-page li {

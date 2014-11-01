@@ -16,17 +16,21 @@ var app = (function ($) {
     var init = function() {
         NextFerry.init();
         $("#title").lettering();
+        goPage("#main-page");
 
         // wire up asynch responses
-        ServerIO.loadSchedule.listeners.add(renderTimes);
-        ServerIO.loadTravelTimes.listeners.add(updateTravelTimes);
-        ServerIO.loadAlerts.listeners.add(updateAlerts);
+        document.addEventListener("pause", wrapUp);
+        //window.on( "unload", wrapUp );  TODO: this too? instead?
+        document.addEventListener("resume", renderTimes);
+        ServerIO.loadSchedule.listeners.add( renderTimes );
+        ServerIO.loadTravelTimes.listeners.add( updateTravelTimes );
+        ServerIO.loadAlerts.listeners.add( updateAlerts );
+
 
         // immediately show old schedule, if we have it
         if ( window.localStorage["cache"] ) {
             ServerIO.loadSchedule( window.localStorage["cache"] );
         }
-        goPage("#main-page");
 
         // ask for new schedule, alerts, etc.
         ServerIO.requestUpdate();
@@ -34,17 +38,19 @@ var app = (function ($) {
         // one-time rendering for settings page
         settingsRenderOnce();
 
-        // wire up all the event actions
+        // wire up navigation and user actions
+        document.addEventListener("backbutton", backPage);
         $("#direction").on("click", toggleDirection);
         $("#routes").on("click", gogoPage("#details-page"));
         $("#details-nav li").on("click", detailsNav);
         $("#details-header").on("click", detailsNav);
-        $("#details-exit").on("click",backPage);
+        $("#details-exit").on("click", backPage);
         $("#settings-nav>li").on("click", settingsNav);
         $(".settings-exit").on("click", settingsExit);
+        $("#settings-page").on("click", settingsExit);
         $("span[type]").on("click", settingsClicks);
-        $("#useloc").on("change",updateDisable);
-        $("#reload").on("click",reset);
+        $("#useloc").on("change", updateDisable);
+        $("#reload").on("click", reset);
 
         $("#buftime").rangeslider({
             polyfill: false,
@@ -69,6 +75,14 @@ var app = (function ($) {
             new IScroll("#qunit-scroll-container");
         }
     };
+
+
+    var wrapUp = function() {
+        // save state and turn things off
+        NextFerry.synchSettings();
+        // todo: unset serverIO waits?
+        // todo: turn off geo?
+    }
 
     var reset = function(e) {
         e && e.preventDefault();
@@ -279,7 +293,7 @@ var app = (function ($) {
 
     var settingsNav = function(e) {
         e.preventDefault();
-        if (currentPage !== "#settings-page") {
+        if (_currentPage !== "#settings-page") {
             goPage("#settings-page");
         }
         else {
@@ -294,14 +308,15 @@ var app = (function ($) {
         return false;
     };
 
-    var settingsExit = function() {
+    var settingsExit = function(e) {
+        e && e.preventDefault();
         saveSettings();
         backPage();
+        return false;
     };
 
     var settingsRenderOnce = function() {
         // fill in the route list, which we only need to do once.
-        $("#settings-routes-form").empty();
         $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
             function(r) {
                 var id = "r" + r.code;
@@ -312,6 +327,9 @@ var app = (function ($) {
     };
 
     var _btdisplay; // the numeric version
+    // Note: settings aren't saved until settingsExit() is called, so
+    // render cannot (and does not need to be) called except when entering
+    // the page from outside.  Kinda hacky.
     var renderSettingsPage = function() {
         $(".settings-part").hide();
         $("#settings-page span[type]").removeClass("checked");
@@ -335,15 +353,6 @@ var app = (function ($) {
         updateDisable();
 
         $("#aboutsched").text( window.localStorage["schedulename"] || "unknown" );
-
-        /*
-        if ( window.localStorage["vashondir"] ) {
-            // etc.
-        }
-        else {
-            // etc.
-        }
-        */
     };
 
     var saveSettings = function() {
@@ -374,15 +383,11 @@ var app = (function ($) {
         }
         NextFerry.synchSettings();
         _btdisplay = undefined;
-        /*
-        var vashondir = true; // TODO
-        window.localStorage["vashondir"] = vashondir;
-        // TODO: use
-        */
     };
 
     /* our own implementation of checkboxes and radio boxes,
-     * because iScroll has problems with the native implementation.
+     * because iScroll has problems with the native implementation, and we wanted
+     * to style them ourselves anyway.
      * NB: unbelievable that this is all it takes...
      */
     var settingsClicks = function(e) {
@@ -396,7 +401,7 @@ var app = (function ($) {
             else { // radio boxes
                 if ( ! target.hasClass("checked") ) {
                     var oldval = target.parent().children("span[type='radio'].checked");
-                    oldval.length > 0 && oldval.removeClass( "checked" );
+                    oldval.length > 0 && oldval.removeClass("checked");
                     target.addClass("checked");
 
                     oldval.length > 0 && oldval.trigger( $.Event("change") );
@@ -412,44 +417,46 @@ var app = (function ($) {
         var buftime = $("#buftime");
         if (buftimeEnabled) {
             $("#buftimeitem").removeClass("disabled");
-            buftime.prop("disabled",false);
+            buftime.prop("disabled", false);
         }
         else {
             $("#buftimeitem").addClass("disabled");
-            buftime.prop("disabled",true);
+            buftime.prop("disabled", true);
         }
         buftime.rangeslider("update");
+        return false;
     };
 
     // Iscroll sometimes sends duplicate click events, so we debounce them.
     // The same debouncing timer is used for all click/tap events, which works
     // fine, assuming that the user cannot intend to issue events
-    // faster than every 400 ms (and we don't have double-taps to worry about).
+    // faster than every 400 ms (and we aren't worried about detecting things
+    // like double-taps, etc.).
     // In any case where there would be *intentional* chaining of events,
-    // use clear_debounce to pave the way.
-    var debouncing_on = false;
+    // use clear_debounce to clear the way.
+    var _debouncing = false;
     var debounced = function() {
-        if ( debouncing_on ) {
+        if ( _debouncing ) {
             // console.log("ignored dup event");
             return false;
         }
         else {
-            debouncing_on = true;
+            _debouncing = true;
             //console.log("letting event through");
-            setTimeout(function() { debouncing_on = false; }, 400);
+            setTimeout(function() { _debouncing = false; }, 400);
             return true;
         }
     };
     var clear_debounce = function() {
-        debouncing_on = false;
+        _debouncing = false;
     };
 
     //======= Page Transitions
     // goPage and backPage are for page *transitions*.
     // using them to re-render a page will screw up the back behavior.
 
-    var currentPage;	// the "#id" string (not html element)
-    var prevPage;
+    var _currentPage;	// the "#id" string (not html element)
+    var _prevPage;
 
     var renderers = {
         "#main-page" : renderMainPage,
@@ -458,31 +465,36 @@ var app = (function ($) {
     };
 
     var goPage = function(p,e) {
-        if ( currentPage && currentPage === p ) {
+        if ( _currentPage && _currentPage === p ) {
             alert("error! goPage called to rerender the same page! (please report bug)");
         }
         renderers[p](e);
         $(p).show();
-        $(currentPage).hide();
-        prevPage = currentPage;
-        currentPage = p;
+        $(_currentPage).hide();
+        _prevPage = _currentPage;
+        _currentPage = p;
     };
 
     // produces an event handler to go to a specific page
     var gogoPage = function(p) {
         return function(e) {
-            e.preventDefault();
+            e && e.preventDefault();
             goPage(p,e);
             return false;
         };
     };
 
     var backPage = function() {
-        // todo: wire in android back button behavior to exit if on main page.
-        goPage( prevPage ? prevPage : "#main-page" );
-        // prevPage is always cleared, no matter where we came from.
+        if ( _currentPage === "#main-page" ) {
+            // the only way to go back from #main-page is to hit the
+            // back button on android or winphone.  In which case we
+            // want to exit the app.
+            navigator.app && navigator.app.appExit();
+        }
+        goPage( _prevPage ? _prevPage : "#main-page" );
+        // _prevPage is always cleared, no matter where we came from.
         // (hence, the 2nd "back" always goes to the #main-page.)
-        prevPage = false;
+        _prevPage = false;
         return false;
     };
 
