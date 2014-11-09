@@ -30,10 +30,12 @@
 
     <!--Footer -->
     <div id="footer">
-        <ul id="settings-nav" class="hnav">
-            <li dest="routes"><span class="icon checkmark outline"></span></li>
-            <li dest="options"><span class="icon settings"></span></li>
-            <li dest="about"><span class="icon info"></span></li>
+        <ul id="footer-nav" class="hnav">
+            <li dest="main"><span class="icon home"></span></li>
+            <li dest="details" class="spaceafter"><span class="icon list"></span></li>
+            <li dest="settings-routes"><span class="icon checkmark outline"></span></li>
+            <li dest="settings-options"><span class="icon settings"></span></li>
+            <li dest="settings-about"><span class="icon info"></span></li>
         </ul>
     </div>
     <!--Main-->
@@ -44,13 +46,11 @@
         </h1>
 
         <!--Content-->
-        <div id="outerwrap" class="scrollwrapper">
-            <div id="routescontainer" class="scrollee">
+        <div id="routes-wrapper" class="scrollwrapper">
+            <div class="scrollee">
                 <ul id="routes"></ul>
-                <div id="timesport">
-                    <div id="timeswrap" class="scrollwrapper">
-                        <ul id="times" class="scrollee"></ul>
-                    </div>
+                <div id="times-wrapper" class="scrollwrapper">
+                    <ul id="times" class="scrollee"></ul>
                 </div>
                 <br style="clear:both"/>
             </div>
@@ -59,149 +59,156 @@
 
     <!-- Details -->
     <div id="details-page" class="page">
-        <span id="details-exit" class="icon return"></span>
-        <h2 id="details-header">Details</h2>
-        <div id="details-nav" class="details-part">
-            <h2 id="dn-h2">
-                <span dir="west" class="dn-term"></span>~<span dir="east" class="dn-term"></span>
-            </h2>
-            <ul>
-                <li dir="west" day="weekday"></li>
-                <li dir="west" day="weekend"></li>
-                <li dir="east" day="weekday"></li>
-                <li dir="east" day="weekend"></li>
-                <li id="dn-alerts">Alerts</li>
-            </ul>
+        <h2>Details</h2>
+        <h2 id="dn-h2">
+            <span dir="west" class="dn-term"></span>~<span dir="east" class="dn-term"></span>
+        </h2>
+        <ul id="details-body">
+            <li dest="schedule" dir="west" day="weekday"></li>
+            <li dest="schedule" dir="west" day="weekend"></li>
+            <li dest="schedule" dir="east" day="weekday"></li>
+            <li dest="schedule" dir="east" day="weekend"></li>
+            <li dest="alerts" id="dn-alerts">Alerts</li>
+        </ul>
+    </div>
+    <!-- Schedule -->
+    <div id="schedule-page" class="page">
+        <h2>Schedule</h2>
+        <div id="schedule-header">
+            <table>
+                <tr>
+                    <td class="sh-deco">from</td>
+                    <td class="sh-deco2" id="sh-termfrom"></td>
+                    <td class="sh-deco3" id="sh-dir"></td>
+                </tr>
+                <tr>
+                    <td class="sh-deco">to</td>
+                    <td class="sh-deco2" id="sh-termto"></td>
+                    <td class="sh-deco3"><span id="sh-type"></span>s</td>
+                </tr>
+            </table>
         </div>
-        <div id="schedule" class="details-part">
-            <div id="schedule-header">
-                <table>
+        <div id="schedule-body" class="scrollwrapper">
+            <table id="timetable" class="scrollee">
+                <thead>
                     <tr>
-                        <td class="sh-deco">from</td>
-                        <td class="sh-deco2" id="sh-termfrom"></td>
-                        <td class="sh-deco3" id="sh-dir"></td>
+                        <td id="amhead">AM</td>
+                        <td id="pmhead">PM</td>
                     </tr>
+                </thead>
+                <tbody>
                     <tr>
-                        <td class="sh-deco">to</td>
-                        <td class="sh-deco2" id="sh-termto"></td>
-                        <td class="sh-deco3"><span id="sh-type"></span>s</td>
+                        <td id="amtimes"></td>
+                        <td id="pmtimes"></td>
                     </tr>
-                </table>
-            </div>
-            <div id="schedule-body" class="scrollwrapper">
-                <table id="timetable" class="scrollee">
-                    <thead>
-                        <tr>
-                            <td id="amhead">AM</td>
-                            <td id="pmhead">PM</td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td id="amtimes"></td>
-                            <td id="pmtimes"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                </tbody>
+            </table>
         </div>
-        <div id="alerts" class="details-part scrollwrapper">
-            <ul id="alerts-list" class="scrollee">
-                CONTENT
-            </ul>
+    </div>
+    <!-- Alerts -->
+    <div id="alerts-page" class="page">
+        <h2>Alerts</h2>
+        <h2 id="alerts-header"></h2>
+        <div id="alerts-wrapper" class="scrollwrapper">
+            <ul id="alerts-list" class="scrollee"></ul>
         </div>
-    </div> <!-- end details-page -->
+    </div>
 
-    <!-- Settings -->
-    <div id="settings-page" class="page">
-        <div id="settings-container">
-            <div id="settings-routes" class="settings-part">
-                <span class="icon return settings-exit"></span>
-                <h2>Routes</h2>
-                <div id="settings-routes-wrapper" class="scrollwrapper">
-                    <div id="settings-routes-form" class="scrollee">
-                        <p class="explain">Choose ferry routes to display</p>
-                    </div>
+    <!-- Settings Style pages -->
+    <!-- Choose Routes -->
+    <div id="settings-routes-page" class="page settings-page">
+        <div class="settings-style">
+            <h2>Routes</h2>
+            <div id="settings-routes-wrapper" class="scrollwrapper">
+                <div id="settings-routes-form" class="scrollee">
+                    <p class="explain">Choose ferry routes to display</p>
                 </div>
             </div>
-            <div id="settings-options" class="settings-part">
-                <span class="icon return settings-exit"></span>
-                <h2>Options</h2>
-                <div id="settings-options-wrapper" class="scrollwrapper">
-                    <ul class="scrollee">
-                        <li id="tf"> <!-- time format -->
-                            <h3>Time Format</h3>
-                            <span type="radio" id="tf12">12 hour</span>
-                            <span type="radio" id="tf24">24 hour</span>
-                        </li>
-                        <li> <!-- use location -->
-                            <h3>Use Location</h3>
-                            <span type="checkbox" id="useloc" class="explain">
-                                Use location to calculate drive time to terminal.
-                            </span>
-                        </li>
-                        <li id="buftimeitem"> <!-- buffer time -->
-                            <h3>Buffer Time</h3>
-                            <input type="range" id="buftime" min="0" max="60" step="5">
-                            <output id="buftimeval"></output> min
-                            <p class="explain special-label2">Arrive how far ahead of departure? (Determines risky departures.)</p>
-                        </li>
-                        <li> <!-- reload -->
-                            <h3>Reload</h3>
-                            <p id="reloadp" class="explain">
-                                <span id="reload">Reload</span>
-                                ferry schedule, alerts etc.</p>
-                        </li>
-                    </ul>
+        </div>
+    </div>
+
+    <!-- Options -->
+    <div id="settings-options-page" class="page settings-page">
+        <div class="settings-style">
+            <h2>Options</h2>
+            <div id="settings-options-wrapper" class="scrollwrapper">
+                <ul class="scrollee">
+                    <li id="tf"> <!-- time format -->
+                        <h3>Time Format</h3>
+                        <span type="radio" id="tf12">12 hour</span>
+                        <span type="radio" id="tf24">24 hour</span>
+                    </li>
+                    <li> <!-- use location -->
+                        <h3>Use Location</h3>
+                        <span type="checkbox" id="useloc" class="explain">
+                            Use location to calculate drive time to terminal.
+                        </span>
+                    </li>
+                    <li id="buftimeitem"> <!-- buffer time -->
+                        <h3>Buffer Time</h3>
+                        <input type="range" id="buftime" min="0" max="60" step="5">
+                        <output id="buftimeval"></output> min
+                        <p class="explain special-label2">Arrive how far ahead of departure? (Determines risky departures.)</p>
+                    </li>
+                    <li> <!-- reload -->
+                        <h3>Reload</h3>
+                        <p id="reloadp" class="explain">
+                            <span id="reload">Reload</span>
+                            ferry schedule, alerts etc.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- About page -->
+    <div id="settings-about-page" class="page settings-page">
+        <div class="settings-style">
+            <h2>About</h2>
+            <div id="settings-about-wrapper" class="scrollwrapper">
+                <div class="scrollee">
+                    <p>Showing Schedule:<br>
+                    <span id="aboutsched">CONTENT</span></p>
+
+                    <div class="br"></div>
+                    <p>NextFerry v4.0</p>
+                    <p> NextFerry was created by Denise Draper,
+                        because I often want to know whether I should take the Edmonds
+                        or the Bainbridge ferry.</p>
+                    <p> Email denisesandbox@mailup.net for information,
+                        feedback or requests.</p>
+
+                    <div class="br"></div>
+                    <p> The NextFerry app is not affiliated with WSDOT.
+                        The NextFerry schedule is updated every season when the WSDOT schedule changes, however delayed updates or errors are
+                        possible.</p>
+                    <p> Also, NextFerry uses a simplified weekday/weekend schedule,
+                        which misses some irregular departures on some routes
+                        (typically Friday-only or Saturday-only).
+                        Consult the official WSDOT schedule or website
+                        (http://wsdot.gov/ferries) for definitive information.</p>
+
+                    <div class="br"></div>
+                    <p> This version of the NextFerry app is an HTML5 cross-platform
+                        mobile application that communicates with a backend service hosted
+                        on the Google App Engine.  The code for app and server can be
+                        found at https://github.com/denised/nextferry.</p>
+                    <p> Cross-platform mobile apps are hard to test.  Please report bugs
+                        to denisesandbox@mailup.net</p>
+                    <p> The client uses jQuery, iScroll and the Dosis font; liscencing
+                        info for each can be found in the github source.</p>
+                    <p> Travel times are provided by MapQuest.</p>
                 </div>
-            </div> <!-- end settings-options -->
-            <div id="settings-about" class="settings-part">
-                <span class="icon return settings-exit"></span>
-                <h2>About</h2>
-                <div id="settings-about-wrapper" class="scrollwrapper">
-                    <div class="scrollee">
-                        <p>Showing Schedule:<br>
-                        <span id="aboutsched">CONTENT</span></p>
-
-                        <div class="br"></div>
-                        <p>NextFerry v4.0</p>
-                        <p> NextFerry was created by Denise Draper,
-                            because I often want to know whether I should take the Edmonds
-                            or the Bainbridge ferry.</p>
-                        <p> Email denisesandbox@mailup.net for information,
-                            feedback or requests.</p>
-
-                        <div class="br"></div>
-                        <p> The NextFerry app is not affiliated with WSDOT.
-                            The NextFerry schedule is updated every season when the WSDOT schedule changes, however delayed updates or errors are
-                            possible.</p>
-                        <p> Also, NextFerry uses a simplified weekday/weekend schedule,
-                            which misses some irregular departures on some routes
-                            (typically Friday-only or Saturday-only).
-                            Consult the official WSDOT schedule or website
-                            (http://wsdot.gov/ferries) for definitive information.</p>
-
-                        <div class="br"></div>
-                        <p> This version of the NextFerry app is an HTML5 cross-platform
-                            mobile application that communicates with a backend service hosted
-                            on the Google App Engine.  The code for app and server can be
-                            found at https://github.com/denised/nextferry.</p>
-                        <p> Cross-platform mobile apps are hard to test.  Please report bugs
-                            to denisesandbox@mailup.net</p>
-                        <p> The client uses jQuery, iScroll and the Dosis font; liscencing
-                            info for each can be found in the github source.</p>
-                        <p> Travel times are provided by MapQuest.</p>
-                    </div> <!-- scrollee -->
-                </div> <!-- scroller wrapper -->
-            </div> <!-- end settings-part -->
-        </div> <!-- end settings-container -->
-    </div> <!-- end settings-page -->
+            </div>
+        </div>
+    </div>
+    <!-- end settings-pages -->
 
     <!-- Test -->
     <div id="test-page" class="page">
         <h1 id="qunit-header">Testing</h1>
         <h2 id="qunit-banner"></h2>
-        <div id="qunit-scroll-container">
+        <div id="qunit-scroll-wrapper">
             <ol id="qunit-tests"></ol>
         </div>
         <div id="qunit-fixture">test markup, will be hidden</div>
