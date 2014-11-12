@@ -73,53 +73,6 @@ function nextFerryTests() {
 		delete window.localStorage["zzqq"];
 	});
 
-  QUnit.asyncTest( "Test infrastructure: location spoofing", function( assert ) {
-  	// all this complexity is so that we can chain the tests properly, and
-  	// keep that mechanism separate from the content of the tests themselves.
-  	var expected = function(expectedTest) {
-			return function(val) {
-				assert.ok( true, "the right callback was called" );
-				expectedTest(val);
-				tests.length > 0 && tests.shift()(); // that's pop the array, and call it.
-			};
-		};
-		var notExpected = function() {
-			assert.ok( false, "the wrong callback was called" );
-			tests.length > 0 && tests.shift()();
-		}
-  	var tests = [
-  		function() {
-				getAccuratePosition.spoof_value = "hello, there!";
-				getAccuratePosition(
-					expected(function(v) { assert.equal(v,"hello, there!") }),
-					notExpected);
-  		},
-  		function() {
-  			getAccuratePosition.spoof_value = undefined;
-  			getAccuratePosition(
-  				expected(function(v) { assert.notEqual(v,"hello, there!"); }),
-  				expected(function() { assert.ok( true, "any error possible"); }));
-  		},
-  		function() {
-  			getAccuratePosition.spoof_error = "oops!";
-  			getAccuratePosition(
-  				notExpected,
-  				expected(function(v) { assert.equal(v,"oops!"); }));
-  		},
-  		function() {
-  			getAccuratePosition.spoof_error = "undefined";
-  			getAccuratePosition(
-  				expected(function() { assert.ok(true, "any return value possible");}),
-  				expected(function(v) { assert.notEqual(v,"oops!"); }));
-  		},
-  		function() {
-  			QUnit.start();
-  		}
-  	];
-
-		expect(8);
-		tests.shift()();
-	});
 
 	QUnit.test( "Routes exist", function( assert ) {
 		assert.equal( NextFerry.Route.allRoutes().length, 11, "There are 11 routes" );
@@ -185,18 +138,18 @@ function nextFerryTests() {
 		assert.equal( NextFerry.NFTime.display( times[25] ), "02:10");
 
 
-		NextFerry.NFTime.spoofOn( 10, 10, 0 );
+		NextFerry.NFTime.mockOn( 10, 10, 0 );
 		assert.equal( NextFerry.todaysScheduleType(), "weekend" );
 
-		NextFerry.NFTime.spoofOn( 10, 10, 1 );
+		NextFerry.NFTime.mockOn( 10, 10, 1 );
 		assert.equal( NextFerry.todaysScheduleType(), "weekday" );
 
-		NextFerry.NFTime.spoofOn( 10, 10, 6 );
+		NextFerry.NFTime.mockOn( 10, 10, 6 );
 		assert.equal( NextFerry.todaysScheduleType(), "weekend" );
 
 		//teardown
 		NextFerry.Route.clearAllTimes();
-		NextFerry.NFTime.spoofOff();
+		NextFerry.NFTime.mockOff();
 		restoreLS();
 	});
 
@@ -209,7 +162,7 @@ function nextFerryTests() {
 		var faunt = NextFerry.Route.find("fauntleroy-southworth");
 		var pttownsend = NextFerry.Route.find("pt townsend");
 
-		NextFerry.NFTime.spoofOn( 10, 15, 5 );
+		NextFerry.NFTime.mockOn( 10, 15, 5 );
 		assert.equal( faunt.todaysSchedule(), "weekday", "we know what day it is" );
 
 		var times = faunt.futureDepartures( "west" );
@@ -225,19 +178,19 @@ function nextFerryTests() {
 
 		// mean, viscious edge-case:  after midnight, before morning cutoff, Monday morning...
 		// (the proper schedule is the weekend schedule, with a 2:10 departure)
-		NextFerry.NFTime.spoofOn( 1, 30, 1 );
+		NextFerry.NFTime.mockOn( 1, 30, 1 );
 		times = faunt.futureDepartures( "west" );
 		assert.equal( times.length, 1, "late sunday night");
 		assert.equal( NextFerry.NFTime.display(times[0]), "2:10");
 
 		// when there are no future departures this day?
-		NextFerry.NFTime.spoofOn( 15, 0, 3 );
+		NextFerry.NFTime.mockOn( 15, 0, 3 );
 		times = pttownsend.futureDepartures( "east" );
 		assert.equal( times.length, 0, "no more departures today");
 
 		//teardown
 		NextFerry.Route.clearAllTimes();
-		NextFerry.NFTime.spoofOff();
+		NextFerry.NFTime.mockOff();
 		restoreLS();
 	});
 
@@ -303,15 +256,15 @@ function nextFerryTests() {
 		assert.ok( pt.isDisplayed(), "route display property works");
 
 		// as shown on app page.
-		app.renderSettingsPage();
+		app.goPage("#settings-routes-page"); // causes page data to be rendered
 		assert.equal( $(".routedisplay.checked").length, 11, "initially all routes are checked");
 
 		// set pt townsend to false
 		$("#r16").removeClass( "checked" );
 		assert.equal( $("#r16").hasClass( "checked "), false, "check is removed" );
-		app.saveSettings();
 
 		// is it correctly reflected in internal state?
+		app.goPage("#settings-about-page"); // causes state to be saved.
 		dl = NextFerry.Route.displayRoutes();
 		assert.equal( dl.length, 10, "one less route to display" );
 		assert.equal( dl.indexOf(pt), -1, "pt townsend has been removed");
@@ -322,7 +275,7 @@ function nextFerryTests() {
 		assert.ok( ! pt.isDisplayed() );
 
 		// and is it remembered next time we generate the settings page?
-		app.renderSettingsPage();
+		app.goPage("#settings-routes-page");
 		assert.equal( $(".routedisplay").length, 11, "length doesn't change");
 		assert.equal( $("#r16").hasClass("checked"), false, "r16 is not checked");
 		assert.equal( $(".routedisplay.checked").length, 10, "but everything else is");
@@ -336,6 +289,7 @@ function nextFerryTests() {
 
 		restoreLS();
 		NextFerry.init(); // make internal state match
+		app.goPage("#test-page");
 	});
 
 	// Alerts

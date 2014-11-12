@@ -37,25 +37,25 @@ var NextFerry = (function ($) {
         var Noon = 12 * 60;
         var Midnight = 24 * 60;
         var MorningCutoff = 150; // 2:30am
-        var isSpoof = false;
+        var ismock = false;
         var hours, minutes, dow;
 
-        // Use spoofOn to set specific times for testing, and spoofOff to return
+        // Use mockOn to set specific times for testing, and mockOff to return
         // to normal behavior.
         // The arguments are *calendar* (uncorrected) hour, minute, day-of-week
-        var spoofOn = function(h,m,d) {
-            isSpoof = true;
+        var mockOn = function(h,m,d) {
+            ismock = true;
             _tsched = false;
             hours = h;
             minutes = m;
             dow = d;
         };
-        var spoofOff = function() {
-            isSpoof = false;
+        var mockOff = function() {
+            ismock = false;
             _tsched = false;
         };
         var now = function() {
-            if ( !isSpoof ) {
+            if ( !ismock ) {
                 var nowD = new Date(Date.now());
                 hours = nowD.getHours();
                 minutes = nowD.getMinutes();
@@ -65,7 +65,7 @@ var NextFerry = (function ($) {
             return ( nowT < MorningCutoff ? nowT + Midnight : nowT);
         };
         var dayOfWeek = function() {
-            if ( !isSpoof ) {
+            if ( !ismock ) {
                 var nowD = new Date(Date.now());
                 dow = nowD.getDay();
             }
@@ -113,8 +113,8 @@ var NextFerry = (function ($) {
             MorningCutoff : MorningCutoff,
             now : now,
             dayOfWeek : dayOfWeek,
-            spoofOn : spoofOn,
-            spoofOff : spoofOff,
+            mockOn : mockOn,
+            mockOff : mockOff,
             display : display,
             setDisplayFormat : setDisplayFormat
         };
@@ -142,8 +142,8 @@ var NextFerry = (function ($) {
     var init = function() {
         _allRoutes = [  // routes are "schedule-less" until main app init.
             new Route(1, 7, 3, "bainbridge", "bainbridge"),
-            new Route(1 << 2, 8, 12, "edmonds", "edmonds"),
-            new Route(1 << 3, 14, 5, "mukilteo", "mukilteo"),
+            new Route(1 << 2, 8, 12, "edmonds", "kingston"),
+            new Route(1 << 3, 14, 5, "mukilteo", "clinton"),
             new Route(1 << 4, 11, 17, "pt townsend", "pt townsend"),
             new Route(1 << 5, 9, 20, "fauntleroy-southworth", "southworth-fauntleroy"),
             new Route(1 << 6, 9, 22, "fauntleroy-vashon", "vashon-fauntleroy"),
@@ -328,7 +328,7 @@ var NextFerry = (function ($) {
 
 
     var _lastLoadTime;
-    var _oldTTThreshold = 1000 * 60 * 3; // three minutes
+    var _oldTTThreshold = 1000 * 60 * 5;
     function Terminal(c, n, l) {
         this.code = c;
         this.name = n;
@@ -346,6 +346,9 @@ var NextFerry = (function ($) {
             clearTTs();
         }
     };
+    Terminal.hasTTs = function() {
+        return (_lastLoadTime != undefined);
+    }
     Terminal.loadTTs = function(text) {
         Terminal.clearTTs();
         var lines = text.split("\n");

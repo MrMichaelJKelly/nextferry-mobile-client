@@ -1,5 +1,10 @@
 /*
-Original:
+    This is derived from original code fount at
+    https://github.com/gwilson/getAccurateCurrentPosition.
+    I've made substantial changes.
+
+    The original contained the following copyright:
+
 Copyright (C) 2013 Greg Wilson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -11,124 +16,139 @@ subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Obtained from https://github.com/gwilson/getAccurateCurrentPosition,
-638e06d17ac9055ec9746870db2fc6cd52d85f19.
-
-I've made the following modifications:
-    * Defined function in global namespace instead of inside navigator.geolocation
-      in order to avoid conflict with navigator initialization.
-    * Allow callbacks other than success to be omitted.
-    * Added a spoofing capability for testing purposes.  To control the behavior
-      of the function, set these options by setting the properties on the function
-      object (e.g. getAccuratePosition.spoof_value = ...):
-        * spoof_value: return this location value
-        * spoof_error: return this error
-      todo: could add spoofing of progress indicator, timeouts, etc.
-      Note: you can set/turn off spoofing behavior while the "real" function is
-      running.  With the usual caveats about asynchronous behavior, it will change
-      it's behavior as it is running.
 */
 
-var callCount = 0;
+var getAccuratePositionCallCount = 0;
 
 function getAccuratePosition(onSuccess, onError, onProgress, options) {
-    var lastCheckedPosition,
-        locationEventCount = 0,
-        watchID,
-        timerID,
-        self,
-        cleared = false,
-        myCallCount = callCount++;
+    var bestResult,
+        tries = 0,
+        ended = false;
+        geoOptions = {},
+        self = getAccuratePosition,
+        ended = false,
+        myCallCount = getAccuratePositionCallCount++;
 
-    options = options || {};
-    self = getAccuratePosition;
-
-    console.log("gAP call", myCallCount);
-
-    var clear = function() {
-        console.log("gAP clear", myCallCount);
-        timerID && clearTimeout(timerID);
-        watchID && navigator.geolocation.clearWatch(watchID);
-        cleared = true;
-    }
-
-    var spoofed = function() {
-        console.log("gAP: check spoof", myCallCount);
-        if ( !cleared ) {
-            if (self.spoof_value) {
-                console.log("gAP spoof", myCallCount);
-                clear();
-                onSuccess(self.spoof_value);
-                return true;
-            }
-            else if (self.spoof_error) {
-                clear();
-                onError && onError(self.spoof_error);
-                return true;
-            }
-        }
-        return false;
+    var clog = function(arg) {
+        console.log("gAP(" + myCallCount + ") " + arg);
     };
 
-    var checkLocation = function (position) {
-        console.log("gAP: check", myCallCount);
-        if ( !spoofed() && !cleared ) {
-            lastCheckedPosition = position;
-            locationEventCount = locationEventCount + 1;
-            // We ignore the first event unless it's the only one received because some devices seem to send a cached
-            // location even when maxaimumAge is set to zero
-            if ((position.coords.accuracy <= options.desiredAccuracy) && (locationEventCount > 1)) {
-                clear();
-                onSuccess(position);
+    var ageInRange = function(position) {
+        // checking age with a fudge factor.
+        return  (Date.now() - position.timestamp) < (options.maximumAge + 100);
+    };
+
+    var checkLocation = function(position) {
+        clog("check position " + position.coords.accuracy);
+        if ( !ended ) {
+            tries++;
+
+            // first time through double check the maximumAge, because some
+            // implementations seem to ignore.
+            if ( tries > 1 || ageInRange(position) ) {
+
+                if ( !bestResult || position.coords.accuracy < bestResult.coords.accuracy ) {
+                    bestResult = position;
+                }
+
+                if ((options.maxtries && (tries > options.maxtries)) ||
+                    (bestResult.coords.accuracy <= options.accuracy)) {
+                    gAPSuccess(bestResult);
+                    return; // termination
+                }
             }
-            else {
-                console.log("gAP: not yet", myCallCount);
-                onProgress && onProgress(position);
-            }
+
+            clog("not yet");
+            onProgress && onProgress(position);
+            // try again, and no more caching
+            geoOptions.maximumAge = 0;
+            navigator.geolocation.getCurrentPosition(checkLocation, gAPError, geoOptions);
         }
     };
 
-    var stopTrying = function () {
-        console.log("gAP: stop", myCallCount);
-        if ( !spoofed() && !cleared ) {
-            clear();
-            onSuccess(lastCheckedPosition);
+    var stopTrying = function() {
+        clog("stop");
+        if (bestResult) {
+            gAPSuccess(bestResult);
+        }
+        else {
+            gAPError({code: 3, message: "time out" });
         }
     };
 
-    var geoError = function (error) {
-        console.log("gAP: internal error", myCallCount);
-        if ( !spoofed() && !cleared ) {
-            clear();
+    var cancel = function() {
+        clog("cancelled");
+        gAPError({code: 3, message: "cancelled" });
+    };
+
+    // our handlers that call the user's handlers
+
+    var gAPError = function(error) {
+        clog("error");
+        console.log(error);
+        if ( !ended ) {
+            ended = true;
             onError && onError(error);
         }
     };
 
+    var gAPSuccess = function(position) {
+        clog("success");
+        if ( !ended ) {
+            ended = true;
+            onSuccess(position);
+        }
+    };
 
-    if (!options.maxWait)
-        options.maxWait = 10000; // Default 10 seconds
-    if (!options.desiredAccuracy)
-        options.desiredAccuracy = 20; // Default 20 meters
-    if (!options.timeout)
-        options.timeout = options.maxWait; // Default to maxWait
+    // There are two options that control how long we try, leading to
+    // four possible combinations:
+    // timeout != 0, maxtries == 0:  return no later than timeout
+    // timeout == 0, maxtries != 0:  return after no more than maxtries
+    // timeout != 0, maxtries != 0:  satisfy both
+    // timeout == 0, maxtries == 0:  keep going until a good result, or cancelled
+    //
+    // if only one of timeout or maxtries is specified, the other is assumed to
+    // be zero.
+    // if neither is specified, both are set to default (non-zero) values.
+    // the only way to get the last case is to explictly set both options to 0.
+    //
 
-    options.maximumAge = 0; // Force current locations only
-    options.enableHighAccuracy = true; // Force high accuracy (otherwise, why are you using this function?)
+    options = options || {};
+    if ( !("timeout" in options) && !("maxtries" in options)) {
+        options.timeout = 3 * 60 * 1000; // default 3 minutes (GPS takes time!)
+        options.maxtries = 6;   // default six tries
+    }
+    if ( !options.accuracy ) {
+        options.accuracy = 100; // default 100 meters.
+    }
+    if ( !options.log ) {
+        clog = function() { };
+    }
+    else if ( typeof(options.log) === "function" ) {
+        clog = options.log;
+    }
+
+    geoOptions = {
+        // no timeout: we do our own!
+        enableHighAccuracy : true,
+        maximumAge : (options.maximumAge || 0)
+    };
+
+    clog("called");
 
     if( navigator && navigator.geolocation ) {
-        watchID = navigator.geolocation.watchPosition(checkLocation, geoError, options);
-        timerID = setTimeout(stopTrying, options.maxWait); // Set a timeout that will abandon the location loop
-        console.log("gAP: ready", myCallCount);
+        // we use getCurrentPosition, rather than watchPosition, because
+        // sometimes we can't turn the watchPosition off, and that is a
+        // problem for battery life.
+        navigator.geolocation.getCurrentPosition(checkLocation, gAPError, geoOptions);
+        if (options.timeout) {
+            timerID = setTimeout(stopTrying, options.timeout);
+        }
+        clog("running");
     }
     else {
-        onError( { code: 2, message: "Geolocation not initialized" });
+        gAPError({ code: 2, message: "Geolocation not ready" });
     }
+
+    return cancel;
 }

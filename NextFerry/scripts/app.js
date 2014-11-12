@@ -7,14 +7,14 @@ var app = (function ($) {
     var testrun = false; // set to true to run tests, false for normal app.
 
     //======= App state
-    // Parameters that control the generation of pages
-    // main-page
+    // Parameters that control the generation of pages.
+    // main-page: which direction are we showing?
     var dir = window.localStorage["dir"] || "west";
 
-    // details, schedules, alerts
+    // details, schedules, alerts: which route are we showing?
     var route;
 
-    // schedules
+    // schedules: which direction and day are we showing?
     var scheduleDir;
     var scheduleDay;
 
@@ -26,9 +26,9 @@ var app = (function ($) {
         goPage("#main-page");
 
         // wire up asynch responses
-        document.addEventListener("pause", wrapUp);
-        //window.on( "unload", wrapUp );  TODO: this too? instead?
-        document.addEventListener("resume", renderTimes );
+        document.addEventListener("pause", onPause );
+        document.addEventListener("unload", onPause );
+        document.addEventListener("resume", onResume );
         ServerIO.loadSchedule.listeners.add( renderTimes );
         ServerIO.loadTravelTimes.listeners.add( updateTravelTimes );
         ServerIO.loadAlerts.listeners.add( updateAlerts );
@@ -36,6 +36,9 @@ var app = (function ($) {
         // immediately show old schedule, if we have it
         if ( window.localStorage["cache"] ) {
             ServerIO.loadSchedule( window.localStorage["cache"] );
+        }
+        if ( window.localStorage["route"] ) {
+            route = NextFerry.Route.find( window.localStorage["route"] );
         }
 
         // ask for new schedule, alerts, etc.
@@ -76,19 +79,25 @@ var app = (function ($) {
         if (testrun) {
             goPage("#test-page");
             nextFerryTests();
-            new IScroll("#qunit-scroll-wrapper");
+            ensureScroller("#qunit-scroll-wrapper");
+            updateScroller("#qunit-scroll-wrapper",2000);
         }
     };
 
-    var wrapUp = function() {
+    var onPause = function() {
         // save state and turn things off
         NextFerry.synchSettings();
-        // todo: unset serverIO waits?
-        // todo: turn off geo?
+        ServerIO.onPause();
+    }
+
+    var onResume = function() {
+        ServerIO.onResume();
+        renderTimes();
     }
 
     var reset = function() {
         NextFerry.reset();
+        ServerIO.onResume();
         ServerIO.requestUpdate();
     };
 
@@ -200,15 +209,18 @@ var app = (function ($) {
             var routename = e.target.innerText || e.target.parentElement.innerText;
             routename = routename.trim();
             var newroute = NextFerry.Route.find(routename);
-            // if we got here via some other means, there won't have been
-            // a routename, and hence newroute will be undefined.
-            // In that case we should revisit the previous route.
             if (newroute) {
                 route = newroute;
+                window.localStorage["route"] = route.displayName.west;
             }
+            // if we got here via some other means, there won't have been
+            // a routename, and hence newroute will be undefined.
+            // In that case we should stick with the previous route.
         }
         if ( ! route ) {
-            // shouldn't happen, but let's do something instead of nothing
+            // this can happen if user clicks on "details" icon without
+            // ever having visited a route.  and maybe if there are bugs,
+            // too.
             route = NextFerry.Route.find("bainbridge");
         }
 
@@ -332,7 +344,29 @@ var app = (function ($) {
 
 
     var renderSettingsAbout = function() {
+        var dt;
         $("#aboutsched").text( window.localStorage["schedulename"] || "unknown" );
+
+        if( window.localStorage["useloc"] !== "true" ) {
+            $("#abouttts").text( "Turn 'Use Location' option on to enable travel times.");
+        }
+        else {
+            // Give status of travel times.
+            // This is as much for me for debugging as anything else...
+            var stat = ServerIO.travelTimeStatus();
+            if ( NextFerry.Terminal.hasTTs()) {
+                if (stat.lasttt) {
+                    dt = new Date(stat.lasttt);
+                    $("#abouttts").text("last updated at " + dt.toLocaleTimeString() + ".");
+                }
+                else {
+                    $("#abouttts").text("age unknown.");
+                }
+            }
+            else {
+                $("#abouttts").text(stat.status);
+            }
+        }
         ensureScroller("#settings-about-wrapper");
         updateScroller("#settings-about-wrapper");
     };
@@ -580,7 +614,8 @@ var app = (function ($) {
     var module = {
         init : init,
         // for testing
-        reset : reset
+        reset : reset,
+        goPage : goPage
     };
 
     return module;
