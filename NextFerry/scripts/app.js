@@ -29,6 +29,7 @@ var app = (function ($) {
         document.addEventListener("pause", onPause );
         document.addEventListener("unload", onPause );
         document.addEventListener("resume", onResume );
+        document.addEventListener("orientationchange", onRotate );
         ServerIO.loadSchedule.listeners.add( renderTimes );
         ServerIO.loadTravelTimes.listeners.add( updateTravelTimes );
         ServerIO.loadAlerts.listeners.add( updateAlerts );
@@ -92,13 +93,22 @@ var app = (function ($) {
 
     var onResume = function() {
         ServerIO.onResume();
+        ServerIO.requestUpdate(); // for new alerts
         renderTimes();
     }
 
     var reset = function() {
         NextFerry.reset();
         ServerIO.onResume();
-        ServerIO.requestUpdate();
+        ServerIO.requestUpdate(); // get alerts and schedule
+    };
+
+
+    var onRotate = function() {
+        // update any scrollers on the current page.
+        $(currentPage()).find(".scrollwrapper").each( function() {
+            updateScroller( "#"+$(this).attr("id"), 200);
+        });
     };
 
     //=======
@@ -153,8 +163,11 @@ var app = (function ($) {
                        "</span>";
             } )) + "<span></li>");
         }));
-        fixWidth();
-        updateScroller("#times-wrapper",100);
+        // delay to give the DOM time to render before the following.
+        setTimeout( function() {
+            fixWidth();
+            updateScroller("#times-wrapper");
+        }, 200);
         ServerIO.requestTravelTimes();
     };
 
@@ -178,7 +191,7 @@ var app = (function ($) {
     // wide enough that the spans won't wrap.
     // (Thanks to http://stackoverflow.com/questions/1582534/calculating-text-width-with-jquery
     // for inspiration; this was damned hard to figure out.)
-    var fixWidth = function( ) {
+    var fixWidth = function() {
         var max = 0;
         $("#times li>span").each( function(i,e) {
             var x = $(e).width();
@@ -521,6 +534,10 @@ var app = (function ($) {
         "#settings-routes-page" : saveSettingsRoutes,
         "#settings-options-page" : saveSettingsOptions
     };
+
+    var currentPage = function() {
+        return _history[0];
+    }
 
     var leaveCurrentPage = function() {
         if (_history.length > 0) {
