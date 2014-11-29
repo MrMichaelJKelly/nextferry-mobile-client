@@ -137,6 +137,10 @@ function nextFerryTests() {
 		assert.equal( NextFerry.NFTime.display( times[24] ), "00:55" );
 		assert.equal( NextFerry.NFTime.display( times[25] ), "02:10");
 
+		assert.equal( NextFerry.NFTime.toDate(1234).toTimeString().substring(0,8), "20:34:00", "back converting time");
+		assert.equal( NextFerry.NFTime.toDate(623).toTimeString().substring(0,8), "10:23:00", "back converting morning time");
+		assert.equal( NextFerry.NFTime.toDate(1505).toTimeString().substring(0,8), "01:05:00", "back converting after-mightnight time");
+
 
 		NextFerry.NFTime.mockOn( 10, 10, 0 );
 		assert.equal( NextFerry.todaysScheduleType(), "weekend" );

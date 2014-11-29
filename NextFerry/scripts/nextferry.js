@@ -107,11 +107,26 @@ var NextFerry = (function ($) {
             _display = (tf === "tf12" ? display12 : display24);
         };
 
+        var toDate = function(t) {
+            // given one of our times, return the corresponding Date object
+            // for that time today.
+            // CAVEAT: this doesn't handle the "reverse wraparound" (it is now
+            // early morning and the argument t is from yesterday), but that
+            // case doesn't arise in our usage, so we don't bother.
+            var dt = new Date(Date.now());
+            if ( t > 24 * 60 ) {
+                t -= ( 24 * 60 );
+            }
+            dt.setHours( Math.floor(t / 60), t % 60, 0, 0 );
+            return dt;
+        };
+
         var submodule = {
             Noon : Noon,
             Midnight : Midnight,
             MorningCutoff : MorningCutoff,
             now : now,
+            toDate : toDate,
             dayOfWeek : dayOfWeek,
             mockOn : mockOn,
             mockOff : mockOff,
@@ -154,7 +169,7 @@ var NextFerry = (function ($) {
             new Route(1 << 11, 1, 15, "orcas", "orcas")
         ];
 
-        // initialize LS if necessary
+        // initialize localStorage if necessary
         if ( ! ("tf" in window.localStorage)) window.localStorage["tf"] = "tf12";
         if ( ! ("bt" in window.localStorage)) window.localStorage["bt"] = "15";
         if ( ! ("rl" in window.localStorage)) window.localStorage["rl"] = "[]";
@@ -304,11 +319,11 @@ var NextFerry = (function ($) {
     };
     // traveling east, you are going *to* the east terminal
     // and coming *from* the west terminal, and vice versa.
-    Route.prototype.termToName = function(dir) {
-        return _allTerminals[this.terminals[dir]].name;
+    Route.prototype.termTo = function(dir) {
+        return _allTerminals[this.terminals[dir]];
     };
-    Route.prototype.termFromName = function(dir) {
-        return _allTerminals[this.terminals[dir === "west" ? "east" : "west"]].name;
+    Route.prototype.termFrom = function(dir) {
+        return _allTerminals[this.terminals[dir === "west" ? "east" : "west"]];
     };
     Route.prototype.hasAlerts = function() {
         // returns one of false 'alerts_read' 'alerts_unread'
@@ -329,10 +344,9 @@ var NextFerry = (function ($) {
 
     var _lastLoadTime;
     var _oldTTThreshold = 1000 * 60 * 5;
-    function Terminal(c, n, l) {
+    function Terminal(c, n) {
         this.code = c;
         this.name = n;
-        this.loc = l;
         this.tt = false;
     }
     Terminal.clearTTs = function() {
@@ -392,26 +406,34 @@ var NextFerry = (function ($) {
         else
             return "Good";
     };
+    Terminal.prototype.tMinTooLate = function(buffer, departuretime) {
+        // another packaging of tGoodness, returing the time that
+        // separates Risky from TooLate, or 0 if undefined.
+        return (this.tt === false ? 0 : departuretime - this.tt);
+    }
+    Terminal.prototype.tMinRisky = function(buffer, departuretime) {
+        return (this.tt === false ? 0 : departuretime - (this.tt + buffer));
+    }
     var _allTerminals = {
-        1 : new Terminal(1, "Anacortes", "48.502220, -122.679455"),
-        3 : new Terminal(3, "Bainbridge Island", "47.623046, -122.511377"),
-        4 : new Terminal(4, "Bremerton", "47.564990, -122.627012"),
-        5 : new Terminal(5, "Clinton", "47.974785, -122.352139"),
-        8 : new Terminal(8, "Edmonds", "47.811240, -122.382631"),
-        9 : new Terminal(9, "Fauntleroy", "47.523115, -122.392952"),
-        10 : new Terminal(10, "Friday Harbor", "48.535010, -123.014645"),
-        11 : new Terminal(11, "Coupeville", "48.160592, -122.674305"),
-        12 : new Terminal(12, "Kingston", "47.796943, -122.496785"),
-        13 : new Terminal(13, "Lopez Island", "48.570447, -122.883646"),
-        14 : new Terminal(14, "Mukilteo", "47.947758, -122.304138"),
-        15 : new Terminal(15, "Orcas Island", "48.597971, -122.943985"),
-        16 : new Terminal(16, "Point Defiance", "47.305414, -122.514123"),
-        17 : new Terminal(17, "Port Townsend", "48.112648, -122.760715"),
-        7 : new Terminal(7, "Seattle", "47.601767, -122.336089"),
-        18 : new Terminal(18, "Shaw Island", "48.583991, -122.929351"),
-        20 : new Terminal(20, "Southworth", "47.512130, -122.500970"),
-        21 : new Terminal(21, "Tahlequah", "47.333023, -122.506999"),
-        22 : new Terminal(22, "Vashon Island", "47.508616, -122.464127")
+        1 : new Terminal(1, "Anacortes"),
+        3 : new Terminal(3, "Bainbridge Island"),
+        4 : new Terminal(4, "Bremerton"),
+        5 : new Terminal(5, "Clinton"),
+        8 : new Terminal(8, "Edmonds"),
+        9 : new Terminal(9, "Fauntleroy"),
+        10 : new Terminal(10, "Friday Harbor"),
+        11 : new Terminal(11, "Coupeville"),
+        12 : new Terminal(12, "Kingston"),
+        13 : new Terminal(13, "Lopez Island"),
+        14 : new Terminal(14, "Mukilteo"),
+        15 : new Terminal(15, "Orcas Island"),
+        16 : new Terminal(16, "Point Defiance"),
+        17 : new Terminal(17, "Port Townsend"),
+        7 : new Terminal(7, "Seattle"),
+        18 : new Terminal(18, "Shaw Island"),
+        20 : new Terminal(20, "Southworth"),
+        21 : new Terminal(21, "Tahlequah"),
+        22 : new Terminal(22, "Vashon Island")
     };
 
 

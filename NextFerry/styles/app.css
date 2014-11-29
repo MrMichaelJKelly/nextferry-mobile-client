@@ -172,8 +172,8 @@ h3 {
 	white-space: nowrap;
 	width: 1000pt;
 }
-#routes, #times {
-    line-height: 2.22em;
+#routes li, #times li {
+    height: 2.22em;
 }
 .TooLate {
     color: #c00;
@@ -330,7 +330,7 @@ h3 {
 }
 
 /* settings style is a common structure used on all settings pages */
-.settings-style {
+.settings-body {
     position: absolute;
     top: 20pt;
     bottom: 20pt;
@@ -341,7 +341,7 @@ h3 {
     overflow: hidden;
 }
 @media (max-width: 320pt) {
-    .settings-style {
+    .settings-body {
         width: 100%;
         left: 0;
         margin-left: 0;
@@ -350,20 +350,20 @@ h3 {
     }
 }
 @media (min-width: 450pt) {
-    .settings-style {
+    .settings-body {
         width: 400pt;
         margin-left: -200pt;
     }
 }
 
-.settings-style .scrollwrapper {
+.settings-body .scrollwrapper {
     position: absolute;
     top: 58pt;
     bottom: 6pt;
     width: 100%;
     overflow: hidden;
 }
-.settings-style .scrollee {
+.settings-body .scrollee {
     position: absolute;
     width: 100%;
     background-color: white;
@@ -375,15 +375,15 @@ h3 {
 }
 
 
-.settings-style h2 {
+.settings-body h2 {
     background-color: white;
     border-bottom: 1px solid #ADB3B9;
 }
-.settings-style li {
+.settings-body li {
     padding: 8pt;
     border-bottom: solid 1px #ADB3B9;
 }
-.settings-style p {
+.settings-body p {
     padding: 0.5em;
 }
 .explain {

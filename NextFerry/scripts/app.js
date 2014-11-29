@@ -18,6 +18,12 @@ var app = (function ($) {
     var scheduleDir;
     var scheduleDay;
 
+    // setAlarm: which time element are we looking at? and what terminal is
+    // the destination?
+    var setAlarmElem;
+    var setAlarmTerm;
+
+    //////////////////////////////////////////////////////////////////////////
     //======= Initialization and event wiring
 
     var init = function() {
@@ -56,17 +62,23 @@ var app = (function ($) {
         $("#details-body li").on("click", goDest );
         $("span[type]").on("click", checks );
         $("#reload").on("click", doClick( reset ));
+        $("#times").on("touchend", doubleTap );     // detect double tap
+        $("#times").on("nf:doubletap", setAlarm );  // do something with it
+        $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
+        // dismiss dialogish things by clicking outside the body.
+        clickOutside($(".settings-body"), doClick( backPage ));
+        clickOutside($("#set-alarm-dialog"), doClick( backPage ));
+
+        // a couple of UI features
         $("#useloc").on("change", updateDisable );
-
-        // on settings pages, go back if clicked outside of settings body
-        $(".settings-style").on( "click", doClick( noop ));
-        $(".settings-page").on( "click", doClick( backPage ));
-
         $("#buftime").rangeslider({
             polyfill: false,
             onSlide: function(pos,val) {
                 $("#buftimeval").text( val.toString() );
             }
+        });
+        $("#setalarm-slider").rangeslider({
+            polyfill: false
         });
 
         // initialize main page scrollers
@@ -132,6 +144,7 @@ var app = (function ($) {
     // must be wrapped using one of the utility functions (e.g. gogoPage
     // or doClick) that takes care of debouncing.
 
+    //////////////////////////////////////////////////////////////////////////
     //======= Main Page Rendering
 
     var renderMainPage = function() {
@@ -144,7 +157,7 @@ var app = (function ($) {
     var renderRoutes = function() {
         $("#routes").empty();
         $("#routes").append( NextFerry.Route.displayRoutes().map( function(r) {
-            return $( "<li id='rr" + r.code + "'>" +
+            return $( "<li routeid='" + r.code + "'>" +
                 "<span class='icon alert' astate='alerts_none'></span>" +
                 r.displayName[dir] + "</li>" );
         }));
@@ -153,12 +166,13 @@ var app = (function ($) {
     var renderTimes = function() {
         var now = NextFerry.NFTime.now();
         NextFerry.Terminal.clearOldTTs();
-        // <li><span><span class='timegoodness'>time</span> <span>...</span></li>
+        // <li routeid='id'><span><span class='time timegoodness'>time</span> <span>...</span></li>
         $("#times").empty();
         $("#times").width(1500); // wider than needed; will be recalculated below.
         $("#times").append( NextFerry.Route.displayRoutes().map( function(r) {
-            return $( "<li><span>" + "".concat( r.futureDepartures(dir).map( function(tt) {
-                return "<span class='" + r.tGoodness(dir,tt,now) + "'> " +
+            return $( "<li routeid='" + r.code + "'><span>" + "".concat(
+                r.futureDepartures(dir).map( function(tt) {
+                    return "<span class='time " + r.tGoodness(dir,tt,now) + "'> " +
                        NextFerry.NFTime.display(tt) +
                        "</span>";
             } )) + "<span></li>");
@@ -179,10 +193,22 @@ var app = (function ($) {
 
     var updateAlerts = function() {
         // this is not at all efficient, but it doesn't matter.
-        $("#routes>li").each( function(i,e) {
-            var route = NextFerry.Route.find( $(e).prop("id").substr(2) );
-            $(e).children("span").attr("astate", route.hasAlerts());
+        $("#routes>li").each( function() {
+            var r = routeOf( $(this) );
+            $(this).children("span").attr("astate", r.hasAlerts());
         });;
+    };
+
+    // if elem is within one of the route displays (#routes, #times, etc.),
+    // returns the route the elem belongs to.
+    // otherwise, returns undefined.
+    var routeOf = function(elem) {
+        if ( !elem.attr("routeid") ) {
+            elem = elem.parents("[routeid]");
+        }
+        return ( elem.length ?
+            NextFerry.Route.find( elem.attr("routeid") ) :
+            undefined );
     };
 
     // Calculate native width of text in each list item, and truncate the
@@ -193,8 +219,8 @@ var app = (function ($) {
     // for inspiration; this was damned hard to figure out.)
     var fixWidth = function() {
         var max = 0;
-        $("#times li>span").each( function(i,e) {
-            var x = $(e).width();
+        $("#times li>span").each( function() {
+            var x = $(this).width();
             if (x > max) { max = x; }
         });
         $("#times").width( max+10 );
@@ -212,23 +238,43 @@ var app = (function ($) {
         window.localStorage["dir"] = dir;
     };
 
+    //////////////////////////////////////////////////////////////////////////
+    //======= Set Alarm Page
+    // double-tapping a departure time brings up a modal dialog
+
+    var setAlarm = function(e) {
+        if ($(e.target).hasClass("time")) {
+            setAlarmElem = $(e.target);
+            setAlarmTerm = routeOf(setAlarmElem).termFrom(dir);
+            goPage("#setalarm-page");
+        }
+    }
+
+    var renderSetAlarmPage = function() {
+        // customize the slider to the requested departure time
+    }
+
+    var setAlarmSubmit = function() {
+        // we only do one alarm at a time, so remove any others that exist
+        $(".alarmtime").removeClass(".alarmtime");
+        // and add the new one alarm
+        setAlarmElem.addClass(".alarmtime");
+        // Todo: actually set the alarm...
+        backPage();
+    }
+
+    //////////////////////////////////////////////////////////////////////////
     //======= Details Page Rendering
 
     var renderDetailsPage = function(e) {
         if ( e ) {
-            // if we got here via main routes list, the text of the target
-            // will be the name of the route.  (Have to check both this
-            // element and parent in case user clicked on an icon.)
-            var routename = e.target.innerText || e.target.parentElement.innerText;
-            routename = routename.trim();
-            var newroute = NextFerry.Route.find(routename);
-            if (newroute) {
-                route = newroute;
+            // if we got here via main routes list, find the route
+            if ( $(e.target).parents("#routes").length ) {
+                route = routeOf($(e.target));
                 window.localStorage["route"] = route.displayName.west;
             }
-            // if we got here via some other means, there won't have been
-            // a routename, and hence newroute will be undefined.
-            // In that case we should stick with the previous route.
+            // if we got here via some other means (such as backpage),
+            // we should leave route unchanged.
         }
         if ( ! route ) {
             // this can happen if user clicks on "details" icon without
@@ -237,8 +283,8 @@ var app = (function ($) {
             route = NextFerry.Route.find("bainbridge");
         }
 
-        $("#details-page [dir=west]").text( route.termFromName("west") );
-        $("#details-page [dir=east]").text( route.termFromName("east") );
+        $("#details-page [dir=west]").text( route.termFrom("west").name );
+        $("#details-page [dir=east]").text( route.termFrom("east").name );
         $("#dn-alerts").attr("astate", route.hasAlerts());
     };
 
@@ -252,8 +298,8 @@ var app = (function ($) {
         // render the time table for this date/direction
         $("#sh-dir").text( scheduleDir );
         $("#sh-type").text( scheduleDay );
-        $("#sh-termfrom").text( route.termFromName( scheduleDir ));
-        $("#sh-termto").text( route.termToName( scheduleDir ));
+        $("#sh-termfrom").text( route.termFrom( scheduleDir ).name );
+        $("#sh-termto").text( route.termTo( scheduleDir ).name );
 
         $("#amtimes").html( renderTimeList( route.beforeNoon(scheduleDir, scheduleDay)));
         $("#pmtimes").html( renderTimeList( route.afterNoon(scheduleDir, scheduleDay)));
@@ -288,30 +334,25 @@ var app = (function ($) {
         route.markAlerts();
     };
 
-
-
-
+    //////////////////////////////////////////////////////////////////////////
     //======= Settings Pages
 
     var settingsRenderOnce = function() {
         // fill in the route list, which we only need to do once.
         $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
             function(r) {
-                var id = "r" + r.code;
-                return $( "<span type='checkbox' id='" +
-                    id + "' class='routedisplay'>" +
+                return $( "<span type='checkbox' routeid='" +
+                    r.code + "' class='routedisplay'>" +
                     r.displayName.west + "</span><br>");
         }));
     };
 
     var renderSettingsRoutes = function() {
-        // unset all checkmarks
-        $("#settings-routes-form span[type]").removeClass("checked");
-        // set checks on the displayed routes
-        NextFerry.Route.displayRoutes().map(
-            function(r) {
-                $("#r" + r.code).addClass("checked");
-            });
+        // set the check marks
+        $(".routedisplay").each( function() {
+            var r = routeOf( $(this) );
+            $(this).toggleClass("checked", r.isDisplayed());
+        });
         ensureScroller("#settings-routes-wrapper",{ click: true });
         updateScroller("#settings-routes-wrapper");
     };
@@ -389,8 +430,7 @@ var app = (function ($) {
 
     var saveSettingsRoutes = function() {
         $(".routedisplay").each( function() {
-            var code = $(this).prop("id").substr(1);
-            NextFerry.Route.find(code).display( $(this).hasClass("checked") );
+            routeOf($(this)).display( $(this).hasClass("checked") );
         });
         NextFerry.synchSettings();
     };
@@ -420,96 +460,7 @@ var app = (function ($) {
         NextFerry.synchSettings();
     };
 
-    //======= Utilities
-
-    //======= checkboxes and radio boxes
-    // Our own implementation of checkboxes and radio boxes,
-    // because iScroll has problems with the native implementation, and we wanted
-    // to style them ourselves anyway.
-    // NB: unbelievable that this is all it takes...
-
-    var checks = function(e) {
-        e.preventDefault();
-        if ( debounced() ) {
-            var target = $(e.target);
-            if ( target.attr("type") === "checkbox" ) {
-                target.toggleClass("checked");
-                target.trigger( $.Event("change") );
-            }
-            else { // radio boxes
-                if ( ! target.hasClass("checked") ) {
-                    var oldval = target.parent().children("span[type='radio'].checked");
-                    oldval.length > 0 && oldval.removeClass("checked");
-                    target.addClass("checked");
-
-                    oldval.length > 0 && oldval.trigger( $.Event("change") );
-                    target.trigger( $.Event("change") );
-                }
-            }
-        }
-        return false;
-    };
-
-
-    //======= Debouncing
-    // Iscroll sometimes sends duplicate click events, so we debounce them.
-    // The same debouncing timer is used for all click/tap events, which works
-    // fine, assuming that the user cannot intend to issue events
-    // faster than every 400 ms (and we aren't worried about detecting things
-    // like double-taps, etc.).
-
-    var _debouncing = false;
-    var debounced = function() {
-        if ( _debouncing ) {
-            // console.log("ignored dup event");
-            return false;
-        }
-        else {
-            _debouncing = true;
-            //console.log("letting event through");
-            setTimeout(function() { _debouncing = false; }, 400);
-            return true;
-        }
-    };
-
-
-    // wrap a function in common event-handling stuff for click events.
-    var doClick = function( func ) {
-        return function( e ) {
-            e.preventDefault();
-            if ( debounced() ) {
-                func(e);
-            }
-            return false
-        }
-    };
-
-    //======= Scrollers
-    // We store scrollers in the DOM, on the nodes they operate on.
-    // Sometime the creation of scrollers is delayed until they are needed,
-    // so the updateScroller function does nothing unless they exist already.
-    // Per the IScroll instructions, we always update scrollers asynchronously,
-    // which gives the DOM time to "settle".
-
-    var ensureScroller = function(id, options) {
-        // make sure there is a scroller for this node
-        var s = $(id).data("scroller");
-        if ( ! s ) {
-            s = new IScroll(id, options);
-            $(id).data("scroller", s);
-        }
-        return s;
-    };
-
-    var updateScroller = function(id,delay) {
-        // we do not create scrollers here
-        var s = $(id).data("scroller");
-        if ( s ) {
-            setTimeout(function() { s.refresh(); }, delay || 10);
-        }
-    };
-
-
+    //////////////////////////////////////////////////////////////////////////
     //======= History and Page Transitions
     // our history is a little weird: it can only contain any page type once.
     // so if you visit pages in this order:  A, B, C, B the history stack will
@@ -522,6 +473,7 @@ var app = (function ($) {
     // what to do when visiting a page.
     var renderers = {
         "#main-page" : renderMainPage,
+        "#setalarm-page" : renderSetAlarmPage,
         "#details-page" : renderDetailsPage,
         "#schedule-page" : renderSchedule,
         "#alerts-page" : renderAlerts,
@@ -624,7 +576,129 @@ var app = (function ($) {
         return false;
     }
 
-    var noop = function() { };
+    // define an event handler for clicking outside an element on a page
+    // TODO: I think this would behave badly if there were another click handler
+    // on the same selector (one would cancel the other?)
+
+    var clickOutside = function(selector,handler) {
+        var pageof = selector.parents(".page");
+        pageof.on("click", handler );
+        selector.on("click", doClick( function() {} ));
+    };
+
+
+    //======= Utilities
+    //////////////////////////////////////////////////////////////////////////
+    //======= checkboxes and radio boxes
+    // Our own implementation of checkboxes and radio boxes,
+    // because iScroll has problems with the native implementation, and we wanted
+    // to style them ourselves anyway.
+    // NB: unbelievable that this is all it takes...
+
+    var checks = function(e) {
+        e.preventDefault();
+        if ( debounced() ) {
+            var target = $(e.target);
+            if ( target.attr("type") === "checkbox" ) {
+                target.toggleClass("checked");
+                target.trigger( $.Event("change") );
+            }
+            else { // radio boxes
+                if ( ! target.hasClass("checked") ) {
+                    var oldval = target.parent().children("span[type='radio'].checked");
+                    oldval.length > 0 && oldval.removeClass("checked");
+                    target.addClass("checked");
+
+                    oldval.length > 0 && oldval.trigger( $.Event("change") );
+                    target.trigger( $.Event("change") );
+                }
+            }
+        }
+        return false;
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+    //======= Debouncing
+    // Iscroll sometimes sends duplicate click events, so we debounce them.
+    // The same debouncing timer is used for all click/tap events, which works
+    // fine, assuming that the user cannot intend to issue events
+    // faster than every 400 ms (and we aren't worried about detecting things
+    // like double-taps, etc.).
+
+    var _debouncing = false;
+    var debounced = function() {
+        if ( _debouncing ) {
+            // console.log("ignored dup event");
+            return false;
+        }
+        else {
+            _debouncing = true;
+            //console.log("letting event through");
+            setTimeout(function() { _debouncing = false; }, 400);
+            return true;
+        }
+    };
+
+
+    // wrap a function in common event-handling stuff for click events.
+    var doClick = function( func ) {
+        return function( e ) {
+            e.preventDefault();
+            if ( debounced() ) {
+                func(e);
+            }
+            return false
+        }
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+    //======= Scrollers
+    // We store scrollers in the DOM, on the nodes they operate on.
+    // Sometime the creation of scrollers is delayed until they are needed,
+    // so the updateScroller function does nothing unless they exist already.
+    // Per the IScroll instructions, we always update scrollers asynchronously,
+    // which gives the DOM time to "settle".
+
+    var ensureScroller = function(id, options) {
+        // make sure there is a scroller for this node
+        var s = $(id).data("scroller");
+        if ( ! s ) {
+            s = new IScroll(id, options);
+            $(id).data("scroller", s);
+        }
+        return s;
+    };
+
+    var updateScroller = function(id,delay) {
+        // we do not create scrollers here
+        var s = $(id).data("scroller");
+        if ( s ) {
+            setTimeout(function() { s.refresh(); }, delay || 10);
+        }
+    };
+
+    //////////////////////////////////////////////////////////////////////////
+    //======= DoubleTap
+    // Quick and dirty implementation of double-tap that is just sufficient
+    // for our purposes.
+    // If two touch-end events less than 200ms apart on the same target,
+    // trigger a double-tap event on that target.
+    // Derived from the approach in https://gist.github.com/attenzione/7098476
+
+    var doubleTap = function(e) {
+        var targ = $(e.target);
+        var lasttouch = targ.data("nextferry:lasttouch");
+        var delta = (lasttouch ? (e.timeStamp - lasttouch) : -100);
+        console.log(delta);
+        if ( delta > 0 && delta < 200 ) {
+            targ.data("nextferry:lasttouch",undefined);
+            targ.trigger( "nf:doubletap" );
+            // no state is copied to event because we don't need it.
+        }
+        else {
+            targ.data("nextferry:lasttouch",e.timeStamp);
+        }
+    }
 
     //======= Exports
 
@@ -637,3 +711,4 @@ var app = (function ($) {
 
     return module;
 }(jQuery));
+
