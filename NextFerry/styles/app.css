@@ -204,6 +204,11 @@ span[tGood=Good] {
   color: #54E81C;
   font-weight: bold;
 }
+span.alarmed {
+  background-color: yellow;
+  margin-left: 5pt;
+  border-radius: 10px;
+}
 #routes span[astate] {
   font-size: 12pt;
   padding: 3px;

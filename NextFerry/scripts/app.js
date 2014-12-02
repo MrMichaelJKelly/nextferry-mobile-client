@@ -65,7 +65,7 @@ var app = (function ($) {
         $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
         // dismiss dialogish things by clicking outside the body.
         clickOutside($(".settings-body"), doClick( backPage ));
-        clickOutside($("#setalarm-dialog"), doClick( backPage ));
+        clickOutside($("#setalarm-dialog"), doClick( exitAlarm ));
 
         // initialize main page scrollers
         ensureScroller("#routes-wrapper", { click: true });
@@ -175,6 +175,7 @@ var app = (function ($) {
             updateScroller("#times-wrapper");
         }, 200);
         ServerIO.requestTravelTimes();
+        decorateAlarm();
     };
 
     var updateTravelTimes = function() {
@@ -230,6 +231,17 @@ var app = (function ($) {
         window.localStorage["dir"] = dir;
     };
 
+    var decorateAlarm = function() {
+        // if there is an alarm pending, decorate that time so the user
+        // knows.
+        var alarmed = Alarm.checkAlarm();
+        if ( alarmed && alarmed.dir == dir ) {
+            var elem = $("[routeid='" + alarmed.routeId + "']", "#times")
+                        .find("[time='" + alarmed.ferryTime + "']");
+            elem.addClass("alarmed");
+        }
+    };
+
     //////////////////////////////////////////////////////////////////////////
     //======= Set Alarm Page
     // Behaves as a modal dialog, which means it needs a setup when invoked
@@ -240,13 +252,18 @@ var app = (function ($) {
         Alarm.configure( routeOf(target).code, dir, parseInt(target.attr("time")) );
 
         var input = $("#setalarm-input");
-        var ferry = Alarm.ferryTime();
-        input.attr("min", ferry - 240);
-        input.attr("max", ferry);
+        var ferrytime = Alarm.ferryTime();
+        var mintime = ferrytime - 240;
+        var now = NextFerry.NFTime.now();
+        if ( mintime < now ) {
+            mintime = now;
+        }
+        input.attr("min", mintime);
+        input.attr("max", ferrytime);
         input.val( Alarm.leaveByTime() );
         input.change();
         input.rangeslider("update");
-        $("#setalarm-ferrytime").text( NextFerry.NFTime.display(ferry) );
+        $("#setalarm-ferrytime").text( NextFerry.NFTime.display(ferrytime) );
         $("#setalarm-cancel").toggleClass( "disabled", !Alarm.isSet() );
         goPage("#setalarm-page");
     };
@@ -258,9 +275,17 @@ var app = (function ($) {
     };
 
     var setAlarmCancel = function() {
-        Alarm.clear();
+        Alarm.clearAlarm();
         backPage();
     };
+
+    var exitAlarm = function(e) {
+        Alarm.cancelEdit();
+        if (e) {
+            backPage();
+        }
+    }
+
 
 
     var setAlarmInit = function() {
@@ -287,14 +312,12 @@ var app = (function ($) {
                 if (!initdone) {
                     this.$range.append(bubble);
                     this.update();
-                    console.log("init val " + this.position);
                     positionbubble(this.position,this);
                 }
                 initdone = true;
             },
             onSlide: function(pos, value) {
                 bubble.text( NextFerry.NFTime.display(value) );
-                console.log("slide val " + pos);
                 positionbubble(pos,this);
             }
         });
@@ -532,12 +555,13 @@ var app = (function ($) {
     // Generally used to sync in-memory state somewhere.
     var exiters = {
         "#settings-routes-page" : saveSettingsRoutes,
-        "#settings-options-page" : saveSettingsOptions
+        "#settings-options-page" : saveSettingsOptions,
+        "#setalarm-page" : exitAlarm
     };
 
     var currentPage = function() {
         return _history[0];
-    }
+    };
 
     var leaveCurrentPage = function(keep) {
         if (_history.length > 0) {
@@ -623,7 +647,7 @@ var app = (function ($) {
             }
         }
         return false;
-    }
+    };
 
     // define an event handler for clicking outside an element on a page
     var clickOutside = function(selector,handler) {
@@ -667,7 +691,7 @@ var app = (function ($) {
     //======= Debouncing
     // Iscroll sometimes sends duplicate click events, so we debounce them.
     // The same debouncing timer is used for all click/tap events, which works
-    // fine, assuming that the user cannot intend to issue events
+    // fine, assuming that the user cannot intend to issue multiple events
     // faster than every 400 ms.
 
     var _debouncing = false;
@@ -725,7 +749,7 @@ var app = (function ($) {
     //======= DoubleTap
     // Quick and dirty implementation of double-tap that is just sufficient
     // for our purposes.
-    // If two touch-end events less than 200ms apart on the same target,
+    // If two touch-end events less than 300ms apart on the same target,
     // trigger a double-tap event on that target.
     // Derived from the approach in https://gist.github.com/attenzione/7098476
 
@@ -733,8 +757,7 @@ var app = (function ($) {
         var targ = $(e.target);
         var lasttouch = targ.data("nextferry:lasttouch");
         var delta = (lasttouch ? (e.timeStamp - lasttouch) : -100);
-        console.log(delta);
-        if ( delta > 0 && delta < 200 ) {
+        if ( delta > 0 && delta < 300 ) {
             targ.data("nextferry:lasttouch",undefined);
             targ.trigger( "nf:doubletap" );
             // no state is copied to event because we don't need it.
