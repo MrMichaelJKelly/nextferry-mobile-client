@@ -209,7 +209,8 @@
             if (data && data.origin === pluginName) {
                 return;
             }
-
+            _this.min = parseFloat(e.target.min);
+            _this.max = parseFloat(e.target.max);
             var value = e.target.value,
                 pos = _this.getPositionFromValue(value);
             _this.setPosition(pos);

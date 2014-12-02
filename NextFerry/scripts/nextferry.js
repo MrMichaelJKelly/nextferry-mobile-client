@@ -516,7 +516,6 @@ var NextFerry = (function ($) {
         }
     };
 
-
     var module = {
         init : init,
         reset : reset,
@@ -525,7 +524,6 @@ var NextFerry = (function ($) {
         Route : Route,
         Terminal : Terminal,
         Alert : Alert,
-
         // for testing
         todaysScheduleType : todaysScheduleType
     };

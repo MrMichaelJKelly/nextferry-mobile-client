@@ -1,7 +1,7 @@
 .rangeslider {
   background: #e6e6e6;
   display: block;
-  height: 10px;
+  height: 20px;
   width: 100%;
   position: relative;
   margin: 10px 0;
@@ -14,17 +14,24 @@
 
 .rangeslider__handle {
   background: white;
-  border: 1px solid #ccc;
-  cursor: pointer;
+  border: 1px solid;
+  border-radius: 15px;
   display: inline-block;
-  width: 10px;
-  height: 14px;
+  width: 15px;
+  height: 28px;
   position: absolute;
-  top: -3px;
-  -webkit-border-radius: 5%;
-  -moz-border-radius: 5%;
-  -ms-border-radius: 5%;
-  -o-border-radius: 5%;
-  border-radius: 5%;
+  top: -4.5px;
 }
+
+/* I got rid of the actual bubble, but keeping the name */
+.rangeslider__value-bubble {
+  display: block;
+  padding: 5px;
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: 5px;
+  background-color: white;
+  z-index: 30;
+}
+
 

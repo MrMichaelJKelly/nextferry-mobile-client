@@ -18,16 +18,12 @@ var app = (function ($) {
     var scheduleDir;
     var scheduleDay;
 
-    // setAlarm: which time element are we looking at? and what terminal is
-    // the destination?
-    var setAlarmElem;
-    var setAlarmTerm;
-
     //////////////////////////////////////////////////////////////////////////
     //======= Initialization and event wiring
 
     var init = function() {
         NextFerry.init();
+        Alarm.init();
         $("#title").lettering();
         goPage("#main-page");
 
@@ -51,8 +47,9 @@ var app = (function ($) {
         // ask for new schedule, alerts, etc.
         ServerIO.requestUpdate();
 
-        // one-time rendering for settings page
-        settingsRenderOnce();
+        // one-time initialization for pages that need it.
+        settingsInit();
+        setAlarmInit();
 
         // wire up navigation and user actions
         document.addEventListener("backbutton", backPage );
@@ -63,23 +60,12 @@ var app = (function ($) {
         $("span[type]").on("click", checks );
         $("#reload").on("click", doClick( reset ));
         $("#times").on("touchend", doubleTap );     // detect double tap
-        $("#times").on("nf:doubletap", setAlarm );  // do something with it
+        $("#times").on("nf:doubletap", "[time]", setAlarm );  // do something with it
+        $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
         $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
         // dismiss dialogish things by clicking outside the body.
         clickOutside($(".settings-body"), doClick( backPage ));
-        clickOutside($("#set-alarm-dialog"), doClick( backPage ));
-
-        // a couple of UI features
-        $("#useloc").on("change", updateDisable );
-        $("#buftime").rangeslider({
-            polyfill: false,
-            onSlide: function(pos,val) {
-                $("#buftimeval").text( val.toString() );
-            }
-        });
-        $("#setalarm-slider").rangeslider({
-            polyfill: false
-        });
+        clickOutside($("#setalarm-dialog"), doClick( backPage ));
 
         // initialize main page scrollers
         ensureScroller("#routes-wrapper", { click: true });
@@ -104,17 +90,18 @@ var app = (function ($) {
     }
 
     var onResume = function() {
+        Alarm.init();
         ServerIO.onResume();
         ServerIO.requestUpdate(); // for new alerts
         renderTimes();
     }
 
     var reset = function() {
+        Alarm.clearAlarm();
         NextFerry.reset();
         ServerIO.onResume();
         ServerIO.requestUpdate(); // get alerts and schedule
     };
-
 
     var onRotate = function() {
         // update any scrollers on the current page.
@@ -165,17 +152,22 @@ var app = (function ($) {
     };
     var renderTimes = function() {
         var now = NextFerry.NFTime.now();
+        var routes = NextFerry.Route.displayRoutes();
+
         NextFerry.Terminal.clearOldTTs();
         // <li routeid='id'><span><span class='time timegoodness'>time</span> <span>...</span></li>
         $("#times").empty();
         $("#times").width(1500); // wider than needed; will be recalculated below.
-        $("#times").append( NextFerry.Route.displayRoutes().map( function(r) {
-            return $( "<li routeid='" + r.code + "'><span>" + "".concat(
-                r.futureDepartures(dir).map( function(tt) {
-                    return "<span class='time " + r.tGoodness(dir,tt,now) + "'> " +
-                       NextFerry.NFTime.display(tt) +
-                       "</span>";
-            } )) + "<span></li>");
+        $("#times").append( routes.map( function(r) {
+            var li = $( "<li routeid='" + r.code + "'><span></span></li>");
+            // add the contents to the nested span
+            li.children().append( r.futureDepartures(dir).map( function(tt) {
+                var tspan = $("<span> " + NextFerry.NFTime.display(tt) + "</span>");
+                tspan.attr("tGood", r.tGoodness(dir,tt,now));
+                tspan.attr("time", tt );
+                return tspan;
+            }));
+            return li;
         }));
         // delay to give the DOM time to render before the following.
         setTimeout( function() {
@@ -240,28 +232,73 @@ var app = (function ($) {
 
     //////////////////////////////////////////////////////////////////////////
     //======= Set Alarm Page
-    // double-tapping a departure time brings up a modal dialog
+    // Behaves as a modal dialog, which means it needs a setup when invoked
+    // for a new alarm, but not a renderer.
 
     var setAlarm = function(e) {
-        if ($(e.target).hasClass("time")) {
-            setAlarmElem = $(e.target);
-            setAlarmTerm = routeOf(setAlarmElem).termFrom(dir);
-            goPage("#setalarm-page");
-        }
-    }
+        var target = $(e.target);
+        Alarm.configure( routeOf(target).code, dir, parseInt(target.attr("time")) );
 
-    var renderSetAlarmPage = function() {
-        // customize the slider to the requested departure time
-    }
+        var input = $("#setalarm-input");
+        var ferry = Alarm.ferryTime();
+        input.attr("min", ferry - 240);
+        input.attr("max", ferry);
+        input.val( Alarm.leaveByTime() );
+        input.change();
+        input.rangeslider("update");
+        $("#setalarm-ferrytime").text( NextFerry.NFTime.display(ferry) );
+        $("#setalarm-cancel").toggleClass( "disabled", !Alarm.isSet() );
+        goPage("#setalarm-page");
+    };
 
     var setAlarmSubmit = function() {
-        // we only do one alarm at a time, so remove any others that exist
-        $(".alarmtime").removeClass(".alarmtime");
-        // and add the new one alarm
-        setAlarmElem.addClass(".alarmtime");
-        // Todo: actually set the alarm...
+        var input = $("input","#setalarm-slider");
+        Alarm.confirm(input.val());
         backPage();
-    }
+    };
+
+    var setAlarmCancel = function() {
+        Alarm.clear();
+        backPage();
+    };
+
+
+    var setAlarmInit = function() {
+        var input = $("<input id='setalarm-input' type=range step=5>");
+        var bubble = $("<output class='rangeslider__value-bubble'>");
+        var initdone = false;
+
+        var positionbubble = function(pos,slider) {
+            var bubblewidth = 50; // estimate rather than measure.
+            var bubblepos = pos + slider.grabX - (bubblewidth/2);
+            if (bubblepos <= 0) {
+                bubblepos = 0;
+            }
+            if (bubblepos + bubblewidth >= slider.rangeWidth) {
+                bubblepos = slider.rangWidth - bubblewidth;
+            }
+            bubble.css("left", bubblepos);
+        }
+
+        $("#setalarm-slider").append(input);
+        input.rangeslider({
+            polyfill: false,
+            onInit: function() {
+                if (!initdone) {
+                    this.$range.append(bubble);
+                    this.update();
+                    console.log("init val " + this.position);
+                    positionbubble(this.position,this);
+                }
+                initdone = true;
+            },
+            onSlide: function(pos, value) {
+                bubble.text( NextFerry.NFTime.display(value) );
+                console.log("slide val " + pos);
+                positionbubble(pos,this);
+            }
+        });
+    };
 
     //////////////////////////////////////////////////////////////////////////
     //======= Details Page Rendering
@@ -337,14 +374,25 @@ var app = (function ($) {
     //////////////////////////////////////////////////////////////////////////
     //======= Settings Pages
 
-    var settingsRenderOnce = function() {
+    var settingsInit = function() {
         // fill in the route list, which we only need to do once.
         $("#settings-routes-form").append( NextFerry.Route.allRoutes().map(
             function(r) {
                 return $( "<span type='checkbox' routeid='" +
                     r.code + "' class='routedisplay'>" +
-                    r.displayName.west + "</span><br>");
+                    r.displayName.west + "</span><br>" );
         }));
+
+        // create the rangeslider
+        $("#buftime").rangeslider({
+            polyfill: false,
+            onSlide: function(pos,val) {
+                $("#buftimeval").text( val.toString() );
+            }
+        });
+
+        // wire together the disable functionality for useloc
+        $("#useloc").on("change", updateDisable);
     };
 
     var renderSettingsRoutes = function() {
@@ -393,7 +441,6 @@ var app = (function ($) {
             buftime.prop("disabled", true);
         }
         buftime.rangeslider("update");
-        return false;
     };
 
 
@@ -473,7 +520,6 @@ var app = (function ($) {
     // what to do when visiting a page.
     var renderers = {
         "#main-page" : renderMainPage,
-        "#setalarm-page" : renderSetAlarmPage,
         "#details-page" : renderDetailsPage,
         "#schedule-page" : renderSchedule,
         "#alerts-page" : renderAlerts,
@@ -481,7 +527,9 @@ var app = (function ($) {
         "#settings-options-page" : renderSettingsOptions,
         "#settings-about-page" : renderSettingsAbout
     };
-    // what to do when leaving a page
+    // What to do when leaving a page, no matter how the page
+    // is left (forward, back, etc.)
+    // Generally used to sync in-memory state somewhere.
     var exiters = {
         "#settings-routes-page" : saveSettingsRoutes,
         "#settings-options-page" : saveSettingsOptions
@@ -491,17 +539,19 @@ var app = (function ($) {
         return _history[0];
     }
 
-    var leaveCurrentPage = function() {
+    var leaveCurrentPage = function(keep) {
         if (_history.length > 0) {
             var curr = _history[0];
             exiters[curr] && exiters[curr]();
-            $(curr).hide();
+            if ( ! keep  ) {
+                $(curr).hide();
+            }
         }
     };
 
     var goPage = function(newpage,e) {
         // take care of page state
-        leaveCurrentPage();
+        leaveCurrentPage( $(newpage).hasClass("transparent-page") );
         renderers[newpage] && renderers[newpage](e);
         $(newpage).show();
 
@@ -513,6 +563,7 @@ var app = (function ($) {
         else {
             _history.unshift( newpage );
         }
+        return false;
     };
 
 
@@ -552,7 +603,6 @@ var app = (function ($) {
     // produces an event handler to go to a specific page
     var gogoPage = function(p) {
         return function(e) {
-            e.preventDefault();
             if ( debounced() ) {
                 goPage(p,e);
             }
@@ -562,7 +612,6 @@ var app = (function ($) {
 
     // go to whatever page is named in the dest attribute
     var goDest = function(e) {
-        e.preventDefault();
         if ( debounced() ) {
             var dest = $(e.currentTarget).attr("dest");
             if ( dest ) {
@@ -577,13 +626,10 @@ var app = (function ($) {
     }
 
     // define an event handler for clicking outside an element on a page
-    // TODO: I think this would behave badly if there were another click handler
-    // on the same selector (one would cancel the other?)
-
     var clickOutside = function(selector,handler) {
         var pageof = selector.parents(".page");
         pageof.on("click", handler );
-        selector.on("click", doClick( function() {} ));
+        selector.on("click", function() { return false; } );
     };
 
 
@@ -622,8 +668,7 @@ var app = (function ($) {
     // Iscroll sometimes sends duplicate click events, so we debounce them.
     // The same debouncing timer is used for all click/tap events, which works
     // fine, assuming that the user cannot intend to issue events
-    // faster than every 400 ms (and we aren't worried about detecting things
-    // like double-taps, etc.).
+    // faster than every 400 ms.
 
     var _debouncing = false;
     var debounced = function() {
@@ -643,12 +688,11 @@ var app = (function ($) {
     // wrap a function in common event-handling stuff for click events.
     var doClick = function( func ) {
         return function( e ) {
-            e.preventDefault();
             if ( debounced() ) {
                 func(e);
             }
-            return false
-        }
+            return false;
+        };
     };
 
     //////////////////////////////////////////////////////////////////////////

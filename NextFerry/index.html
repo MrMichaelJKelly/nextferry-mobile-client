@@ -19,6 +19,7 @@
     <!-- my app -->
     <script src="scripts/nextferry.js" type="text/javascript"></script>
     <script src="scripts/serverio.js" type="text/javascript"></script>
+    <script src="scripts/alarm.js" type="text/javascript"></script>
     <script src="scripts/app.js" type="text/javascript"></script>
     <!-- tests -->
     <script src="test/qunit.js" type="text/javascript"></script>
@@ -42,7 +43,7 @@
     <div id="main-page" class="page">
         <h1>
             <span id="title">Next Ferry</span>
-            <span id="direction">West</span>
+            <span id="direction" class="button">West</span>
         </h1>
         <div id="routes-wrapper" class="scrollwrapper">
             <div class="scrollee">
@@ -54,13 +55,14 @@
             </div>
         </div>
     </div>
-    <!-- Set Alarm -->
+    <!-- Set Alarm Dialog -->
     <div id="setalarm-page" class="page transparent-page">
-        <div id="set-alarm-dialog">
-            <p>Set Leave-By Alarm to</p>
+        <div id="setalarm-dialog">
+            <h3>Leave-By Alarm</h3>
             <div id="setalarm-slider"></div>
-            <div id="setalarm-cancel" class="setalarm-button">Cancel</div>
-            <div id="setalarm-submit" class="setalarm-button">Set</div>
+            <span id="setalarm-ferrytime"></span>
+            <span id="setalarm-cancel" class="button">Remove</span>
+            <span id="setalarm-submit" class="button">Set</span>
         </div>
     </div>
 
@@ -121,7 +123,7 @@
         </div>
     </div>
 
-    <!-- Settings Style pages -->
+    <!-- Settings Pages -->
     <!-- Choose Routes -->
     <div id="settings-routes-page" class="page settings-page">
         <div class="settings-body">
@@ -153,14 +155,14 @@
                     </li>
                     <li id="buftimeitem"> <!-- buffer time -->
                         <h3>Buffer Time</h3>
-                        <input type="range" id="buftime" min="0" max="60" step="5">
+                        <input type="range" id="buftime" min="0" max="90" step="5">
                         <output id="buftimeval"></output> min
                         <p class="explain special-label2">Arrive how far ahead of departure? (Determines risky departures.)</p>
                     </li>
                     <li> <!-- reload -->
                         <h3>Reload</h3>
                         <p id="reloadp" class="explain">
-                            <span id="reload">Reload</span>
+                            <span id="reload" class="button">Reload</span>
                             ferry schedule, alerts etc.</p>
                     </li>
                 </ul>

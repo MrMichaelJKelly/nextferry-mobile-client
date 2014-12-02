@@ -89,6 +89,11 @@ li {
   /* initially, not showing */
   display: none;
 }
+/* except... */
+.page.transparent-page {
+  background: none;
+  z-index: 15;
+}
 #main-page {
   /* initially visible page */
   display: block;
@@ -114,7 +119,7 @@ span.icon.return {
   font-size: 14pt;
 }
 h1 {
-  margin: 15pt 10pt;
+  margin: 18pt 10pt;
   font-size: 28pt;
   font-weight: 500;
 }
@@ -130,6 +135,21 @@ h3 {
   font-weight: 400;
   margin-bottom: 0.25em;
 }
+.button {
+  padding: 0.2em;
+  padding-bottom: 0.1em;
+  border: 1px solid;
+  background: none;
+  border-radius: 0.4em;
+  -webkit-transition: background-color 0.2s;
+  transition: background-color 0.2s;
+}
+.button:active:not(.disabled) {
+  background-color: #ADB3B9;
+}
+.disabled {
+  color: #ccc !important;
+}
 
 
 /* main page */
@@ -143,10 +163,9 @@ h3 {
 
 #direction {
   text-transform: capitalize;
-  padding: 0 5pt;
-  border: 1px solid;
-  border-radius: 10px;
-  margin-left: 6pt;
+  padding: 0 7pt 0 5pt;
+  margin-left: 4pt;
+  border: 2px solid;
 }
 #routes-wrapper {
   position: absolute;
@@ -175,20 +194,20 @@ h3 {
 #routes li, #times li {
   height: 2.22em;
 }
-.TooLate {
+span[tGood=TooLate] {
   color: #c00;
 }
-.Risky {
+span[tGood=Risky] {
   color: #e8d100;
 }
-.Good {
+span[tGood=Good] {
   color: #54E81C;
   font-weight: bold;
 }
 #routes span[astate] {
   font-size: 12pt;
   padding: 3px;
-  padding-top: 2px; /* for some reason... */
+  padding-top: 2px;
   margin-right: 2pt;
 }
 #routes span[astate=false] {
@@ -200,6 +219,56 @@ h3 {
   border-radius: 50%;
 }
 
+#setalarm-dialog {
+  width: 240px;
+  height: 180px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -100px;
+  margin-top: -100px;
+  background-color: white;
+  border: 2px solid;
+  border-radius: 10px;
+}
+#setalarm-dialog h3 {
+  text-align: center;
+  font-size: inherit;
+  padding: 10px;
+}
+#setalarm-ferrytime {
+  display: block;
+  position: absolute;
+  bottom: 67px;
+  left: 175px;
+  border-left: 1px solid;
+  padding-left: 4px;
+  font-family: san-serif;
+  font-size: 16pt;
+  font-weight: bolder;
+}
+#setalarm-slider {
+  position: absolute;
+  width: 160px;
+  left: 15px;
+  bottom: 60px;
+  font-family: san-serif;
+  font-size: 16pt;
+}
+#setalarm-cancel {
+  display: block;
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+}
+#setalarm-submit {
+  display: block;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 96px;
+  text-align: center;
+}
 
 /* details page */
 #details-page {
@@ -389,7 +458,6 @@ h3 {
 .explain {
   font-family: serif;
   font-size: 14pt;
-  color: #324151;
 }
 
 /* special for options page */
@@ -399,21 +467,6 @@ h3 {
   margin-left: 1.9em;
   text-indent: -2em;
 }
-#reload {
-  font-size: 16pt;
-  padding: 4pt;
-  padding-bottom: 2pt;
-  width: 50pt;
-  border: 1px solid;
-  background-color: white;
-  border-radius: 5px;
-  font-family: dosis;
-  -webkit-transition: background-color 0.2s;
-  transition: background-color 0.2s;
-}
-#reload:active {
-  background-color: #ADB3B9;
-}
 .special-label2 {
   margin-left: 1.25em;
 }
@@ -421,13 +474,6 @@ h3 {
   display: inline-block;
   width: 140pt;
   margin: 0 10pt 3pt 5pt;
-}
-#settings-options-page .rangeslider__handle {
-  border-color: #324151;
-  color: #ADB3B9;
-}
-#settings-page .disabled, #settings-page .disabled .explain {
-  color: #ccc;
 }
 
 /* special for about page */
