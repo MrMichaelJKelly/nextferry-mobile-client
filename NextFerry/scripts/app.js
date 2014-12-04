@@ -50,6 +50,7 @@ var app = (function ($) {
         // one-time initialization for pages that need it.
         settingsInit();
         setAlarmInit();
+        Alarm.Timer.setTimer($("#alarm-time-remaining"));
 
         // wire up navigation and user actions
         document.addEventListener("backbutton", backPage );
@@ -87,6 +88,7 @@ var app = (function ($) {
         // save state and turn things off
         NextFerry.synchSettings();
         ServerIO.onPause();
+        Alarm.Timer.timerTickingOff();
     }
 
     var onResume = function() {
@@ -136,9 +138,34 @@ var app = (function ($) {
 
     var renderMainPage = function() {
         $("#direction").text(dir);
+        renderAlarm();
         renderRoutes();
         renderTimes();
         updateScroller("#routes-wrapper");
+    };
+
+    var exitMainPage = function() {
+        Alarm.Timer.timerTickingOff();
+    }
+
+    var renderAlarm = function() {
+        // if there is an alarm pending, show it.
+        // do this first because it will determine size of routes display.
+        if ( Alarm.checkAlarm() ) {
+            var leaveby = Alarm.leaveByTime();
+            var ferrytime = Alarm.ferryTime();
+            var delta = (leaveby - NextFerry.NFTime.now())*60 - 3; // looks better than :00
+
+            $("#alarm-leave-by").text( NextFerry.NFTime.display(leaveby) );
+            $("#alarm-ferry-time").text( NextFerry.NFTime.display(ferrytime));
+            Alarm.Timer.timerTickingOn();
+            $("#show-alarm").show();
+            $("#routes-wrapper").addClass("smaller");
+        }
+        else {
+            $("#show-alarm").hide();
+            $("#routes-wrapper").removeClass("smaller");
+        }
     };
 
     var renderRoutes = function() {
@@ -232,15 +259,15 @@ var app = (function ($) {
     };
 
     var decorateAlarm = function() {
-        // if there is an alarm pending, decorate that time so the user
-        // knows.
+        // if there is an alarm pending, decorate that departure
         var alarmed = Alarm.checkAlarm();
-        if ( alarmed && alarmed.dir == dir ) {
+        if ( alarmed && alarmed.dir == dir) {
             var elem = $("[routeid='" + alarmed.routeId + "']", "#times")
                         .find("[time='" + alarmed.ferryTime + "']");
             elem.addClass("alarmed");
         }
     };
+
 
     //////////////////////////////////////////////////////////////////////////
     //======= Set Alarm Page
@@ -248,8 +275,18 @@ var app = (function ($) {
     // for a new alarm, but not a renderer.
 
     var setAlarm = function(e) {
-        var target = $(e.target);
-        Alarm.configure( routeOf(target).code, dir, parseInt(target.attr("time")) );
+        if (e) {
+            var target = $(e.target);
+            if ( target.attr("time") ) {
+                // create a new alarm from a time entry
+                Alarm.configure( routeOf(target).code, dir, parseInt(target.attr("time")) );
+            }
+            else {
+                // re-open the existing alarm
+                Alarm.reopen();
+            }
+        }
+
 
         var input = $("#setalarm-input");
         var ferrytime = Alarm.ferryTime();
@@ -286,10 +323,8 @@ var app = (function ($) {
         }
     }
 
-
-
     var setAlarmInit = function() {
-        var input = $("<input id='setalarm-input' type=range step=5>");
+        var input = $("<input id='setalarm-input' type=range>");
         var bubble = $("<output class='rangeslider__value-bubble'>");
         var initdone = false;
 
@@ -554,6 +589,7 @@ var app = (function ($) {
     // is left (forward, back, etc.)
     // Generally used to sync in-memory state somewhere.
     var exiters = {
+        "#main-page" : exitMainPage,
         "#settings-routes-page" : saveSettingsRoutes,
         "#settings-options-page" : saveSettingsOptions,
         "#setalarm-page" : exitAlarm

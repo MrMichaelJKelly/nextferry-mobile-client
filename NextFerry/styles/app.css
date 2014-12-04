@@ -175,6 +175,9 @@ h3 {
   right: 10pt;
   bottom: 10pt;
 }
+#routes-wrapper.smaller {
+  top: 115pt;
+}
 #routes {
   float: left;
   margin-right: -200pt; /* allow overlap with times */
@@ -204,6 +207,24 @@ span[tGood=Good] {
   color: #54E81C;
   font-weight: bold;
 }
+#show-alarm {
+  display: none; /* initial visibility */
+  color: yellow;
+  position: absolute;
+  top: 58pt;
+  left: 15px;
+  right: 15px;
+  height: 50pt;
+  max-width: 320pt;
+  padding: 0 5pt;
+  border: 2px solid;
+  border-radius: 15px;
+  font-size: 16pt;
+}
+#show-alarm span {
+  font-family: sans-serif;
+}
+
 span.alarmed {
   background-color: yellow;
   margin-left: 5pt;
@@ -248,7 +269,7 @@ span.alarmed {
   left: 175px;
   border-left: 1px solid;
   padding-left: 4px;
-  font-family: san-serif;
+  font-family: monospace;
   font-size: 16pt;
   font-weight: bolder;
 }
@@ -257,7 +278,7 @@ span.alarmed {
   width: 160px;
   left: 15px;
   bottom: 60px;
-  font-family: san-serif;
+  font-family: monospace;
   font-size: 16pt;
 }
 #setalarm-cancel {
