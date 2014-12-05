@@ -8,7 +8,11 @@
 
     <log level="DEBUG"/>
     <preference name="useBrowserHistory" value="false" />
-    <preference name="KeepRunning" value="false" />
     <preference name="DisallowOverscroll" value="true" />
+
+    <!-- For projects that target Apache Cordova 3.0.0 only, this <feature></feature> block ensures that button events and App plugin-related functionality will work as expected. -->
+    <feature name="App">
+       <param name="android-package" value="org.apache.cordova.App" />
+    </feature>
 </cordova>
 
