@@ -35,6 +35,7 @@ var app = (function ($) {
         ServerIO.loadSchedule.listeners.add( renderTimes );
         ServerIO.loadTravelTimes.listeners.add( updateTravelTimes );
         ServerIO.loadAlerts.listeners.add( updateAlerts );
+        Alarm.listeners.add( function() { goPage("#dismissalarm-page"); });
 
         // immediately show old schedule, if we have it
         if ( window.localStorage["cache"] ) {
@@ -61,12 +62,15 @@ var app = (function ($) {
         $("span[type]").on("click", checks );
         $("#reload").on("click", doClick( reset ));
         $("#times").on("touchend", doubleTap );     // detect double tap
-        $("#times").on("nf:doubletap", "[time]", setAlarm );  // do something with it
+        $("#times").on("nf:doubletap", "[time]", gogoPage("#setalarm-page") );  // do something with it
+        $("#show-alarm").on("click", gogoPage("#setalarm-page" ));
         $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
         $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
+        $("#dismissalarm-dismiss").on("click", doClick( backPage ));
         // dismiss dialogish things by clicking outside the body.
         clickOutside($(".settings-body"), doClick( backPage ));
-        clickOutside($("#setalarm-dialog"), doClick( exitAlarm ));
+        clickOutside($("#setalarm-dialog"), doClick( backPage ));
+        clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
 
         // initialize main page scrollers
         ensureScroller("#routes-wrapper", { click: true });
@@ -95,7 +99,9 @@ var app = (function ($) {
         Alarm.init();
         ServerIO.onResume();
         ServerIO.requestUpdate(); // for new alerts
-        renderTimes();
+        // Main page is the only page that can need updating purely by the
+        // passage of time.  We update it whether it is showing or not.
+        renderMainPage();
     }
 
     var reset = function() {
@@ -153,11 +159,8 @@ var app = (function ($) {
         // do this first because it will determine size of routes display.
         if ( Alarm.checkAlarm() ) {
             var leaveby = Alarm.leaveByTime();
-            var ferrytime = Alarm.ferryTime();
-            var delta = (leaveby - NextFerry.NFTime.now())*60 - 3; // looks better than :00
 
             $("#alarm-leave-by").text( NextFerry.NFTime.display(leaveby) );
-            $("#alarm-ferry-time").text( NextFerry.NFTime.display(ferrytime));
             Alarm.Timer.timerTickingOn();
             $("#show-alarm").show();
             $("#routes-wrapper").addClass("smaller");
@@ -271,10 +274,8 @@ var app = (function ($) {
 
     //////////////////////////////////////////////////////////////////////////
     //======= Set Alarm Page
-    // Behaves as a modal dialog, which means it needs a setup when invoked
-    // for a new alarm, but not a renderer.
 
-    var setAlarm = function(e) {
+    var renderSetAlarmDialog = function(e) {
         if (e) {
             var target = $(e.target);
             if ( target.attr("time") ) {
@@ -286,7 +287,9 @@ var app = (function ($) {
                 Alarm.reopen();
             }
         }
-
+        else {
+            Alarm.reopen();
+        }
 
         var input = $("#setalarm-input");
         var ferrytime = Alarm.ferryTime();
@@ -302,7 +305,6 @@ var app = (function ($) {
         input.rangeslider("update");
         $("#setalarm-ferrytime").text( NextFerry.NFTime.display(ferrytime) );
         $("#setalarm-cancel").toggleClass( "disabled", !Alarm.isSet() );
-        goPage("#setalarm-page");
     };
 
     var setAlarmSubmit = function() {
@@ -316,11 +318,12 @@ var app = (function ($) {
         backPage();
     };
 
-    var exitAlarm = function(e) {
+    var cancelEditAlarm = function() {
         Alarm.cancelEdit();
-        if (e) {
-            backPage();
-        }
+    }
+
+    var dismissAlarm = function() {
+        Alarm.clearAlarm();
     }
 
     var setAlarmInit = function() {
@@ -352,6 +355,7 @@ var app = (function ($) {
                 initdone = true;
             },
             onSlide: function(pos, value) {
+                this.$range.attr("filltype",Alarm.goodness(value));
                 bubble.text( NextFerry.NFTime.display(value) );
                 positionbubble(pos,this);
             }
@@ -422,8 +426,8 @@ var app = (function ($) {
                 "<span class='alertbody'>" + a.body + "</span></li>";
         }));
 
-        ensureScroller("#alerts-page");
-        updateScroller("#alerts-page");
+        ensureScroller("#alerts-wrapper");
+        updateScroller("#alerts-wrapper");
 
         // after rendering, we can update the "read" attribute for next time.
         route.markAlerts();
@@ -583,7 +587,8 @@ var app = (function ($) {
         "#alerts-page" : renderAlerts,
         "#settings-routes-page" : renderSettingsRoutes,
         "#settings-options-page" : renderSettingsOptions,
-        "#settings-about-page" : renderSettingsAbout
+        "#settings-about-page" : renderSettingsAbout,
+        "#setalarm-page" : renderSetAlarmDialog
     };
     // What to do when leaving a page, no matter how the page
     // is left (forward, back, etc.)
@@ -592,7 +597,8 @@ var app = (function ($) {
         "#main-page" : exitMainPage,
         "#settings-routes-page" : saveSettingsRoutes,
         "#settings-options-page" : saveSettingsOptions,
-        "#setalarm-page" : exitAlarm
+        "#setalarm-page" : cancelEditAlarm,
+        "#dismissalarm-page" : dismissAlarm
     };
 
     var currentPage = function() {
@@ -611,7 +617,7 @@ var app = (function ($) {
 
     var goPage = function(newpage,e) {
         // take care of page state
-        leaveCurrentPage( $(newpage).hasClass("transparent-page") );
+        leaveCurrentPage( $(newpage).hasClass("dialog") );
         renderers[newpage] && renderers[newpage](e);
         $(newpage).show();
 
@@ -632,6 +638,11 @@ var app = (function ($) {
         if ( _history.length > 1 ) {
             _history.shift();
             var cp = _history[0];
+            // dialogs cannot be revisited, so skip past them if we find them
+            while ( $(cp).hasClass("dialog") ) {
+                _history.shift();
+                cp = _history[0];
+            }
             renderers[cp] && renderers[cp]();
             $(cp).show();
         }

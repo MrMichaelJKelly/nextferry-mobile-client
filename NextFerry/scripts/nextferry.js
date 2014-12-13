@@ -115,6 +115,7 @@ var NextFerry = (function ($) {
             // case doesn't arise in our usage, so we don't bother.
             var dt = new Date(Date.now());
             if ( t > 24 * 60 ) {
+                dt.setDate( dt.getDate() + 1 );
                 t -= ( 24 * 60 );
             }
             dt.setHours( Math.floor(t / 60), t % 60, 0, 0 );

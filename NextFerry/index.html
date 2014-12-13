@@ -55,19 +55,25 @@
             </div>
         </div>
         <div id="show-alarm">
-            <p> Leave by <span id="alarm-leave-by"></span> for
-            <span id="alarm-ferry-time"></span> departure</p><br>
-            <span id="alarm-time-remaining"></span>
+            Leave by <span id="alarm-leave-by" class="time"></span>
+            <span id="alarm-time-remaining" class="time"></span>
         </div>
     </div>
     <!-- Set Alarm Dialog -->
-    <div id="setalarm-page" class="page transparent-page">
+    <div id="setalarm-page" class="page dialog">
         <div id="setalarm-dialog">
             <h3>Leave-By Alarm</h3>
             <div id="setalarm-slider"></div>
             <span id="setalarm-ferrytime"></span>
             <span id="setalarm-cancel" class="button">Remove</span>
             <span id="setalarm-submit" class="button">Set</span>
+        </div>
+    </div>
+    <!-- Dismiss Triggered Alarm Dialog -->
+    <div id="dismissalarm-page" class="page dialog">
+        <div id="dismissalarm-dialog">
+            <h2>Time to leave to catch the ferry!</h2>
+            <span id="dismissalarm-dismiss" class="button">Dismiss</span>
         </div>
     </div>
 

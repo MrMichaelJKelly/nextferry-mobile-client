@@ -89,11 +89,6 @@ li {
   /* initially, not showing */
   display: none;
 }
-/* except... */
-.page.transparent-page {
-  background: none;
-  z-index: 15;
-}
 #main-page {
   /* initially visible page */
   display: block;
@@ -109,14 +104,6 @@ li {
 }
 .scrollwrapper {
   overflow: hidden;
-}
-span.icon.return {
-  display: block;
-  position: absolute;
-  left: 10pt;
-  top: 14pt;
-  margin-right: -20pt; /* make it invisible to other things on page */
-  font-size: 14pt;
 }
 h1 {
   margin: 18pt 10pt;
@@ -149,6 +136,32 @@ h3 {
 }
 .disabled {
   color: #ccc !important;
+}
+
+.page.dialog {
+  background: none;
+  z-index: 15;
+}
+.dialog>div {
+  position: absolute;
+  width: 240px;
+  height: 180px;
+  left: 50%;
+  top: 50%;
+  margin-left: -120px;
+  margin-top: -90px;
+  background-color: white;
+  border: 2px solid;
+  border-radius: 10px;
+}
+.dialog h2, .dialog h3 {
+  text-align: center;
+  padding: 10px;
+}
+.dialog .button {
+  display: block;
+  position: absolute;
+  bottom: 10px;
 }
 
 
@@ -211,22 +224,26 @@ span[tGood=Good] {
   display: none; /* initial visibility */
   color: yellow;
   position: absolute;
-  top: 58pt;
+  top: 62pt;
   left: 15px;
-  right: 15px;
-  height: 50pt;
-  max-width: 320pt;
-  padding: 0 5pt;
+  padding: 10px;
   border: 2px solid;
   border-radius: 15px;
-  font-size: 16pt;
 }
-#show-alarm span {
+#alarm-leave-by {
   font-family: sans-serif;
+  font-size: 18pt;
 }
+#alarm-time-remaining {
+  font-family: monospace;
+  padding-left: 14px;
+  font-weight: bold;
+}
+
 
 span.alarmed {
   background-color: yellow;
+  font-color: #6D8299;
   margin-left: 5pt;
   border-radius: 10px;
 }
@@ -245,23 +262,7 @@ span.alarmed {
   border-radius: 50%;
 }
 
-#setalarm-dialog {
-  width: 240px;
-  height: 180px;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  margin-left: -100px;
-  margin-top: -100px;
-  background-color: white;
-  border: 2px solid;
-  border-radius: 10px;
-}
-#setalarm-dialog h3 {
-  text-align: center;
-  font-size: inherit;
-  padding: 10px;
-}
+
 #setalarm-ferrytime {
   display: block;
   position: absolute;
@@ -273,6 +274,15 @@ span.alarmed {
   font-size: 16pt;
   font-weight: bolder;
 }
+#setalarm-dialog .rangeslider[filltype=Good] {
+  background-color: green;
+}
+#setalarm-dialog .rangeslider[filltype=Risky] {
+  background-color: yellow;
+}
+#setalarm-dialog .rangeslider[filltype=TooLate] {
+  background-color: red;
+}
 #setalarm-slider {
   position: absolute;
   width: 160px;
@@ -282,19 +292,17 @@ span.alarmed {
   font-size: 16pt;
 }
 #setalarm-cancel {
-  display: block;
-  position: absolute;
   left: 10px;
-  bottom: 10px;
 }
 #setalarm-submit {
-  display: block;
-  position: absolute;
   right: 10px;
-  bottom: 10px;
   width: 96px;
   text-align: center;
 }
+#dismissalarm-dismiss {
+  right: 10px;
+}
+
 
 /* details page */
 #details-page {
@@ -402,8 +410,13 @@ span.alarmed {
   top: 56pt;
   bottom: 0;
   width: 100%;
+  overflow: hidden;
   font-family: serif;
   font-size: 14pt;
+}
+#alerts-list {
+  position: absolute;
+  width: 100%;
 }
 .alert-item {
   max-width: 400pt;
@@ -424,7 +437,7 @@ span.alarmed {
   color: gray;
 }
 
-/* settings style is a common structure used on all settings pages */
+/* settings-body is a common structure used on all settings pages */
 .settings-body {
   position: absolute;
   top: 20pt;
@@ -463,13 +476,6 @@ span.alarmed {
   width: 100%;
   background-color: white;
 }
-
-#settings-routes-form {
-  line-height: 130%;
-  padding-bottom: 0.5em;
-}
-
-
 .settings-body h2 {
   background-color: white;
   border-bottom: 1px solid #ADB3B9;
@@ -486,7 +492,12 @@ span.alarmed {
   font-size: 14pt;
 }
 
-/* special for options page */
+/* settings for individual settings page's bits */
+#settings-routes-form {
+  line-height: 130%;
+  padding-bottom: 0.5em;
+}
+
 #useloc, #reloadp {
   display: block;
   margin-top: 0.5em;

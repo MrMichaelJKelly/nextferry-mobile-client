@@ -15,6 +15,9 @@ var Alarm = (function($) {
 	// ferryTime and leaveByTime are in NFTime format (and date=today is implicit)
 	// asMillis is the full time of scheduled notification, including date.
 
+	var listeners = $.Callbacks();	// notification when alarm goes off
+	var timerID;	// ID of the setTimeout timer to actually trigger the alarm.
+
 	var init = function() {
 		currentAlarm = {};
 		potentialAlarm = undefined;
@@ -22,6 +25,7 @@ var Alarm = (function($) {
 		if ( window.localStorage["alarm"] ) {
 			currentAlarm = inflateAlarm(JSON.parse(window.localStorage["alarm"]));
 		}
+		setNotifications();
 	};
 
 	var inflateAlarm = function(al) {
@@ -113,27 +117,14 @@ var Alarm = (function($) {
 		currentAlarm.asMillis = leaveByDateTime.getTime();
 
 		window.localStorage["alarm"] = JSON.stringify( deflateAlarm(currentAlarm) );
-		if ( window.plugin ) {
-			window.plugin.notification.local.add({
-				id: "foo",
-				date: leaveByDateTime,
-				message: "Time to leave for the ferry!",
-				repeat: "minutely",
-				badge: 1
-			});
-		}
-		else {
-			console.log("notification not available");
-		}
+		setNotifications();
 	};
 
 	var clearAlarm = function() {
 		currentAlarm = {};
 		delete window.localStorage["alarm"];
 		Timer.timerTickingOff();
-		if ( window.plugin ) {
-			window.plugin.notification.local.cancelAll();
-		}
+		setNotifications();
 	};
 
 	var cancelEdit = function() {
@@ -146,6 +137,10 @@ var Alarm = (function($) {
 		if ( currentAlarm == {} || !currentAlarm.isSet || !currentAlarm.asMillis )
 			return false;
 		else if ( currentAlarm.asMillis < Date.now() ) {
+			// we have an alarm, but it is out of date --- we must not have caught
+			// it with our timeout.
+			// so trigger the event now, anyway, which might get noticed.
+			listeners.fire("late");
 			currentAlarm.isSet = false;
 			return false;
 		}
@@ -154,12 +149,54 @@ var Alarm = (function($) {
 		}
 	};
 
-	// manage a countdown timer
+
+	// we do notification two ways: via the system local notification, and internally
+	// via a triggered event.
+	var setNotifications = function() {
+		checkAlarm(); // get rid of out of date alarms
+
+		if ( currentAlarm.isSet ) {
+			var delay = currentAlarm.asMillis - Date.now();
+			if ( timerID ) {
+				clearTimeout(timerID);
+			}
+			timerID = setTimeout( function() {
+				// check to see if we still really belong here?
+				listeners.fire("now");
+			}, delay);
+
+			if ( window.plugin ) {
+				// instead of trying to keep tabs on what notification is out there, we
+				// simply re-issue the notification we want or cancel if we don't want.
+				// much more robust.
+				window.plugin.notification.local.add({
+					id: "NextFerryAlarm",
+					date: currentAlarm.leaveByTime,
+					message: "Time to leave for the ferry!",
+					repeat: "minutely",
+					autoCancel: true
+				});
+			}
+			else {
+				console.log("notification not available");
+			}
+		}
+		else { // unset
+			if ( timerID ) {
+				clearTimeout(timerID);
+				timerID = undefined;
+			}
+			if ( window.plugin ) {
+				window.plugin.notification.local.cancel("NextFerryAlarm");
+			}
+		}
+	};
+
+
+	// display a countdown timer on an element.
 	var Timer = function() {
 		var timerElement = undefined;
 		var ticking = false;
-		var hoursminutes = "";	// the part of the string that changes slowly
-		var lastmin = 0;		// the clock time that was last displayed.
 
 		var setTimer = function(selector) {
 			timerElement = selector[0];
@@ -222,7 +259,7 @@ var Alarm = (function($) {
 		route : function() { return (potentialAlarm||currentAlarm).route; },
 		ferryTime : function() { return (potentialAlarm||currentAlarm).ferryTime; },
 		leaveByTime : function() { return leaveByTime(potentialAlarm||currentAlarm); },
-		goodness : function() { return goodness(potentialAlarm||currentAlarm); },
+		goodness : function(t) { return goodness(potentialAlarm||currentAlarm, t); },
 
 		init : init,
 		configure : configure,
@@ -231,6 +268,7 @@ var Alarm = (function($) {
 		cancelEdit : cancelEdit,
 		clearAlarm : clearAlarm,
 		checkAlarm : checkAlarm,
+		listeners : listeners,
 
 		Timer : Timer
 	};
