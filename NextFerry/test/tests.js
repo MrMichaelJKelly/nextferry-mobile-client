@@ -137,10 +137,24 @@ function nextFerryTests() {
 		assert.equal( NextFerry.NFTime.display( times[24] ), "00:55" );
 		assert.equal( NextFerry.NFTime.display( times[25] ), "02:10");
 
-		assert.equal( NextFerry.NFTime.toDate(1234).toTimeString().substring(0,8), "20:34:00", "back converting time");
-		assert.equal( NextFerry.NFTime.toDate(623).toTimeString().substring(0,8), "10:23:00", "back converting morning time");
-		assert.equal( NextFerry.NFTime.toDate(1505).toTimeString().substring(0,8), "01:05:00", "back converting after-mightnight time");
-
+		var today = new Date(Date.now());
+		today.setHours(10,0,0,0); // pick a defined time of day.
+		var comparetime = function(start, result) {
+			var newdate = NextFerry.NFTime.toDate(start);
+			return newdate.toTimeString().substring(0,8) === result;
+		};
+		var comparedate = function(start, delta) {
+			var newdate = NextFerry.NFTime.toDate(start);
+			newdate.setHours(10,0,0,0);
+			return (newdate - today) === delta*24*60*60*1000;
+		};
+		assert.ok( comparetime(1234, "20:34:00"), "back converting time");
+		assert.ok( comparetime( 623, "10:23:00"), "back converting morning time");
+		assert.ok( comparetime(1505, "01:05:00"), "back converting after-mightnight time");
+		assert.ok( comparetime(   5, "00:05:00"), "back converting after-midnight the other way around");
+		assert.ok( comparedate(1234, 0), "date stays the same");
+		assert.ok( comparedate(1505, 1), "knows it is tomorrow");
+		assert.ok( comparedate(   5, 0), "unless it is expressed this way");
 
 		NextFerry.NFTime.mockOn( 10, 10, 0 );
 		assert.equal( NextFerry.todaysScheduleType(), "weekend" );
@@ -228,7 +242,7 @@ function nextFerryTests() {
     assert.equal( faunt.tGoodness("east", departure, departure+10), "TooLate", "It already left");
     assert.equal( faunt.tGoodness("east", departure, departure-10), "TooLate", "We can't get there in time");
     assert.equal( faunt.tGoodness("east", departure, departure-19), "Risky", "Maybe if we're lucky");
-    assert.equal( faunt.tGoodness("east", departure, departure-20), "Risky", "If all goes perfectly");
+    assert.equal( faunt.tGoodness("east", departure, departure-20), "Good", "If all goes perfectly");
     assert.equal( faunt.tGoodness("east", departure, departure-100), "Good", "80 minutes to spare is plenty good" );
     assert.equal( faunt.tGoodness("east", departure, departure-300), "Indifferent", "yeah, whatever" );
 
@@ -264,8 +278,7 @@ function nextFerryTests() {
 		assert.equal( $(".routedisplay.checked").length, 11, "initially all routes are checked");
 
 		// set pt townsend to false
-		$("#r16").removeClass( "checked" );
-		assert.equal( $("#r16").hasClass( "checked "), false, "check is removed" );
+		$(".routedisplay[routeid=16]").removeClass( "checked" );
 
 		// is it correctly reflected in internal state?
 		app.goPage("#settings-about-page"); // causes state to be saved.

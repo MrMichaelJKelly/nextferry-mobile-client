@@ -78,7 +78,7 @@ var Alarm = (function($) {
 	};
 
 	var goodness = function(al, t) {
-		return (al.term ? al.term.tGoodness(t) : "Unknown");
+		return (al.term ? al.term.tGoodness(al.ferryTime-t) : "Unknown");
 	};
 
 	var configure = function(rid,dir,ferry) {

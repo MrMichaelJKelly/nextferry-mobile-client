@@ -220,6 +220,13 @@ span[tGood=Good] {
   color: #54E81C;
   font-weight: bold;
 }
+span.alarmed {
+  background-color: yellow;
+  color: #6D8299;
+  margin-left: 5pt;
+  padding-right: 10pt;
+  border-radius: 10px;
+}
 #show-alarm {
   display: none; /* initial visibility */
   color: yellow;
@@ -227,6 +234,7 @@ span[tGood=Good] {
   top: 62pt;
   left: 15px;
   padding: 10px;
+  margin-right: 10px;
   border: 2px solid;
   border-radius: 15px;
 }
@@ -235,18 +243,14 @@ span[tGood=Good] {
   font-size: 18pt;
 }
 #alarm-time-remaining {
-  font-family: monospace;
+  font-family: sans-serif;
   padding-left: 14px;
+  font-size: 18pt;
   font-weight: bold;
 }
 
 
-span.alarmed {
-  background-color: yellow;
-  font-color: #6D8299;
-  margin-left: 5pt;
-  border-radius: 10px;
-}
+
 #routes span[astate] {
   font-size: 12pt;
   padding: 3px;
@@ -266,8 +270,8 @@ span.alarmed {
 #setalarm-ferrytime {
   display: block;
   position: absolute;
-  bottom: 67px;
-  left: 175px;
+  bottom: 68px;
+  left: 170px;
   border-left: 1px solid;
   padding-left: 4px;
   font-family: monospace;
@@ -275,17 +279,18 @@ span.alarmed {
   font-weight: bolder;
 }
 #setalarm-dialog .rangeslider[filltype=Good] {
-  background-color: green;
+  background-color: #54E81C;
 }
 #setalarm-dialog .rangeslider[filltype=Risky] {
-  background-color: yellow;
+  background-color: #e8d100;
 }
 #setalarm-dialog .rangeslider[filltype=TooLate] {
-  background-color: red;
+  background-color: #c00;
 }
+
 #setalarm-slider {
   position: absolute;
-  width: 160px;
+  width: 155px;
   left: 15px;
   bottom: 60px;
   font-family: monospace;

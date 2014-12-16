@@ -110,12 +110,17 @@ var NextFerry = (function ($) {
         var toDate = function(t) {
             // given one of our times, return the corresponding Date object
             // for that time today.
+            // Complicated by having to check both t and now to determine what
+            // the correct date should be.  I apologize to anyone who has to read this.
             // CAVEAT: this doesn't handle the "reverse wraparound" (it is now
             // early morning and the argument t is from yesterday), but that
             // case doesn't arise in our usage, so we don't bother.
             var dt = new Date(Date.now());
-            if ( t > 24 * 60 ) {
-                dt.setDate( dt.getDate() + 1 );
+            if ( t > 24 * 60 )  {
+                if ( now() < 24 * 60 ) {
+                    // correct the date only when we should.
+                    dt.setDate( dt.getDate() + 1 );
+                }
                 t -= ( 24 * 60 );
             }
             dt.setHours( Math.floor(t / 60), t % 60, 0, 0 );
@@ -338,8 +343,7 @@ var NextFerry = (function ($) {
     };
     Route.prototype.tGoodness = function(dir,departuretime,now) {
         now = now || NFTime.now();
-        var term = _allTerminals[ this.terminals[ dir === "east" ? "west" : "east" ] ];
-        return term.tGoodness(now,_buffertime,departuretime);
+        return this.termFrom(dir).tGoodness(departuretime - now);
     };
 
 
@@ -381,40 +385,27 @@ var NextFerry = (function ($) {
     Terminal.find = function(code) {
         return _allTerminals[code];
     };
-    Terminal.prototype.tGoodness = function(now,buffer,departuretime) {
-        // Time goodness depends on the departure time, the current time, travel time to this
-        // terminal, and user-specified buffer time.
-    	//
-        // If we don't know the travel time, we can't estimate goodness
-        // If we do know the travel time, our expected arrival is now + travel time,
-        // to which we add buffer time to account for variability in travel time, desire to arrive early, ...
-        // buffer time primarily affects what will appear "risky"
-        //
-        // If our expected arrival time is:
-        //     after departure (with a fudge factor), it is too late
-        //     less than buffer time before departure, it is risky
-        //     otherwise okay.
-        //
+
+    Terminal.prototype.tGoodness = function(delta) {
+        // Is delta enough time to get to the terminal, given current travel time
+        // and leaving enough buffer time (as determined by the user) to spare?
+        // Returns one of:
+        //  "TooLate":  no, not at all
+        //  "Risky" : less than buffer time is left
+        //  "Good" : yes, perfect timing
+        //  "Indifferent" : time is more than 2h from now, so we don't care, or
+        //  "Unknown" : we can't estimate, because we don't know the travel time.
         if (this.tt === false) // ! not just falsey
             return "Unknown";
-        else if (now + (0.9 * this.tt) >= departuretime)
+        else if ( delta < this.tt * 0.9 )  // fudge factor.
             return "TooLate";
-        else if (now + this.tt + buffer >= departuretime)
+        else if ( delta < this.tt + _buffertime )
             return "Risky";
-        else if (now + this.tt + buffer + 120 < departuretime)
-        	// two hours is the *max* time we care about
+        else if ( delta > this.tt + _buffertime + 120 )
             return "Indifferent";
         else
             return "Good";
     };
-    Terminal.prototype.tMinTooLate = function(buffer, departuretime) {
-        // another packaging of tGoodness, returing the time that
-        // separates Risky from TooLate, or 0 if undefined.
-        return (this.tt === false ? 0 : departuretime - this.tt);
-    }
-    Terminal.prototype.tMinRisky = function(buffer, departuretime) {
-        return (this.tt === false ? 0 : departuretime - (this.tt + buffer));
-    }
     var _allTerminals = {
         1 : new Terminal(1, "Anacortes"),
         3 : new Terminal(3, "Bainbridge Island"),

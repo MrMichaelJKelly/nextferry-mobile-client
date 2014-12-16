@@ -605,19 +605,28 @@ var app = (function ($) {
         return _history[0];
     };
 
-    var leaveCurrentPage = function(keep) {
+    var leaveCurrentPage = function( keep ) {
         if (_history.length > 0) {
-            var curr = _history[0];
+            var curr = currentPage();
             exiters[curr] && exiters[curr]();
-            if ( ! keep  ) {
+            if ( ! keep ) {
                 $(curr).hide();
             }
         }
     };
 
     var goPage = function(newpage,e) {
+        var currentIsDialog = $(currentPage()).hasClass("dialog");
+        var newIsDialog = $(newpage).hasClass("dialog");
+
+        if ( currentIsDialog ) {
+            // dialogs are a bit different: they are always dismissed even
+            // when moving "forward".  accomplish that by going backwards first.
+            backPage();
+        }
+
         // take care of page state
-        leaveCurrentPage( $(newpage).hasClass("dialog") );
+        leaveCurrentPage( newIsDialog );
         renderers[newpage] && renderers[newpage](e);
         $(newpage).show();
 
@@ -638,11 +647,6 @@ var app = (function ($) {
         if ( _history.length > 1 ) {
             _history.shift();
             var cp = _history[0];
-            // dialogs cannot be revisited, so skip past them if we find them
-            while ( $(cp).hasClass("dialog") ) {
-                _history.shift();
-                cp = _history[0];
-            }
             renderers[cp] && renderers[cp]();
             $(cp).show();
         }
