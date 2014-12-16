@@ -275,8 +275,12 @@
     NSString* id           = [userInfo objectForKey:@"id"];
     NSString* json         = [userInfo objectForKey:@"json"];
 
-    [[UIApplication sharedApplication]
-     cancelLocalNotification:notification];
+    if (notification==nil) {
+        NSLog(@"cancelNotification: Notification equals nil");
+    }else{
+        [[UIApplication sharedApplication]
+         cancelLocalNotification:notification];
+    }
 
     if (fireEvent) {
         [self fireEvent:@"cancel" id:id json:json];
@@ -568,8 +572,12 @@
 
     for (UILocalNotification* notification in notifications)
     {
-        NSString* notId = [notification.userInfo objectForKey:@"id"];
-
+        NSString* notId = NULL;
+        if ([[notification.userInfo objectForKey:@"id"] isKindOfClass:[NSString class]] ) {
+            notId = [notification.userInfo objectForKey:@"id"];
+        } else {
+            notId = [[notification.userInfo objectForKey:@"id"] stringValue];
+        }
         if ([notId isEqualToString:id]) {
             return notification;
         }
