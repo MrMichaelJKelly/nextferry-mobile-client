@@ -11,7 +11,8 @@
     "android.permission.INTERNET"
   ],
   "CorePlugins": [
-    "org.apache.cordova.device"
+    "org.apache.cordova.device",
+    "org.apache.cordova.media"
   ],
   "DeviceOrientations": [
     "Portrait",
