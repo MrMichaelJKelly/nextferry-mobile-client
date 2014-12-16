@@ -1,0 +1,53 @@
+{
+  "ProjectGuid": "69b8438c-3edb-4985-9a9c-4cf1ea10664d",
+  "ProjectTypeGuids": "{070BCB52-5A75-4F8C-A973-144AF0EAFCC9}",
+  "AppIdentifier": "me.denisesandbox.NextFerry",
+  "ProjectName": "NextFerry",
+  "IsRunnable": "true",
+  "FrameworkVersion": "3.5.0",
+  "AndroidPermissions": [
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.INTERNET"
+  ],
+  "CorePlugins": [
+    "org.apache.cordova.device"
+  ],
+  "DeviceOrientations": [
+    "Portrait",
+    "Landscape"
+  ],
+  "iOSStatusBarStyle": "Default",
+  "AndroidHardwareAcceleration": "true",
+  "WP8SupportedResolutions": [
+    "ID_RESOLUTION_WVGA",
+    "ID_RESOLUTION_WXGA",
+    "ID_RESOLUTION_HD720P"
+  ],
+  "BundleVersion": "4.0",
+  "Framework": "Cordova",
+  "DisplayName": "Next Ferry",
+  "Author": "denisesandbox@gmail.com",
+  "Description": "Ferry times for Washington State Ferries",
+  "iOSDeviceFamily": [
+    "1",
+    "2"
+  ],
+  "iOSBackgroundMode": [],
+  "AndroidVersionCode": "1",
+  "WP8TileTitle": "NextFerry",
+  "WP8ProductID": "{69b8438c-3edb-4985-9a9c-4cf1ea10664d}",
+  "WP8PublisherID": "{decd56f9-d056-43c3-9287-9735346bb520}",
+  "WP8Publisher": "denisesandbox@gmail.com",
+  "WP8Capabilities": [
+    "ID_CAP_LOCATION",
+    "ID_CAP_NETWORKING"
+  ],
+  "WP8Requirements": [],
+  "projectVersion": 1,
+  "CordovaPluginVariables": {
+    "com.telerik.mobiletesting": {
+      "IOS_APP_URL": ""
+    }
+  }
+}

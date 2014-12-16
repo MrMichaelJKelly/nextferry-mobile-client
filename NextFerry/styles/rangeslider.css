@@ -1,0 +1,37 @@
+.rangeslider, .rangeslider__fill {
+  background: #e6e6e6;
+  display: block;
+  height: 20px;
+  width: 100%;
+  position: relative;
+  margin: 10px 0;
+}
+
+.rangeslider--disabled {
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=40);
+  opacity: 0.4;
+}
+
+.rangeslider__handle {
+  background: white;
+  border: 1px solid;
+  border-radius: 15px;
+  display: inline-block;
+  width: 15px;
+  height: 28px;
+  position: absolute;
+  top: -4.5px;
+}
+
+/* I got rid of the actual bubble, but keeping the name */
+.rangeslider__value-bubble {
+  display: block;
+  padding: 5px;
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: 5px;
+  background-color: white;
+  z-index: 30;
+}
+
+

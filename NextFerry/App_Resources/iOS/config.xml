@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget>
+    <!-- ios -->
+    <preference name="AutoHideSplashScreen" value="true" />
+    <preference name="BackupWebStorage" value="none" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="EnableViewportScale" value="true" />
+    <preference name="FadeSplashScreen" value="false" />
+    <preference name="SuppressesIncrementalRendering" value="false" />
+
+    <content src="index.html" />
+
+    <plugins>
+        <plugin name="Device" value="CDVDevice" />
+        <plugin name="Geolocation" value="CDVLocation" />
+    </plugins>
+
+    <access origin="*" />
+</widget>

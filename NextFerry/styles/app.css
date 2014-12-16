@@ -1,0 +1,569 @@
+/* normalizing */
+body {
+  overflow: hidden;
+
+  -ms-touch-action: none;
+  touch-action: none;
+  -webkit-touch-callout: none;
+
+  -ms-user-select: none;
+  -webkit-user-select: none;
+
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: transparent; /* For some Androids */
+
+  font-family: Dosis;
+  font-size: 20pt;
+  color: #3E556D;
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+li {
+  list-style-type: none;
+}
+
+
+/* Icons */
+@font-face {
+  font-family: Icons;
+  src: url('fonts/webhostinghub-glyphs.ttf');
+  font-weight: 500;
+  font-style: normal;
+}
+.icon {
+  font-family: Icons;
+  font-size: 90%;
+}
+.icon.outline {
+  font-size: 75%;
+  padding: 0.1em;
+  border: solid 1px;
+  border-radius: 20%;
+}
+.icon.info::before { content: "\F315"; }
+.icon.home::before { content: "\F02B";}
+.icon.list::before { content: "\F127"}
+.icon.alert::before { content: "\F05A"; }
+.icon.return::before { content: "\F489"; }
+.icon.settings::before { content: "\F00F"; }
+.icon.checkmark::before { content: "\2713"; }
+.icon[glyph]::before { content: attr(glyph); }
+
+
+/* general page & tab structure */
+#footer {
+  position: fixed;
+  bottom: 0;
+  height: 22pt;
+  width: 100%;
+  background-color: #6D8299;
+  z-index: 10;
+}
+#footer ul {
+  position: absolute;
+  left: 50%;
+  margin-left: -105pt; /* half the width, to center it */
+  /* width:  (n * iconwidth) + (2n * padding width) + extra space */
+  /* n = 5, iconwidth = 14pt, padding width = 12pt, extra space = 20pt */
+}
+#footer li {
+  font-size: 14pt;
+  color: white;
+  padding: 2pt 12pt;
+}
+#footer li.spaceafter {
+  margin-right: 20pt;
+}
+
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 22pt;
+  overflow: hidden;
+  background: url("images/background.jpg") no-repeat right bottom;
+  background-size: cover;
+  /* initially, not showing */
+  display: none;
+}
+#main-page {
+  /* initially visible page */
+  display: block;
+}
+
+
+/* some basic common structures */
+.hnav {
+  overflow: hidden;
+}
+.hnav>li {
+  float: left;
+}
+.scrollwrapper {
+  overflow: hidden;
+}
+h1 {
+  margin: 18pt 10pt;
+  font-size: 28pt;
+  font-weight: 500;
+}
+h2 {
+  padding: 8pt;
+  font-size: 22pt;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 12pt;
+}
+h3 {
+  font-size: 20pt;
+  font-weight: 400;
+  margin-bottom: 0.25em;
+}
+.button {
+  padding: 0.2em;
+  padding-bottom: 0.1em;
+  border: 1px solid;
+  background: none;
+  border-radius: 0.4em;
+  -webkit-transition: background-color 0.2s;
+  transition: background-color 0.2s;
+}
+.button:active:not(.disabled) {
+  background-color: #ADB3B9;
+}
+.disabled {
+  color: #ccc !important;
+}
+
+.page.dialog {
+  background: none;
+  z-index: 15;
+}
+.dialog>div {
+  position: absolute;
+  width: 240px;
+  height: 180px;
+  left: 50%;
+  top: 50%;
+  margin-left: -120px;
+  margin-top: -90px;
+  background-color: white;
+  border: 2px solid;
+  border-radius: 10px;
+}
+.dialog h2, .dialog h3 {
+  text-align: center;
+  padding: 10px;
+}
+.dialog .button {
+  display: block;
+  position: absolute;
+  bottom: 10px;
+}
+
+
+/* main page */
+
+#title>.char1 {
+  letter-spacing: -1px;
+}
+#title>.char6 {
+  letter-spacing: -4pt;
+}
+
+#direction {
+  text-transform: capitalize;
+  padding: 0 7pt 0 5pt;
+  margin-left: 4pt;
+  border: 2px solid;
+}
+#routes-wrapper {
+  position: absolute;
+  width: 100%;
+  top: 55pt;
+  left: 11pt;
+  right: 10pt;
+  bottom: 10pt;
+}
+#routes-wrapper.smaller {
+  top: 115pt;
+}
+#routes {
+  float: left;
+  margin-right: -200pt; /* allow overlap with times */
+  font-weight: 300;
+}
+#times-wrapper {
+  width: 80%;
+  float: right;
+  overflow: hidden;
+  margin-top: 1.1em;
+}
+#times {
+  font-family: monospace;
+  white-space: nowrap;
+  width: 1000pt;
+}
+#routes li, #times li {
+  height: 2.22em;
+}
+span[tGood=TooLate] {
+  color: #c00;
+}
+span[tGood=Risky] {
+  color: #e8d100;
+}
+span[tGood=Good] {
+  color: #54E81C;
+  font-weight: bold;
+}
+#show-alarm {
+  display: none; /* initial visibility */
+  color: yellow;
+  position: absolute;
+  top: 62pt;
+  left: 15px;
+  padding: 10px;
+  border: 2px solid;
+  border-radius: 15px;
+}
+#alarm-leave-by {
+  font-family: sans-serif;
+  font-size: 18pt;
+}
+#alarm-time-remaining {
+  font-family: monospace;
+  padding-left: 14px;
+  font-weight: bold;
+}
+
+
+span.alarmed {
+  background-color: yellow;
+  font-color: #6D8299;
+  margin-left: 5pt;
+  border-radius: 10px;
+}
+#routes span[astate] {
+  font-size: 12pt;
+  padding: 3px;
+  padding-top: 2px;
+  margin-right: 2pt;
+}
+#routes span[astate=false] {
+  display: none;
+}
+#routes span[astate=alerts_unread] {
+  color: yellow;
+  background-color: #6D8299;
+  border-radius: 50%;
+}
+
+
+#setalarm-ferrytime {
+  display: block;
+  position: absolute;
+  bottom: 67px;
+  left: 175px;
+  border-left: 1px solid;
+  padding-left: 4px;
+  font-family: monospace;
+  font-size: 16pt;
+  font-weight: bolder;
+}
+#setalarm-dialog .rangeslider[filltype=Good] {
+  background-color: green;
+}
+#setalarm-dialog .rangeslider[filltype=Risky] {
+  background-color: yellow;
+}
+#setalarm-dialog .rangeslider[filltype=TooLate] {
+  background-color: red;
+}
+#setalarm-slider {
+  position: absolute;
+  width: 160px;
+  left: 15px;
+  bottom: 60px;
+  font-family: monospace;
+  font-size: 16pt;
+}
+#setalarm-cancel {
+  left: 10px;
+}
+#setalarm-submit {
+  right: 10px;
+  width: 96px;
+  text-align: center;
+}
+#dismissalarm-dismiss {
+  right: 10px;
+}
+
+
+/* details page */
+#details-page {
+  font-size: 16pt;
+}
+#dn-h2 {
+  font-size: 18pt;
+  margin-top: -20pt;
+}
+#details-body {
+  width: 200pt;
+  margin: auto;
+}
+#details-body li {
+  width: 90pt;
+  height: 90pt;
+  padding: 5pt;
+  float: left;
+  text-align: center;
+  font-weight: 500;
+  background-color: #BBCCDE;
+}
+#details-body li[dir=west][day=weekday],
+#details-body li[dir=east][day=weekend] {
+  background-color: #6D8299;
+  color: white;
+}
+#details-body li[dir]:after {
+  content: attr(dir);
+  display: block;
+  font-size: smaller;
+}
+#details-body li[day=weekday]:before {
+  content: "M - F";
+  display: block;
+  font-size: smaller;
+  margin-top: 5pt;
+}
+#details-body li[day=weekend]:before {
+  content: "weekend";
+  display: block;
+  font-size: smaller;
+  margin-top: 5pt;
+}
+#details-body #dn-alerts {
+  width: 190pt;
+  padding-top: 10pt;
+  background-color: #6D8299;
+  color: white;
+}
+#details-body #dn-alerts[astate=false] {
+  display: none;
+}
+#details-body #dn-alerts[astate=alerts_unread] {
+  color: yellow;
+}
+
+/* schedule page */
+#schedule-header>table {
+  font-size: 14pt;
+  border-spacing: 10pt 0pt;
+  margin-left: 10pt;
+}
+#schedule-header tbody {
+  vertical-align: baseline;
+}
+.sh-deco {
+  text-align: right;
+  font-size: smaller;
+  font-style: italic;
+}
+.sh-deco2 {
+  font-weight: bold;
+  vertical-align: -1px;
+}
+.sh-deco3 {
+  font-size: smaller;
+  font-weight: bold;
+  text-align: left;
+}
+#schedule-body {
+  position: absolute;
+  top: 96pt;
+  bottom: 0;
+  width: 100%;
+}
+/* timetable styling */
+#timetable {
+  font-family: monospace;
+  font-size: 16pt;
+  border-spacing: 15pt 0pt;
+  margin-left: 25pt;
+}
+#amhead, #pmhead {
+  text-align: center;
+}
+#amtimes, #pmtimes {
+  text-align: right;
+  vertical-align: top;
+}
+
+/* alerts subpage */
+#alerts-wrapper {
+  position: absolute;
+  top: 56pt;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  font-family: serif;
+  font-size: 14pt;
+}
+#alerts-list {
+  position: absolute;
+  width: 100%;
+}
+.alert-item {
+  max-width: 400pt;
+  margin: 6pt 12pt;
+  word-wrap: break-word;
+}
+.alert-item.unread:before {
+  content: "New!";
+  font-size: smaller;
+  font-weight: bold;
+  padding: 0 1pt;
+  margin-right: 4pt;
+  background-color: yellow;
+}
+.posted {
+  font-family: monospace;
+  font-size: smaller;
+  color: gray;
+}
+
+/* settings-body is a common structure used on all settings pages */
+.settings-body {
+  position: absolute;
+  top: 20pt;
+  bottom: 20pt;
+  width: 320pt;
+  /* centering a positioned element */
+  left: 50%;
+  margin-left: -160pt;
+  overflow: hidden;
+}
+@media (max-width: 320pt) {
+  .settings-body {
+    width: 100%;
+    left: 0;
+    margin-left: 0;
+    bottom: 0;
+    border: none;
+  }
+}
+@media (min-width: 450pt) {
+  .settings-body {
+    width: 400pt;
+    margin-left: -200pt;
+  }
+}
+
+.settings-body .scrollwrapper {
+  position: absolute;
+  top: 58pt;
+  bottom: 6pt;
+  width: 100%;
+  overflow: hidden;
+}
+.settings-body .scrollee {
+  position: absolute;
+  width: 100%;
+  background-color: white;
+}
+.settings-body h2 {
+  background-color: white;
+  border-bottom: 1px solid #ADB3B9;
+}
+.settings-body li {
+  padding: 8pt;
+  border-bottom: solid 1px #ADB3B9;
+}
+.settings-body p {
+  padding: 0.5em;
+}
+.explain {
+  font-family: serif;
+  font-size: 14pt;
+}
+
+/* settings for individual settings page's bits */
+#settings-routes-form {
+  line-height: 130%;
+  padding-bottom: 0.5em;
+}
+
+#useloc, #reloadp {
+  display: block;
+  margin-top: 0.5em;
+  margin-left: 1.9em;
+  text-indent: -2em;
+}
+.special-label2 {
+  margin-left: 1.25em;
+}
+#settings-options-page .rangeslider {
+  display: inline-block;
+  width: 140pt;
+  margin: 0 10pt 3pt 5pt;
+}
+
+/* special for about page */
+#settings-about-page p {
+  font-size: 14pt;
+  font-family: serif;
+}
+.br {
+  border-top: solid 1px #ADB3B9;
+  margin: 2pt 0;
+}
+#settings-about-page #aboutsched {
+  font-weight: bold;
+}
+
+
+/* we do our own inputs for two reasons:
+ * 1) to get the style we like and
+ * 2) so we can get around the iscroll/preventdefault issue.
+ */
+
+span[type="radio"]:before {
+  content: "";
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border: 1px solid #324151;
+  margin: 0 0.25em -0.05em;
+  border-radius: 50%;
+}
+span[type="radio"].checked:before {
+  background-color: #324151;
+}
+
+span[type="checkbox"]:before {
+  content: "\2713";
+  font-family: Icons;
+  font-size: 80%;
+  color: white;
+  border: 1px solid #324151;
+  vertical-align: 1pt;
+  padding: 0.1em 0.15em;
+  margin: 0 0.25em 0 0.6em;
+  border-radius: 20%;
+}
+span[type="checkbox"].checked:before {
+  background-color: #324151;
+}
+
+
+
+#qunit-scroll-container {
+  height: 30ex;
+  overflow: hidden;
+  position: relative;
+}

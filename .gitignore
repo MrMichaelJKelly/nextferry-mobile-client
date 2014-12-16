@@ -1,3 +1,8 @@
 */bin
 */obj
 *.user-settings.xml
+*.log
+*.apk
+*.ipa
+NextFerry/.ab
+Experiments
