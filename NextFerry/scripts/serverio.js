@@ -132,7 +132,9 @@ var ServerIO = (function($) {
                     }
                 },
                 handleError, // error handler for getAccuratePosition
-                undefined,
+                function(loc) {
+                    console.log("Location tracking: " + loc.timestamp.toTimeString().substring(0,8) + ": got " + loc.coords.accuracy);
+                },
                 {
                     timeout: 3 * 60 * 1000,
                     maxtries: 3,
