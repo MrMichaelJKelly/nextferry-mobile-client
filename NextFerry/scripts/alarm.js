@@ -169,13 +169,15 @@ var Alarm = (function($) {
 				// instead of trying to keep tabs on what notification is out there, we
 				// simply re-issue the notification we want or cancel if we don't want.
 				// much more robust.
-				window.plugin.notification.local.add({
+				var args = {
 					id: "NextFerryAlarm",
-					date: currentAlarm.leaveByTime,
+					date: new Date(currentAlarm.asMillis),
 					message: "Time to leave for the ferry!",
 					repeat: "minutely",
 					autoCancel: true
-				});
+				};
+				console.log(args)
+				console.log( window.plugin.notification.local.add(args) );
 			}
 			else {
 				console.log("notification not available");
