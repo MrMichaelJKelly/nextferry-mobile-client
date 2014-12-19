@@ -22,10 +22,12 @@ var app = (function ($) {
     //======= Initialization and event wiring
 
     var init = function() {
+        console.log("starting up");
         NextFerry.init();
         Alarm.init();
         $("#title").lettering();
         goPage("#main-page");
+        console.log("main page displayed");
 
         // wire up asynch responses
         document.addEventListener("pause", onPause );
@@ -44,6 +46,7 @@ var app = (function ($) {
         if ( window.localStorage["route"] ) {
             route = NextFerry.Route.find( window.localStorage["route"] );
         }
+        console.log("async wiring commplete");
 
         // ask for new schedule, alerts, etc.
         ServerIO.requestUpdate();
@@ -52,6 +55,7 @@ var app = (function ($) {
         settingsInit();
         setAlarmInit();
         Alarm.Timer.setTimer($("#alarm-time-remaining"));
+        console.log("alarm init");
 
         // wire up navigation and user actions
         document.addEventListener("backbutton", backPage );
@@ -77,6 +81,8 @@ var app = (function ($) {
         ensureScroller("#times-wrapper", { scrollX: true, scrollY: false });
         updateScroller("#times-wrapper",500);
         updateScroller("#routes-wrapper",100);
+
+        console.log("all init complete");
 
         // done with app construction
         // if test run, divert to test page

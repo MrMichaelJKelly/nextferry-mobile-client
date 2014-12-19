@@ -177,7 +177,7 @@ var Alarm = (function($) {
 					autoCancel: true
 				};
 				console.log(args)
-				console.log( window.plugin.notification.local.add(args) );
+				window.plugin.notification.local.add(args);
 			}
 			else {
 				console.log("notification not available");

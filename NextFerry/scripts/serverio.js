@@ -132,14 +132,13 @@ var ServerIO = (function($) {
                     }
                 },
                 handleError, // error handler for getAccuratePosition
-                function(loc) {
-                    console.log("Location tracking: " + loc.timestamp.toTimeString().substring(0,8) + ": got " + loc.coords.accuracy);
-                },
+                undefined,
                 {
                     timeout: 3 * 60 * 1000,
                     maxtries: 3,
                     accuracy: 100,
-                    maximumAge: 5 * 60 * 1000
+                    maximumAge: 5 * 60 * 1000,
+                    log: true
                 }
             );
         }
@@ -151,7 +150,7 @@ var ServerIO = (function($) {
 
     var handleError = function(ex) {
         _cancellable = undefined;
-        console.log( "Received error" );
+        console.log( "geo received error" );
         console.log( ex );
         switch( ex.code ) {
             case 1: _status = "cannot detect location: permission denied."; break;
