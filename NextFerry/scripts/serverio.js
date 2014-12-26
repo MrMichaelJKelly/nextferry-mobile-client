@@ -111,7 +111,7 @@ var ServerIO = (function($) {
             // asynch request to get current position which
             //   calls asynch request to get travel times
             _status = "detecting location.";
-            _cancellable = getAccuratePosition(
+            _cancellable = smartPosition(
                 function(loc) {
                     console.log("got position!");
                     _lastposition = Date.now();
@@ -126,12 +126,12 @@ var ServerIO = (function($) {
                         });
                     }
                     else {
-                        console.log("...but not accurate enough :-(");
+                        console.log("...but not accurate enough: " + loc.coords.accuracy );
                         _status = "location too inaccurate to estimate travel times.";
                         _requestTTdelay = false;
                     }
                 },
-                handleError, // error handler for getAccuratePosition
+                handleError, // error handler for smartPosition
                 undefined,
                 {
                     timeout: 3 * 60 * 1000,
