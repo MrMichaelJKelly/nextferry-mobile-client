@@ -80,6 +80,8 @@ var geolocation = {
         argscheck.checkArgs('fFO', 'geolocation.getCurrentPosition', arguments);
         options = parseParameters(options);
 
+        mylog("you win a prize");
+
         // Timer var that will fire an error callback if no position is retrieved from native
         // before the "timeout" param provided expires
         var timeoutTimer = {timer:null};
@@ -139,6 +141,7 @@ var geolocation = {
                 // always truthy before we call into native
                 timeoutTimer.timer = true;
             }
+            mylog("native it is!");
             exec(win, fail, "Geolocation", "getLocation", [options.enableHighAccuracy, options.maximumAge]);
         }
         return timeoutTimer;

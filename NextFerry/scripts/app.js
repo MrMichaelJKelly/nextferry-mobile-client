@@ -2,6 +2,12 @@
  * Approximately the View portion from an MVC perspective.
  */
 
+var mylog = function(a) {
+    // change this definition for production.
+    console.log(a);
+    $("#log").append(a).append("<br>");
+};
+
 var app = (function ($) {
 
     var testrun = false; // set to true to run tests, false for normal app.
@@ -22,12 +28,10 @@ var app = (function ($) {
     //======= Initialization and event wiring
 
     var init = function() {
-        console.log("starting up");
         NextFerry.init();
         Alarm.init();
         $("#title").lettering();
         goPage("#main-page");
-        console.log("main page displayed");
 
         // wire up asynch responses
         document.addEventListener("pause", onPause );
@@ -46,7 +50,7 @@ var app = (function ($) {
         if ( window.localStorage["route"] ) {
             route = NextFerry.Route.find( window.localStorage["route"] );
         }
-        console.log("async wiring commplete");
+        mylog("async wiring commplete");
 
         // ask for new schedule, alerts, etc.
         ServerIO.requestUpdate();
@@ -55,7 +59,7 @@ var app = (function ($) {
         settingsInit();
         setAlarmInit();
         Alarm.Timer.setTimer($("#alarm-time-remaining"));
-        console.log("alarm init");
+        mylog("alarm init");
 
         // wire up navigation and user actions
         document.addEventListener("backbutton", backPage );
@@ -82,7 +86,7 @@ var app = (function ($) {
         updateScroller("#times-wrapper",500);
         updateScroller("#routes-wrapper",100);
 
-        console.log("all init complete");
+        mylog("all init complete");
 
         // done with app construction
         // if test run, divert to test page
@@ -99,7 +103,7 @@ var app = (function ($) {
         NextFerry.synchSettings();
         ServerIO.onPause();
         Alarm.Timer.timerTickingOff();
-    }
+    };
 
     var onResume = function() {
         Alarm.init();
@@ -108,7 +112,7 @@ var app = (function ($) {
         // Main page is the only page that can need updating purely by the
         // passage of time.  We update it whether it is showing or not.
         renderMainPage();
-    }
+    };
 
     var reset = function() {
         Alarm.clearAlarm();
@@ -216,7 +220,7 @@ var app = (function ($) {
 
     var updateTravelTimes = function() {
         // let's just redraw; if there are perf issues we can be cleverer.
-        console.log("updating travel times");
+        mylog("updating travel times");
         renderTimes();
     };
 
@@ -672,7 +676,7 @@ var app = (function ($) {
                 throw "please exit the app";
             }
             else {
-                console.log("shouldn't get here.  trying to exit app.");
+                mylog("shouldn't get here.  trying to exit app.");
                 // instead
                 goPage("#main-page");
             }
@@ -699,8 +703,8 @@ var app = (function ($) {
                 goPage("#"+dest+"-page", e);
             }
             else {
-                console.log("oops: goDest didn't find a target");
-                console.log(e);
+                mylog("oops: goDest didn't find a target");
+                mylog(e);
             }
         }
         return false;
@@ -754,12 +758,12 @@ var app = (function ($) {
     var _debouncing = false;
     var debounced = function() {
         if ( _debouncing ) {
-            // console.log("ignored dup event");
+            // mylog("ignored dup event");
             return false;
         }
         else {
             _debouncing = true;
-            //console.log("letting event through");
+            //mylog("letting event through");
             setTimeout(function() { _debouncing = false; }, 400);
             return true;
         }

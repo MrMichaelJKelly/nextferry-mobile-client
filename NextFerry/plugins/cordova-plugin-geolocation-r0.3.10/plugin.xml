@@ -80,7 +80,11 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         <framework src="CoreLocation.framework" />
 
         <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
-            <string>Use location to calculate travel time to ferry terminal.</string>
+            <string>Use location to calculate travel time to ferry terminals.</string>
+        </config-file>
+
+        <config-file target="*-Info.plist" parent="NSLocationUsageDescription">
+            <string>Use location to calculate travel time to ferry terminals.</string>
         </config-file>
 
     </platform>

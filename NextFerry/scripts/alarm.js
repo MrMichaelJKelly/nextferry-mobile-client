@@ -104,7 +104,7 @@ var Alarm = (function($) {
 			potentialAlarm = currentAlarm;
 		}
 		else {
-			console.log("BUG: shouldn't get here.  faking an entry.");
+			mylog("BUG: shouldn't get here.  faking an entry.");
 			potentialAlarm = inflateAlarm({routeId: 1, dir: "west", ferryTime: 1234});
 		}
 	}
@@ -176,11 +176,11 @@ var Alarm = (function($) {
 					repeat: "minutely",
 					autoCancel: true
 				};
-				console.log(args)
+				mylog(args)
 				window.plugin.notification.local.add(args);
 			}
 			else {
-				console.log("notification not available");
+				mylog("notification not available");
 			}
 		}
 		else { // unset

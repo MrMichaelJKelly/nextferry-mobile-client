@@ -492,7 +492,7 @@ var NextFerry = (function ($) {
                 id = ary[1];
                 codes = ary[2];
                 _alertList.push(new Alert(id, codes, body));
-                console.log("Alert for " + codes);
+                mylog("Alert for " + codes);
             }
         }
         var oldreadlist = _readList;

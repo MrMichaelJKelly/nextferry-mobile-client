@@ -36,8 +36,8 @@ var ServerIO = (function($) {
     loadTravelTimes.listeners = $.Callbacks();
 
     var processReply = function(data, status, jqXHR) {
-        //console.log("****process reply:");
-        //console.log(data);
+        //mylog("****process reply:");
+        //mylog(data);
         // the same format is used for all responses.  it consists of a number
         // of sections separated by lines beginning with '#'
         var chunks = data.split("\n#");
@@ -80,7 +80,7 @@ var ServerIO = (function($) {
 
     var requestUpdate = function() {
         // returns the chainable request object
-        console.log("requesting update");
+        mylog("requesting update");
         return $.ajax({
                   url : initURL + (window.localStorage["cachedate"] || ""),
                   dataType: "text",
@@ -96,11 +96,12 @@ var ServerIO = (function($) {
     var _status = "not yet initialized.";
 
     var requestTravelTimes = function() {
-        console.log("requesting travel times...");
+        mylog("requesting travel times...");
+        _cancellable = undefined;
         if ( window.localStorage["useloc"] != "true" || _requestTTdelay || _cancellable ) {
             // if the user doesn't want this, or we've just called,
             // or we're waiting on the result of the last call, then skip.
-            console.log("not now");
+            mylog("not now");
             return;
         }
         else {
@@ -113,7 +114,7 @@ var ServerIO = (function($) {
             _status = "detecting location.";
             _cancellable = smartPosition(
                 function(loc) {
-                    console.log("got position!");
+                    mylog("got position!");
                     _lastposition = Date.now();
                     _status = "location detected; waiting for travel times from server.";
                     _cancellable = undefined;
@@ -126,7 +127,7 @@ var ServerIO = (function($) {
                         });
                     }
                     else {
-                        console.log("...but not accurate enough: " + loc.coords.accuracy );
+                        mylog("...but not accurate enough: " + loc.coords.accuracy );
                         _status = "location too inaccurate to estimate travel times.";
                         _requestTTdelay = false;
                     }
@@ -138,7 +139,7 @@ var ServerIO = (function($) {
                     maxtries: 3,
                     accuracy: 100,
                     maximumAge: 5 * 60 * 1000,
-                    log: true
+                    log: mylog
                 }
             );
         }
@@ -150,8 +151,8 @@ var ServerIO = (function($) {
 
     var handleError = function(ex) {
         _cancellable = undefined;
-        console.log( "geo received error" );
-        console.log( ex );
+        mylog( "geo received error" );
+        mylog( ex );
         switch( ex.code ) {
             case 1: _status = "cannot detect location: permission denied."; break;
             case 2: _status = "error occurred trying to detect location."; break;

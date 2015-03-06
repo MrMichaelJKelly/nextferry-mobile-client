@@ -512,7 +512,8 @@ span.alarmed {
 .special-label2 {
   margin-left: 1.25em;
 }
-#settings-options-page .rangeslider {
+#buftime-positioning {
+  position: relative;
   display: inline-block;
   width: 140pt;
   margin: 0 10pt 3pt 5pt;
@@ -529,6 +530,12 @@ span.alarmed {
 }
 #settings-about-page #aboutsched {
   font-weight: bold;
+}
+
+#log {
+  font-family: serif;
+  font-size: 10pt;
+  white-space: pre-wrap;
 }
 
 

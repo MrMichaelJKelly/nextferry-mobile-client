@@ -68,19 +68,25 @@
     like with it.
 */
 
-function() {
+(function() {
     var callCount = 0;
 
-    function smartPosition(onSuccess, onError, onProgress, options) {
+    smartPosition = function(onSuccess, onError, onProgress, options) {
         var bestResult,
             tries = 0,
             ended = false;
             geoOptions = {},
             ended = false,
-            myCallID = callCount++;
+            myCallID = callCount++
 
-        var mylog = function(arg) {
-            console.log("smartPosition(" + myCallID + ") " + arg);
+        var splog = function(arg) {
+            var message = "smartPosition(" + myCallID + ") " + arg
+            if ( typeof(options.log) === "function" ) {
+                options.log(message);
+            }
+            else if ( options.log ) {
+                console.log(message);
+            }
         };
 
         var ageInRange = function(position) {
@@ -89,13 +95,12 @@ function() {
         };
 
         var checkLocation = function(position) {
-            mylog("check position " + position.coords.accuracy);
+            splog("check position " + JSON.stringify(position));
+            splog("position age " + ((Date.now() - position.timestamp)/1000));
             if ( !ended ) {
-                tries++;
 
-                // first time through double check the maximumAge, because some
-                // implementations seem to ignore.
-                if ( tries > 1 || ageInRange(position) ) {
+                // first time through double check age range, because some implementations seem to ignore.
+                if ( tries > 0 || ageInRange(position) ) {
 
                     if ( !bestResult || position.coords.accuracy < bestResult.coords.accuracy ) {
                         bestResult = position;
@@ -108,18 +113,25 @@ function() {
                     }
                 }
 
-                mylog("not yet");
                 onProgress && onProgress(position);
-
-                // try again, and no more caching, and get high accuracy
-                geoOptions.maximumAge = 0;
-                geoOptions.enableHighAccuracy = true;
-                navigator.geolocation.getCurrentPosition(checkLocation, myError, geoOptions);
+                retry();
             }
         };
 
+        var retry = function() {
+            tries++;
+            // try again, and no more caching, and get high accuracy
+            geoOptions.maximumAge = 0;
+            geoOptions.enableHighAccuracy = true;
+            geoOptions.timeout = options.timeout || Infinity;
+            splog("trying again with geo options " + JSON.stringify(geoOptions));
+            navigator.geolocation.getCurrentPosition(checkLocation, myError, geoOptions);
+            //setTimeout( function() { myError({code:1,message:"fake #2"});}, 400);
+        };
+
+
         var stopTrying = function() {
-            mylog("stop");
+            splog("timeout");
             if (bestResult) {
                 mySuccess(bestResult);
             }
@@ -129,22 +141,28 @@ function() {
         };
 
         var cancel = function() {
-            mylog("cancelled");
+            splog("cancelled");
             myError({code: 3, message: "cancelled" });
         };
 
         // our handlers that call the user's handlers
 
         var myError = function(error) {
-            mylog("error");
+            splog("error:" + JSON.stringify(error));
             if ( !ended ) {
-                ended = true;
-                onError && onError(error);
+                // give up if we've hit max tries, or a permission error
+                if ( error.code == 2 || (options.maxtries && (tries > options.maxtries))) {
+                    ended = true;
+                    onError && onError(error);
+                }
+                else {
+                    retry();
+                }
             }
         };
 
         var mySuccess = function(position) {
-            mylog("success");
+            splog("success, returning " + JSON.stringify(position));
             if ( !ended ) {
                 ended = true;
                 onSuccess(position);
@@ -168,19 +186,21 @@ function() {
             // e.g, the default accuracy of 100 m ==> 4 seconds max age.
             options.maximumAge = options.accuracy * 40;
         }
-        if ( !options.log ) {
-            mylog = function() { };
-        }
-        else if ( typeof(options.log) === "function" ) {
-            mylog = options.log;
+
+        // First time through, try a short timeout, just to see if it will work.
+        var shorttimeout = 10000;
+        if ( options.timeout  && options.timeout < shorttimeout ) {
+            shorttimeout = options.timeout;
         }
 
         geoOptions = {
-            maximumAge : options.maximumAge;
-            timeout : options.timeout || Infinity;
+            maximumAge : options.maximumAge,
+            timeout : shorttimeout
         };
 
-        mylog("called");
+        splog("called with effective options: " + JSON.stringify(options) + " and using geo options " + JSON.stringify(geoOptions));
+
+        //setTimeout( function() { myError({ code: 1, message: "fake response"}); }, 900);
 
         if( navigator && navigator.geolocation ) {
             // we use getCurrentPosition, rather than watchPosition, because
@@ -190,7 +210,7 @@ function() {
             if (options.timeout) {
                 timerID = setTimeout(stopTrying, options.timeout);
             }
-            mylog("running");
+            splog("running");
         }
         else {
             myError({ code: 2, message: "Geolocation not ready" });
@@ -198,4 +218,4 @@ function() {
 
         return cancel;
     }
-}();
+})();
