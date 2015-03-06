@@ -1,5 +1,5 @@
-﻿// Platform: windowsphone
-// 3.5.0
+﻿// Platform: wp8
+// ab3fc0f59dbba0cc402d40a26276675f05924ae1
 /*
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -8,9 +8,9 @@
  to you under the Apache License, Version 2.0 (the
  "License"); you may not use this file except in compliance
  with the License.  You may obtain a copy of the License at
-
+ 
      http://www.apache.org/licenses/LICENSE-2.0
-
+ 
  Unless required by applicable law or agreed to in writing,
  software distributed under the License is distributed on an
  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,7 +19,7 @@
  under the License.
 */
 ;(function() {
-var CORDOVA_JS_BUILD_LABEL = '3.5.0';
+var PLATFORM_VERSION_BUILD_LABEL = '3.8.0';
 // file: src/scripts/require.js
 
 /*jshint -W079 */
@@ -175,7 +175,8 @@ function createEvent(type, data) {
 var cordova = {
     define:define,
     require:require,
-    version:CORDOVA_JS_BUILD_LABEL,
+    version:PLATFORM_VERSION_BUILD_LABEL,
+    platformVersion:PLATFORM_VERSION_BUILD_LABEL,
     platformId:platform.id,
     /**
      * Methods to add/remove your own addEventListener hijacking on document + window.
@@ -262,11 +263,7 @@ var cordova = {
      * Called by native code when returning successful result from an action.
      */
     callbackSuccess: function(callbackId, args) {
-        try {
-            cordova.callbackFromNative(callbackId, true, args.status, [args.message], args.keepCallback);
-        } catch (e) {
-            mylog("Error in error callback: " + callbackId + " = "+e);
-        }
+        cordova.callbackFromNative(callbackId, true, args.status, [args.message], args.keepCallback);
     },
 
     /**
@@ -275,29 +272,33 @@ var cordova = {
     callbackError: function(callbackId, args) {
         // TODO: Deprecate callbackSuccess and callbackError in favour of callbackFromNative.
         // Derive success from status.
-        try {
-            cordova.callbackFromNative(callbackId, false, args.status, [args.message], args.keepCallback);
-        } catch (e) {
-            mylog("Error in error callback: " + callbackId + " = "+e);
-        }
+        cordova.callbackFromNative(callbackId, false, args.status, [args.message], args.keepCallback);
     },
 
     /**
      * Called by native code when returning the result from an action.
      */
-    callbackFromNative: function(callbackId, success, status, args, keepCallback) {
-        var callback = cordova.callbacks[callbackId];
-        if (callback) {
-            if (success && status == cordova.callbackStatus.OK) {
-                callback.success && callback.success.apply(null, args);
-            } else if (!success) {
-                callback.fail && callback.fail.apply(null, args);
-            }
+    callbackFromNative: function(callbackId, isSuccess, status, args, keepCallback) {
+        try {
+            var callback = cordova.callbacks[callbackId];
+            if (callback) {
+                if (isSuccess && status == cordova.callbackStatus.OK) {
+                    callback.success && callback.success.apply(null, args);
+                } else {
+                    callback.fail && callback.fail.apply(null, args);
+                }
 
-            // Clear callback if not expecting any more results
-            if (!keepCallback) {
-                delete cordova.callbacks[callbackId];
+                // Clear callback if not expecting any more results
+                if (!keepCallback) {
+                    delete cordova.callbacks[callbackId];
+                }
             }
+        }
+        catch (err) {
+            var msg = "Error in " + (isSuccess ? "Success" : "Error") + " callbackId: " + callbackId + " : " + err;
+            console && console.log && console.log(msg);
+            cordova.fireWindowEvent("cordovacallbackerror", { 'message': msg });
+            throw err;
         }
     },
     addConstructor: function(func) {
@@ -305,7 +306,7 @@ var cordova = {
             try {
                 func();
             } catch(e) {
-                mylog("Failed to run constructor: " + e);
+                console.log("Failed to run constructor: " + e);
             }
         });
     }
@@ -463,9 +464,14 @@ function each(objects, func, context) {
 
 function clobber(obj, key, value) {
     exports.replaceHookForTesting(obj, key);
-    obj[key] = value;
+    var needsProperty = false;
+    try {
+        obj[key] = value;
+    } catch (e) {
+        needsProperty = true;
+    }
     // Getters can only be overridden by getters.
-    if (obj[key] !== value) {
+    if (needsProperty || obj[key] !== value) {
         utils.defineGetter(obj, key, function() {
             return value;
         });
@@ -475,7 +481,7 @@ function clobber(obj, key, value) {
 function assignOrWrapInDeprecateGetter(obj, key, value, message) {
     if (message) {
         utils.defineGetter(obj, key, function() {
-            mylog(message);
+            console.log(message);
             delete obj[key];
             clobber(obj, key, value);
             return value;
@@ -803,7 +809,7 @@ module.exports = channel;
 
 });
 
-// file: src/windowsphone/exec.js
+// file: src/wp8/exec.js
 define("cordova/exec", function(require, exports, module) {
 
 var cordova = require('cordova'),
@@ -831,6 +837,7 @@ module.exports = function(success, fail, service, action, args) {
     if (typeof success == "function" || typeof fail == "function") {
         cordova.callbacks[callbackId] = {success:success, fail:fail};
     }
+    args = args || [];
     // generate a new command string, ex. DebugConsole/log/DebugConsole23/["wtf dude?"]
     for(var n = 0; n < args.length; n++)
     {
@@ -852,11 +859,11 @@ module.exports = function(success, fail, service, action, args) {
             window.external.Notify(command);
         }
         else {
-            mylog("window.external not available :: command=" + command);
+            console.log("window.external not available :: command=" + command);
         }
     }
     catch(e) {
-        mylog("Exception calling native with command :: " + command + " :: exception=" + e);
+        console.log("Exception calling native with command :: " + command + " :: exception=" + e);
     }
 };
 
@@ -874,7 +881,7 @@ module.exports = {
 
     // example: cordova.commandProxy.add("Accelerometer",{getCurrentAcceleration: function(successCallback, errorCallback, options) {...},...);
     add:function(id,proxyObj) {
-        mylog("adding proxy for " + id);
+        console.log("adding proxy for " + id);
         CommandProxyMap[id] = proxyObj;
         return proxyObj;
     },
@@ -901,20 +908,21 @@ var cordova = require('cordova');
 var modulemapper = require('cordova/modulemapper');
 var platform = require('cordova/platform');
 var pluginloader = require('cordova/pluginloader');
+var utils = require('cordova/utils');
 
 var platformInitChannelsArray = [channel.onNativeReady, channel.onPluginsReady];
 
 function logUnfiredChannels(arr) {
     for (var i = 0; i < arr.length; ++i) {
         if (arr[i].state != 2) {
-            mylog('Channel not fired: ' + arr[i].type);
+            console.log('Channel not fired: ' + arr[i].type);
         }
     }
 }
 
 window.setTimeout(function() {
     if (channel.onDeviceReady.state != 2) {
-        mylog('deviceready has not fired after 5 seconds.');
+        console.log('deviceready has not fired after 5 seconds.');
         logUnfiredChannels(platformInitChannelsArray);
         logUnfiredChannels(channel.deviceReadyChannelsArray);
     }
@@ -933,10 +941,18 @@ function replaceNavigator(origNavigator) {
             if (typeof origNavigator[key] == 'function') {
                 newNavigator[key] = origNavigator[key].bind(origNavigator);
             }
+            else {
+                (function(k) {
+                    utils.defineGetterSetter(newNavigator,key,function() {
+                        return origNavigator[k];
+                    });
+                })(key);
+            }
         }
     }
     return newNavigator;
 }
+
 if (window.navigator) {
     window.navigator = replaceNavigator(window.navigator);
 }
@@ -1017,6 +1033,7 @@ define("cordova/init_b", function(require, exports, module) {
 var channel = require('cordova/channel');
 var cordova = require('cordova');
 var platform = require('cordova/platform');
+var utils = require('cordova/utils');
 
 var platformInitChannelsArray = [channel.onDOMContentLoaded, channel.onNativeReady];
 
@@ -1026,14 +1043,14 @@ cordova.exec = require('cordova/exec');
 function logUnfiredChannels(arr) {
     for (var i = 0; i < arr.length; ++i) {
         if (arr[i].state != 2) {
-            mylog('Channel not fired: ' + arr[i].type);
+            console.log('Channel not fired: ' + arr[i].type);
         }
     }
 }
 
 window.setTimeout(function() {
     if (channel.onDeviceReady.state != 2) {
-        mylog('deviceready has not fired after 5 seconds.');
+        console.log('deviceready has not fired after 5 seconds.');
         logUnfiredChannels(platformInitChannelsArray);
         logUnfiredChannels(channel.deviceReadyChannelsArray);
     }
@@ -1051,6 +1068,13 @@ function replaceNavigator(origNavigator) {
         for (var key in origNavigator) {
             if (typeof origNavigator[key] == 'function') {
                 newNavigator[key] = origNavigator[key].bind(origNavigator);
+            }
+            else {
+                (function(k) {
+                    utils.defineGetterSetter(newNavigator,key,function() {
+                        return origNavigator[k];
+                    });
+                })(key);
             }
         }
     }
@@ -1217,7 +1241,7 @@ exports.reset();
 
 });
 
-// file: src/windowsphone/platform.js
+// file: src/wp8/platform.js
 define("cordova/platform", function(require, exports, module) {
 
 module.exports = {
@@ -1319,11 +1343,11 @@ function handlePluginsObject(path, moduleList, finishPluginLoading) {
 function findCordovaPath() {
     var path = null;
     var scripts = document.getElementsByTagName('script');
-    var term = 'cordova.js';
+    var term = '/cordova.js';
     for (var n = scripts.length-1; n>-1; n--) {
         var src = scripts[n].src.replace(/\?.*$/, ''); // Strip any query param (CB-6007).
         if (src.indexOf(term) == (src.length - term.length)) {
-            path = src.substring(0, src.length - term.length);
+            path = src.substring(0, src.length - term.length) + '/';
             break;
         }
     }
@@ -1336,7 +1360,7 @@ function findCordovaPath() {
 exports.load = function(callback) {
     var pathPrefix = findCordovaPath();
     if (pathPrefix === null) {
-        mylog('Could not find cordova.js script tag. Plugin loading may fail.');
+        console.log('Could not find cordova.js script tag. Plugin loading may fail.');
         pathPrefix = '';
     }
     injectIfNecessary('cordova/plugin_list', pathPrefix + 'cordova_plugins.js', function() {
