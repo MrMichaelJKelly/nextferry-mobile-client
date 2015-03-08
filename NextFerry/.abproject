@@ -13,8 +13,7 @@
   "CorePlugins": [
     "org.apache.cordova.device",
     "org.apache.cordova.dialogs",
-    "org.apache.cordova.geolocation",
-    "org.apache.cordova.media"
+    "org.apache.cordova.geolocation"
   ],
   "DeviceOrientations": [
     "Portrait",
