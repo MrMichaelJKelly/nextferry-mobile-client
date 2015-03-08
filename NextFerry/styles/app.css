@@ -248,6 +248,15 @@ span.alarmed {
   font-size: 18pt;
   font-weight: bold;
 }
+#setalarm-dialog, #dismissalarm-dialog {
+  background-color: #ffb;
+}
+#setalarm-dialog .button, #dismissalarm-dialog .button {
+  background-color: white;
+}
+#setalarm-dialog input {
+  background-color: #ffb;
+}
 
 
 
@@ -276,7 +285,7 @@ span.alarmed {
   padding-left: 4px;
   font-family: monospace;
   font-size: 16pt;
-  font-weight: bolder;
+  font-weight: bold;
 }
 #setalarm-dialog .rangeslider[filltype=Good] {
   background-color: #54E81C;

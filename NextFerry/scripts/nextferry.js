@@ -27,6 +27,7 @@
  * codebase is factored.
  */
 var NextFerry = (function ($) {
+    "use strict";
 
     // NFTime submodule (not object type)
     // Times are minutes past midnight, but with the day boundary at 2:30am,

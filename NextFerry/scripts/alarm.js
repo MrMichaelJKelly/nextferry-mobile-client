@@ -5,6 +5,7 @@
 */
 
 var Alarm = (function($) {
+	"use strict";
 
 	// Our internal state
 	var currentAlarm = {};			// if non-empty, this alarm has been set
@@ -176,11 +177,7 @@ var Alarm = (function($) {
 					repeat: "minutely",
 					autoCancel: true
 				};
-				mylog(args)
 				window.plugin.notification.local.add(args);
-			}
-			else {
-				mylog("notification not available");
 			}
 		}
 		else { // unset
@@ -244,7 +241,7 @@ var Alarm = (function($) {
 			}
 		};
 
-		submodule = {
+		var submodule = {
 			setTimer : setTimer,
 			timerTickingOn : timerTickingOn,
 			timerTickingOff : timerTickingOff
@@ -256,7 +253,7 @@ var Alarm = (function($) {
 
 	var module = {
 		// accessors: if we are working with a potential Alarm, return that,
-		// otherwise return the current alarm, otherwise return undefined.
+		// otherwise return the current alarm, otherwise error.
 		isSet : function() { return (potentialAlarm||currentAlarm).isSet; },
 		route : function() { return (potentialAlarm||currentAlarm).route; },
 		ferryTime : function() { return (potentialAlarm||currentAlarm).ferryTime; },

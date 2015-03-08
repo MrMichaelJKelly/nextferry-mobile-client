@@ -8,7 +8,7 @@
     It "tries a reasonable amount" to obtain a desired level of
     location accuracy.
 
-    smartPosition has reasonable defaults, so the minimally complex call is just
+    smartPosition has reasonable defaults, so the minimal call is just
 
         smartPosition(onSuccess)
 
@@ -24,7 +24,7 @@
        * catches and ignores extra callbacks from the native code,
        * logs internal progress, if requested.
 
-    smartPosition is called as follows:
+    in full form, smartPosition is called as follows:
 
         cancellable = smartPosition(onSuccess,onError,onProgress,options);
 
@@ -59,7 +59,7 @@
     GPS can take a very long time to initialize!)
 
     CREDITS:
-    smartPosition is derived from original code found at
+    smartPosition was originally based on code found at
     https://github.com/gwilson/getAccurateCurrentPosition.
     At this point I have pretty much completely rewritten it, but credit goes to
     Greg Wilson for the original concept.
@@ -69,18 +69,21 @@
 */
 
 (function() {
+
+
     var callCount = 0;
 
     smartPosition = function(onSuccess, onError, onProgress, options) {
+        "use strict";
+
         var bestResult,
             tries = 0,
-            ended = false;
-            geoOptions = {},
             ended = false,
-            myCallID = callCount++
+            geoOptions = {},
+            myCallID = callCount++;
 
         var splog = function(arg) {
-            var message = "smartPosition(" + myCallID + ") " + arg
+            var message = "smartPosition(" + myCallID + ") " + arg;
             if ( typeof(options.log) === "function" ) {
                 options.log(message);
             }
@@ -126,7 +129,6 @@
             geoOptions.timeout = options.timeout || Infinity;
             splog("trying again with geo options " + JSON.stringify(geoOptions));
             navigator.geolocation.getCurrentPosition(checkLocation, myError, geoOptions);
-            //setTimeout( function() { myError({code:1,message:"fake #2"});}, 400);
         };
 
 
@@ -136,13 +138,13 @@
                 mySuccess(bestResult);
             }
             else {
-                myError({code: 3, message: "time out" });
+                myError({code: PositionError.TIMEOUT, message: "time out" });
             }
         };
 
         var cancel = function() {
             splog("cancelled");
-            myError({code: 3, message: "cancelled" });
+            ended = true;
         };
 
         // our handlers that call the user's handlers
@@ -150,13 +152,14 @@
         var myError = function(error) {
             splog("error:" + JSON.stringify(error));
             if ( !ended ) {
-                // give up if we've hit max tries, or a permission error
-                if ( error.code == 2 || (options.maxtries && (tries > options.maxtries))) {
-                    ended = true;
-                    onError && onError(error);
+                // check if we should retry
+                // should we retry on UNAVAILABLE?
+                if (error.code == PositionError.TIMEOUT && (!options.maxtries || tries < options.maxtries)) {
+                    retry();
                 }
                 else {
-                    retry();
+                    ended = true;
+                    onError && onError(error);
                 }
             }
         };
@@ -200,7 +203,6 @@
 
         splog("called with effective options: " + JSON.stringify(options) + " and using geo options " + JSON.stringify(geoOptions));
 
-        //setTimeout( function() { myError({ code: 1, message: "fake response"}); }, 900);
 
         if( navigator && navigator.geolocation ) {
             // we use getCurrentPosition, rather than watchPosition, because
@@ -208,12 +210,12 @@
             // problem for battery life.
             navigator.geolocation.getCurrentPosition(checkLocation, myError, geoOptions);
             if (options.timeout) {
-                timerID = setTimeout(stopTrying, options.timeout);
+                setTimeout(stopTrying, options.timeout);
             }
             splog("running");
         }
         else {
-            myError({ code: 2, message: "Geolocation not ready" });
+            myError({ code: PositionError.POSITION_UNAVAILABLE, message: "Geolocation not ready" });
         }
 
         return cancel;

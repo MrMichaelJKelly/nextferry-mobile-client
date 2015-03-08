@@ -7,6 +7,8 @@
  * be informed when the state has in fact been updated.
  */
 var ServerIO = (function($) {
+    "use strict";
+
     var appVersion = "4.0";
     var initURL = "http://nextferry.appspot.com/init/" + appVersion + "/";
     var travelURL = "http://nextferry.appspot.com/traveltimes/" + appVersion + "/";
@@ -36,8 +38,6 @@ var ServerIO = (function($) {
     loadTravelTimes.listeners = $.Callbacks();
 
     var processReply = function(data, status, jqXHR) {
-        //mylog("****process reply:");
-        //mylog(data);
         // the same format is used for all responses.  it consists of a number
         // of sections separated by lines beginning with '#'
         var chunks = data.split("\n#");
@@ -80,7 +80,6 @@ var ServerIO = (function($) {
 
     var requestUpdate = function() {
         // returns the chainable request object
-        mylog("requesting update");
         return $.ajax({
                   url : initURL + (window.localStorage["cachedate"] || ""),
                   dataType: "text",
@@ -139,7 +138,6 @@ var ServerIO = (function($) {
                     maxtries: 3,
                     accuracy: 100,
                     maximumAge: 5 * 60 * 1000,
-                    log: mylog
                 }
             );
         }
@@ -151,8 +149,6 @@ var ServerIO = (function($) {
 
     var handleError = function(ex) {
         _cancellable = undefined;
-        mylog( "geo received error" );
-        mylog( ex );
         switch( ex.code ) {
             case 1: _status = "cannot detect location: permission denied."; break;
             case 2: _status = "error occurred trying to detect location."; break;

@@ -3,12 +3,12 @@
  */
 
 var mylog = function(a) {
-    // change this definition for production.
+    // change this to store log locally for on-device debugging.
     console.log(a);
-    $("#log").append(a).append("<br>");
 };
 
 var app = (function ($) {
+    "use strict";
 
     var testrun = false; // set to true to run tests, false for normal app.
 
@@ -17,10 +17,10 @@ var app = (function ($) {
     // main-page: which direction are we showing?
     var dir = window.localStorage["dir"] || "west";
 
-    // details, schedules, alerts: which route are we showing?
+    // detail, schedule, alert pages: which route are we showing?
     var route;
 
-    // schedules: which direction and day are we showing?
+    // schedule page: which direction and day are we showing?
     var scheduleDir;
     var scheduleDay;
 
@@ -50,16 +50,16 @@ var app = (function ($) {
         if ( window.localStorage["route"] ) {
             route = NextFerry.Route.find( window.localStorage["route"] );
         }
-        mylog("async wiring commplete");
 
         // ask for new schedule, alerts, etc.
         ServerIO.requestUpdate();
 
         // one-time initialization for pages that need it.
         settingsInit();
-        setAlarmInit();
-        Alarm.Timer.setTimer($("#alarm-time-remaining"));
-        mylog("alarm init");
+        if ( notificationSupported() ) {
+            setAlarmInit();
+            Alarm.Timer.setTimer($("#alarm-time-remaining"));
+        }
 
         // wire up navigation and user actions
         document.addEventListener("backbutton", backPage );
@@ -69,24 +69,24 @@ var app = (function ($) {
         $("#details-body li").on("click", goDest );
         $("span[type]").on("click", checks );
         $("#reload").on("click", doClick( reset ));
-        $("#times").on("touchend", doubleTap );     // detect double tap
-        $("#times").on("nf:doubletap", "[time]", gogoPage("#setalarm-page") );  // do something with it
-        $("#show-alarm").on("click", gogoPage("#setalarm-page" ));
-        $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
-        $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
-        $("#dismissalarm-dismiss").on("click", doClick( backPage ));
-        // dismiss dialogish things by clicking outside the body.
         clickOutside($(".settings-body"), doClick( backPage ));
-        clickOutside($("#setalarm-dialog"), doClick( backPage ));
-        clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
+
+        if ( notificationSupported() ) {
+            $("#times").on("touchend", doubleTap );     // detect double tap
+            $("#times").on("nf:doubletap", "[time]", gogoPage("#setalarm-page") );  // do something with it
+            $("#show-alarm").on("click", gogoPage("#setalarm-page" ));
+            $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
+            $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
+            $("#dismissalarm-dismiss").on("click", doClick( backPage ));
+            clickOutside($("#setalarm-dialog"), doClick( backPage ));
+            clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
+        }
 
         // initialize main page scrollers
         ensureScroller("#routes-wrapper", { click: true });
         ensureScroller("#times-wrapper", { scrollX: true, scrollY: false });
         updateScroller("#times-wrapper",500);
         updateScroller("#routes-wrapper",100);
-
-        mylog("all init complete");
 
         // done with app construction
         // if test run, divert to test page
@@ -220,7 +220,6 @@ var app = (function ($) {
 
     var updateTravelTimes = function() {
         // let's just redraw; if there are perf issues we can be cleverer.
-        mylog("updating travel times");
         renderTimes();
     };
 
@@ -719,6 +718,12 @@ var app = (function ($) {
 
 
     //======= Utilities
+    //
+    var notificationSupported = function() {
+        // this version of the cordova notification plugin does not support windows
+        return ! device.platform.toLowerCase().startsWith("win");
+    }
+
     //////////////////////////////////////////////////////////////////////////
     //======= checkboxes and radio boxes
     // Our own implementation of checkboxes and radio boxes,
@@ -758,12 +763,10 @@ var app = (function ($) {
     var _debouncing = false;
     var debounced = function() {
         if ( _debouncing ) {
-            // mylog("ignored dup event");
             return false;
         }
         else {
             _debouncing = true;
-            //mylog("letting event through");
             setTimeout(function() { _debouncing = false; }, 400);
             return true;
         }
