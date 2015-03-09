@@ -20,7 +20,7 @@
     "Landscape"
   ],
   "iOSStatusBarStyle": "Default",
-  "AndroidHardwareAcceleration": "true",
+  "AndroidHardwareAcceleration": "True",
   "WP8SupportedResolutions": [
     "ID_RESOLUTION_WVGA",
     "ID_RESOLUTION_WXGA",
