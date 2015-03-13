@@ -26,7 +26,7 @@
     "ID_RESOLUTION_WXGA",
     "ID_RESOLUTION_HD720P"
   ],
-  "BundleVersion": "4.0",
+  "BundleVersion": "4.1",
   "Framework": "Cordova",
   "DisplayName": "Next Ferry",
   "Author": "denisesandbox@gmail.com",
