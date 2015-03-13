@@ -12,7 +12,6 @@
   ],
   "CorePlugins": [
     "org.apache.cordova.device",
-    "org.apache.cordova.dialogs",
     "org.apache.cordova.geolocation"
   ],
   "DeviceOrientations": [
@@ -20,7 +19,7 @@
     "Landscape"
   ],
   "iOSStatusBarStyle": "Default",
-  "AndroidHardwareAcceleration": "True",
+  "AndroidHardwareAcceleration": "false",
   "WP8SupportedResolutions": [
     "ID_RESOLUTION_WVGA",
     "ID_RESOLUTION_WXGA",
