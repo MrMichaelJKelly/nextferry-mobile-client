@@ -24,34 +24,6 @@ li {
   list-style-type: none;
 }
 
-
-/* Icons */
-@font-face {
-  font-family: Icons;
-  src: url('fonts/webhostinghub-glyphs.ttf');
-  font-weight: 500;
-  font-style: normal;
-}
-.icon {
-  font-family: Icons;
-  font-size: 90%;
-}
-.icon.outline {
-  font-size: 75%;
-  padding: 0.1em;
-  border: solid 1px;
-  border-radius: 20%;
-}
-.icon.info::before { content: "\F315"; }
-.icon.home::before { content: "\F02B";}
-.icon.list::before { content: "\F127"}
-.icon.alert::before { content: "\F05A"; }
-.icon.return::before { content: "\F489"; }
-.icon.settings::before { content: "\F00F"; }
-.icon.checkmark::before { content: "\2713"; }
-.icon[glyph]::before { content: attr(glyph); }
-
-
 /* general page & tab structure */
 #footer {
   position: fixed;
@@ -64,9 +36,8 @@ li {
 #footer ul {
   position: absolute;
   left: 50%;
-  margin-left: -105pt; /* half the width, to center it */
-  /* width:  (n * iconwidth) + (2n * padding width) + extra space */
-  /* n = 5, iconwidth = 14pt, padding width = 12pt, extra space = 20pt */
+  margin-right: -50%;
+  transform: translate(-50%,0);
 }
 #footer li {
   font-size: 14pt;
@@ -271,8 +242,8 @@ span.alarmed {
 }
 #routes span[astate=alerts_unread] {
   color: yellow;
-  background-color: #6D8299;
-  border-radius: 50%;
+  font-size: 10pt;
+  vertical-align: 3pt;
 }
 
 
@@ -530,7 +501,7 @@ span.alarmed {
 
 /* special for about page */
 #settings-about-page p {
-  font-size: 14pt;
+  font-size: 11pt;
   font-family: serif;
 }
 .br {
@@ -541,11 +512,7 @@ span.alarmed {
   font-weight: bold;
 }
 
-#log {
-  font-family: serif;
-  font-size: 10pt;
-  white-space: pre-wrap;
-}
+
 
 
 /* we do our own inputs for two reasons:
@@ -567,8 +534,8 @@ span[type="radio"].checked:before {
 }
 
 span[type="checkbox"]:before {
-  content: "\2713";
-  font-family: Icons;
+  font-family: Flaticon;
+  content: "\e003";
   font-size: 80%;
   color: white;
   border: 1px solid #324151;

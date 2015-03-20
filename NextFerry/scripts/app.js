@@ -56,12 +56,14 @@ var app = (function ($) {
 
         // one-time initialization for pages that need it.
         settingsInit();
-        if ( notificationSupported() ) {
-            setAlarmInit();
-            Alarm.Timer.setTimer($("#alarm-time-remaining"));
-        }
+        setAlarmInit();
+        Alarm.Timer.setTimer($("#alarm-time-remaining"));
 
         // wire up navigation and user actions
+        var swipelistener = new Hammer($("body")[0], {
+            recognizers: [[Hammer.Swipe,{ direction: Hammer.DIRECTION_RIGHT }]]
+        });
+        swipelistener.on("swipe", swipeRight );
         document.addEventListener("backbutton", backPage );
         $("#footer-nav>li").on("click", goDest );
         $("#direction").on("click", doClick( toggleDirection ));
@@ -71,16 +73,14 @@ var app = (function ($) {
         $("#reload").on("click", doClick( reset ));
         clickOutside($(".settings-body"), doClick( backPage ));
 
-        if ( notificationSupported() ) {
-            $("#times").on("touchend", doubleTap );     // detect double tap
-            $("#times").on("nf:doubletap", "[time]", gogoPage("#setalarm-page") );  // do something with it
-            $("#show-alarm").on("click", gogoPage("#setalarm-page" ));
-            $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
-            $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
-            $("#dismissalarm-dismiss").on("click", doClick( backPage ));
-            clickOutside($("#setalarm-dialog"), doClick( backPage ));
-            clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
-        }
+        $("#times").on("touchend", doubleTap );     // detect double tap
+        $("#times").on("nf:doubletap", "[time]", gogoPage("#setalarm-page") );  // do something with it
+        $("#show-alarm").on("click", gogoPage("#setalarm-page" ));
+        $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
+        $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
+        $("#dismissalarm-dismiss").on("click", doClick( backPage ));
+        clickOutside($("#setalarm-dialog"), doClick( backPage ));
+        clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
 
         // initialize main page scrollers
         ensureScroller("#routes-wrapper", { click: true });
@@ -185,7 +185,7 @@ var app = (function ($) {
         $("#routes").empty();
         $("#routes").append( NextFerry.Route.displayRoutes().map( function(r) {
             return $( "<li routeid='" + r.code + "'>" +
-                "<span class='icon alert' astate='alerts_none'></span>" +
+                "<span class='flaticon-warning30' astate='alerts_none'></span>" +
                 r.displayName[dir] + "</li>" );
         }));
         updateAlerts();
@@ -215,7 +215,7 @@ var app = (function ($) {
             updateScroller("#times-wrapper");
         }, 200);
         ServerIO.requestTravelTimes();
-        decorateAlarm();
+        //decorateAlarm();
     };
 
     var updateTravelTimes = function() {
@@ -318,7 +318,7 @@ var app = (function ($) {
 
     var setAlarmSubmit = function() {
         var input = $("input","#setalarm-slider");
-        Alarm.confirm(input.val());
+        Alarm.confirm(Number(input.val()));
         backPage();
     };
 
@@ -683,6 +683,13 @@ var app = (function ($) {
         return false;
     };
 
+    // swipeRight does a backpage unless we are on the main page, in which case it does nothing.
+    var swipeRight = function() {
+        if ( currentPage() !== "#main-page" ) {
+            backPage();
+        }
+    }
+
     // helpers
     // produces an event handler to go to a specific page
     var gogoPage = function(p) {
@@ -718,12 +725,6 @@ var app = (function ($) {
 
 
     //======= Utilities
-    //
-    var notificationSupported = function() {
-        // this version of the cordova notification plugin does not support windows
-        return ! device.platform.toLowerCase().startsWith("win");
-    }
-
     //////////////////////////////////////////////////////////////////////////
     //======= checkboxes and radio boxes
     // Our own implementation of checkboxes and radio boxes,
