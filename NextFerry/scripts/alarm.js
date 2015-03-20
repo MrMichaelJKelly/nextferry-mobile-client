@@ -16,16 +16,40 @@ var Alarm = (function($) {
 	// ferryTime and leaveByTime are in NFTime format (and date=today is implicit)
 	// asMillis is the full time of scheduled notification, including date.
 
-	var listeners = $.Callbacks();	// notification when alarm goes off
 	var timerID;	// ID of the setTimeout timer to actually trigger the alarm.
+	var listeners = $.Callbacks();	// internal signaling that the alarm went off
+	var notificationPlugin;
+
+	var leavebyNotification = {
+		id: 1,
+		title: "Next Ferry",
+		text: "Time to leave for the ferry!",
+		every: "minute",
+		firstAt: 0 // filled in later
+		// todo: sound
+		// todo: Android icon
+	};
 
 	var init = function() {
 		currentAlarm = {};
 		potentialAlarm = undefined;
 
+		// check if the plugin is available or not.
+		if ( window.plugin && window.plugin.notification && window.plugin.notification.local ) {
+			notificationPlugin = window.plugin.notification.local;
+		}
+		else {
+			notificationPlugin = {
+				schedule : function() { },
+				cancel : function () { }
+			};
+		}
+		module.notificationPlugin = notificationPlugin;
+
 		if ( window.localStorage["alarm"] ) {
 			currentAlarm = inflateAlarm(JSON.parse(window.localStorage["alarm"]));
 		}
+
 		setNotifications();
 	};
 
@@ -156,38 +180,30 @@ var Alarm = (function($) {
 	var setNotifications = function() {
 		checkAlarm(); // get rid of out of date alarms
 
-		if ( currentAlarm.isSet ) {
-			var delay = currentAlarm.asMillis - Date.now();
-			if ( timerID ) {
-				clearTimeout(timerID);
-			}
-			timerID = setTimeout( function() {
-				// check to see if we still really belong here?
-				listeners.fire("now");
-			}, delay);
+		try {
+			if ( currentAlarm.isSet ) {
+				var delay = currentAlarm.asMillis - Date.now();
+				if ( timerID ) {
+					clearTimeout(timerID);
+				}
+				timerID = setTimeout( function() {
+					// check to see if we still really belong here?
+					listeners.fire("now");
+				}, delay);
 
-			if ( window.plugin ) {
-				// instead of trying to keep tabs on what notification is out there, we
-				// simply re-issue the notification we want or cancel if we don't want.
-				// much more robust.
-				var args = {
-					id: "NextFerryAlarm",
-					date: new Date(currentAlarm.asMillis),
-					message: "Time to leave for the ferry!",
-					repeat: "minutely",
-					autoCancel: true
-				};
-				window.plugin.notification.local.add(args);
+				var newNotification = leavebyNotification;
+				newNotification.firstAt = new Date(currentAlarm.asMillis);
+				notificationPlugin.schedule(newNotification);
 			}
-		}
-		else { // unset
-			if ( timerID ) {
-				clearTimeout(timerID);
-				timerID = undefined;
+			else { // unset
+				if ( timerID ) {
+					clearTimeout(timerID);
+					timerID = undefined;
+				}
+				notificationPlugin.cancel(leavebyNotification.id);
 			}
-			if ( window.plugin ) {
-				window.plugin.notification.local.cancel("NextFerryAlarm");
-			}
+		} catch(e) {
+			console.log("setNotifications", e);
 		}
 	};
 
@@ -269,7 +285,13 @@ var Alarm = (function($) {
 		checkAlarm : checkAlarm,
 		listeners : listeners,
 
-		Timer : Timer
+		Timer : Timer,
+
+		// temporary, for debugging
+		currentAlarm : currentAlarm,
+		leavebyNotification : leavebyNotification,
+		notificationPlugin : notificationPlugin
+
 	};
 
 	return module;

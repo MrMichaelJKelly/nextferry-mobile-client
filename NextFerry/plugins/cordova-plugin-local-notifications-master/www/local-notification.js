@@ -396,6 +396,10 @@ exports.getAllTriggered = function (callback, scope) {
 exports.hasPermission = function (callback, scope) {
     var fn = this.createCallbackFn(callback, scope);
 
+    if (device.platform.toLowerCase().substr(0,3) === "win") {
+        fn(false);
+        return;
+    }
     if (device.platform != 'iOS') {
         fn(true);
         return;
@@ -415,6 +419,10 @@ exports.hasPermission = function (callback, scope) {
 exports.registerPermission = function (callback, scope) {
     var fn = this.createCallbackFn(callback, scope);
 
+    if (device.platform.toLowerCase().substr(0,3) === "win") {
+        fn(false);
+        return;
+    }
     if (device.platform != 'iOS') {
         fn(true);
         return;
