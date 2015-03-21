@@ -73,14 +73,16 @@ var app = (function ($) {
         $("#reload").on("click", doClick( reset ));
         clickOutside($(".settings-body"), doClick( backPage ));
 
-        $("#times").on("touchend", doubleTap );     // detect double tap
-        $("#times").on("nf:doubletap", "[time]", gogoPage("#setalarm-page") );  // do something with it
-        $("#show-alarm").on("click", gogoPage("#setalarm-page" ));
-        $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
-        $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
-        $("#dismissalarm-dismiss").on("click", doClick( backPage ));
-        clickOutside($("#setalarm-dialog"), doClick( backPage ));
-        clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
+        if ( Alarm.enabled() ) {
+            $("#times").on("touchend", doubleTap );     // detect double tap
+            $("#times").on("nf:doubletap", "[time]", gogoPage("#setalarm-page") );  // do something with it
+            $("#show-alarm").on("click", gogoPage("#setalarm-page" ));
+            $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
+            $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
+            $("#dismissalarm-dismiss").on("click", doClick( backPage ));
+            clickOutside($("#setalarm-dialog"), doClick( backPage ));
+            clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
+        }
 
         // initialize main page scrollers
         ensureScroller("#routes-wrapper", { click: true });
@@ -100,9 +102,8 @@ var app = (function ($) {
 
     var onPause = function() {
         // save state and turn things off
-        NextFerry.synchSettings();
         ServerIO.onPause();
-        Alarm.Timer.timerTickingOff();
+        leaveCurrentPage();
     };
 
     var onResume = function() {
@@ -115,7 +116,7 @@ var app = (function ($) {
     };
 
     var reset = function() {
-        Alarm.clearAlarm();
+        Alarm.dismissAlarm();
         NextFerry.reset();
         ServerIO.onResume();
         ServerIO.requestUpdate(); // get alerts and schedule
@@ -215,7 +216,7 @@ var app = (function ($) {
             updateScroller("#times-wrapper");
         }, 200);
         ServerIO.requestTravelTimes();
-        //decorateAlarm();
+        decorateAlarm();
     };
 
     var updateTravelTimes = function() {
@@ -303,9 +304,9 @@ var app = (function ($) {
         var input = $("#setalarm-input");
         var ferrytime = Alarm.ferryTime();
         var mintime = ferrytime - 240;
-        var now = NextFerry.NFTime.now();
-        if ( mintime < now ) {
-            mintime = now;
+        var soon = NextFerry.NFTime.now() + 1; // one minute from now
+        if ( mintime < soon ) {
+            mintime = soon;
         }
         input.attr("min", mintime);
         input.attr("max", ferrytime);
@@ -323,7 +324,7 @@ var app = (function ($) {
     };
 
     var setAlarmCancel = function() {
-        Alarm.clearAlarm();
+        Alarm.dismissAlarm();
         backPage();
     };
 
@@ -332,7 +333,7 @@ var app = (function ($) {
     }
 
     var dismissAlarm = function() {
-        Alarm.clearAlarm();
+        Alarm.dismissAlarm();
     }
 
     var setAlarmInit = function() {

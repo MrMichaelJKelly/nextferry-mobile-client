@@ -8,6 +8,7 @@ var Alarm = (function($) {
 	"use strict";
 
 	// Our internal state
+	var enabled = false;			// only enable if the plugin exists.
 	var currentAlarm = {};			// if non-empty, this alarm has been set
 	var potentialAlarm = undefined;	// this is an alarm that may be set,
 									// replacing the current alarm.
@@ -16,17 +17,16 @@ var Alarm = (function($) {
 	// ferryTime and leaveByTime are in NFTime format (and date=today is implicit)
 	// asMillis is the full time of scheduled notification, including date.
 
-	var timerID;	// ID of the setTimeout timer to actually trigger the alarm.
 	var listeners = $.Callbacks();	// internal signaling that the alarm went off
-	var notificationPlugin;
+	var notificationPlugin = false;
 
-	var leavebyNotification = {
+	var leavebyToast = {
 		id: 1,
 		title: "Next Ferry",
 		text: "Time to leave for the ferry!",
 		every: "minute",
-		firstAt: 0 // filled in later
-		// todo: sound
+		firstAt: 0, // filled in later
+		sound: "file://sounds/kalimba.wav"
 		// todo: Android icon
 	};
 
@@ -34,23 +34,25 @@ var Alarm = (function($) {
 		currentAlarm = {};
 		potentialAlarm = undefined;
 
-		// check if the plugin is available or not.
-		if ( window.plugin && window.plugin.notification && window.plugin.notification.local ) {
-			notificationPlugin = window.plugin.notification.local;
-		}
-		else {
-			notificationPlugin = {
-				schedule : function() { },
-				cancel : function () { }
-			};
-		}
-		module.notificationPlugin = notificationPlugin;
-
+		// TURN EVERYTHING OFF
+		// Someday I will figure out how to actually make this work.
+		/*
 		if ( window.localStorage["alarm"] ) {
 			currentAlarm = inflateAlarm(JSON.parse(window.localStorage["alarm"]));
 		}
 
-		setNotifications();
+		// check if the plugin is available or not.
+		if ( window.plugin && window.plugin.notification && window.plugin.notification.local ) {
+			enabled = true;
+			notificationPlugin = window.plugin.notification.local;
+			if (device.platform.substr(0,3) === "ios") {
+				leavebyToast.sound = "file://sounds/kalimba.caf";
+			}
+
+			notificationPlugin.on("trigger", onTrigger);
+			syncNotificationState();
+		}
+		*/
 	};
 
 	var inflateAlarm = function(al) {
@@ -142,15 +144,19 @@ var Alarm = (function($) {
 		currentAlarm.asMillis = leaveByDateTime.getTime();
 
 		window.localStorage["alarm"] = JSON.stringify( deflateAlarm(currentAlarm) );
-		setNotifications();
+		syncNotificationState();
 	};
 
 	var clearAlarm = function() {
 		currentAlarm = {};
 		delete window.localStorage["alarm"];
 		Timer.timerTickingOff();
-		setNotifications();
 	};
+
+	var dismissAlarm = function() {
+		clearAlarm();
+		syncNotificationState();
+	}
 
 	var cancelEdit = function() {
 		potentialAlarm = undefined;
@@ -161,49 +167,35 @@ var Alarm = (function($) {
 		// otherwise return the relevant alarm data.
 		if ( currentAlarm == {} || !currentAlarm.isSet || !currentAlarm.asMillis )
 			return false;
-		else if ( currentAlarm.asMillis < Date.now() ) {
-			// we have an alarm, but it is out of date --- we must not have caught
-			// it with our timeout.
-			// so trigger the event now, anyway, which might get noticed.
-			listeners.fire("late");
-			currentAlarm.isSet = false;
-			return false;
-		}
-		else {
+		else
 			return deflateAlarm(currentAlarm);
-		}
 	};
 
+	var onTrigger = function() {
+		// if there is still an alarm when we get here, trigger it.
+		if ( checkAlarm() ) {
+			clearAlarm();	// prevent multiple signalling
+			listeners.fire("now");
+		}
+	}
 
-	// we do notification two ways: via the system local notification, and internally
-	// via a triggered event.
-	var setNotifications = function() {
-		checkAlarm(); // get rid of out of date alarms
+	// if we have system notification, we rely on that (and if the user has turned it off,
+	// so be it).  If we don't then we use a timer.
 
-		try {
-			if ( currentAlarm.isSet ) {
-				var delay = currentAlarm.asMillis - Date.now();
-				if ( timerID ) {
-					clearTimeout(timerID);
+	var syncNotificationState = function() {
+		if ( enabled ) {
+			try {
+				if ( currentAlarm.isSet ) {
+					leavebyToast.firstAt =  new Date(currentAlarm.asMillis);
+					notificationPlugin.schedule(leavebyToast);
+					console.log(leavebyToast);
 				}
-				timerID = setTimeout( function() {
-					// check to see if we still really belong here?
-					listeners.fire("now");
-				}, delay);
-
-				var newNotification = leavebyNotification;
-				newNotification.firstAt = new Date(currentAlarm.asMillis);
-				notificationPlugin.schedule(newNotification);
-			}
-			else { // unset
-				if ( timerID ) {
-					clearTimeout(timerID);
-					timerID = undefined;
+				else { // unset
+					notificationPlugin.cancel(leavebyToast.id);
 				}
-				notificationPlugin.cancel(leavebyNotification.id);
+			} catch(e) {
+				console.log("syncNotificationState", e);
 			}
-		} catch(e) {
-			console.log("setNotifications", e);
 		}
 	};
 
@@ -276,22 +268,21 @@ var Alarm = (function($) {
 		leaveByTime : function() { return leaveByTime(potentialAlarm||currentAlarm); },
 		goodness : function(t) { return goodness(potentialAlarm||currentAlarm, t); },
 
+		enabled : function() { return enabled },
 		init : init,
 		configure : configure,
 		reopen : reopen,
 		confirm : confirm,
 		cancelEdit : cancelEdit,
-		clearAlarm : clearAlarm,
+		dismissAlarm : dismissAlarm,
 		checkAlarm : checkAlarm,
 		listeners : listeners,
 
 		Timer : Timer,
 
-		// temporary, for debugging
-		currentAlarm : currentAlarm,
-		leavebyNotification : leavebyNotification,
-		notificationPlugin : notificationPlugin
-
+		// for debugging
+		plugin : function() { return notificationPlugin; },
+		toast : function() { return leavebyToast; }
 	};
 
 	return module;
