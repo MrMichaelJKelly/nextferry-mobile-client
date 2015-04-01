@@ -9,7 +9,7 @@
 var ServerIO = (function($) {
     "use strict";
 
-    var appVersion = "4.0";
+    var appVersion = "4.2";
     var initURL = "http://nextferry.appspot.com/init/" + appVersion + "/";
     var travelURL = "http://nextferry.appspot.com/traveltimes/" + appVersion + "/";
 
