@@ -19,7 +19,7 @@
     "Landscape"
   ],
   "iOSStatusBarStyle": "Default",
-  "AndroidHardwareAcceleration": "false",
+  "AndroidHardwareAcceleration": "True",
   "WP8SupportedResolutions": [
     "ID_RESOLUTION_WVGA",
     "ID_RESOLUTION_WXGA",
@@ -35,7 +35,7 @@
     "2"
   ],
   "iOSBackgroundMode": [],
-  "AndroidVersionCode": "1",
+  "AndroidVersionCode": "2",
   "WP8TileTitle": "NextFerry",
   "WP8ProductID": "{69b8438c-3edb-4985-9a9c-4cf1ea10664d}",
   "WP8PublisherID": "{decd56f9-d056-43c3-9287-9735346bb520}",
