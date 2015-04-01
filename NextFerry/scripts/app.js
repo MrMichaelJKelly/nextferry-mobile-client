@@ -103,8 +103,7 @@ var app = (function ($) {
     var onPause = function() {
         // save state and turn things off
         ServerIO.onPause();
-        leaveCurrentPage();
-        $("#log").append("onPause. ");
+        leaveCurrentPage(true);
     };
 
     var onResume = function() {
@@ -114,7 +113,6 @@ var app = (function ($) {
         // Main page is the only page that can need updating purely by the
         // passage of time.  We update it whether it is showing or not.
         renderMainPage();
-        $("#log").append("onResume. ");
     };
 
     var reset = function() {
@@ -630,7 +628,6 @@ var app = (function ($) {
     var goPage = function(newpage,e) {
         var currentIsDialog = $(currentPage()).hasClass("dialog");
         var newIsDialog = $(newpage).hasClass("dialog");
-        $("#log").append("goPage(" + newpage + "). ");
 
         if ( currentIsDialog ) {
             // dialogs are a bit different: they are always dismissed even
