@@ -25,7 +25,7 @@
     "ID_RESOLUTION_WXGA",
     "ID_RESOLUTION_HD720P"
   ],
-  "BundleVersion": "4.1",
+  "BundleVersion": "4.2",
   "Framework": "Cordova",
   "DisplayName": "Next Ferry",
   "Author": "denisesandbox@gmail.com",
@@ -35,7 +35,7 @@
     "2"
   ],
   "iOSBackgroundMode": [],
-  "AndroidVersionCode": "2",
+  "AndroidVersionCode": "3",
   "WP8TileTitle": "NextFerry",
   "WP8ProductID": "{69b8438c-3edb-4985-9a9c-4cf1ea10664d}",
   "WP8PublisherID": "{decd56f9-d056-43c3-9287-9735346bb520}",
