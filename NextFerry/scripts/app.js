@@ -1,6 +1,7 @@
 /* Main entry point for the NextFerry Application
  * Approximately the View portion from an MVC perspective.
- */
+
+*/
 
 var mylog = function(a) {
     // change this to store log locally for on-device debugging.
