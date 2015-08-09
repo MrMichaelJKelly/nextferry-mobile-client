@@ -9,9 +9,9 @@
 var ServerIO = (function($) {
     "use strict";
 
-    var appVersion = "4.2";
+    var appVersion = "4.3";
     var initURL = "http://nextferry.appspot.com/init/" + appVersion + "/";
-    var travelURL = "http://nextferry.appspot.com/traveltimes/" + appVersion + "/";
+    var travelURL = "https://nextferry.appspot.com/traveltimes/" + appVersion + "/";
 
 
     var loadSchedule = function(text) {
