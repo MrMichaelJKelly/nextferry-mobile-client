@@ -5,3 +5,5 @@ This repository is the front end to the NextFerry application (https://github.co
 
 This is developed in html5 / cordova / jquery, built with the Telerik Appbuilder IDE (http://telerik.com).
 It might be somewhat interesting in that it uses no additional "big" infrastructure libraries (no jquery mobile, angular, etc.).
+
+Currently attempting to re-add alarm functionality on the alarm branch.
