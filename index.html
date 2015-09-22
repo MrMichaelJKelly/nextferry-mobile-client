@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>NextFerry App by denised</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>NextFerry App</h1>
+        <h2>Mobile app showing ferry schedules for puget sound</h2>
+        <a href="https://github.com/denised/nextferry-mobile-client" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="info" class="anchor" href="#info" aria-hidden="true"><span class="octicon octicon-link"></span></a>Info</h1>
+
+<p>NextFerry mobile app tells you when the next ferry is leaving, for the Washington State Ferries in Puget Sound.
+It has no advertising or other "monetization"; it only does what it looks like it does.
+It is available on IOS, Android and Windows Phone.</p>
+
+<p>Features:</p>
+
+<ul>
+<li>Choose which ferry routes you want to see.</li>
+<li>Show upcoming departures for each route.</li>
+<li>Show complete weekday/weekend schedule for each route.</li>
+<li>If "use location" is turned on, calculate travel times to ferry departure and color code the
+departures as "can't make it"(red), "maybe if you hurry"(yellow) and "easy"(green).</li>
+<li>Show today's alerts from WSDOT for each route.</li>
+</ul>
+
+<p><strong>Privacy statement</strong>: the NextFerry app communicates with a server.  The server receives an IP address (necessary
+for any communication) and (if you allow the app to do so) your location.  That information possibly could be used
+to track someone if it were obtained by someone who wanted to do so.  The NextFerry service does not use this
+information for any purpose other than providing information back to the app, and good security
+practices are used to prevent any unintended use of the information by any party.</p>
+
+<p>The NextFerry app is not affiliated with WSDOT.  The schedule shown is based on the officially published schedule, which does not account for changes that WSDOT may make on a day-to-day basis.
+Please consult the <a href="http://wsdot.gov/ferries">WSDOT website</a> for definitive information.</p>
+
+<p>Limitations:</p>
+
+<ul>
+<li>The per-route weekday/weekend schedule is a simplification of the real schedule. Some ferry routes have Friday-only
+or Saturday-only departures that will not show up in this schedule.  However, the schedule on the main page is now
+(as of Sept 2015) correct for every day of the week.</li>
+<li>Currently only shows simplified routes for the San Juan Islands (Anacortes to/from Orcas and Friday Harbor). If there is enough demand, I can extend it to include the other islands.</li>
+<li>The touch response is poor on some Android phones.  I'm trying to find a fix.</li>
+</ul>
+
+<h1>
+<a id="app-pages" class="anchor" href="#app-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a>App Pages</h1>
+
+<ul>
+<li><a href="http://www.windowsphone.com/en-us/store/app/next-ferry/5ebd6e34-a046-4e37-9303-cd6b637cb822">NextFerry in the Windows Phone Store</a></li>
+<li><a href="https://play.google.com/store/apps/details?id=me.denisesandbox.NextFerry">NextFerry in the Google Play (Android) Store</a></li>
+<li><a href="https://itunes.apple.com/us/app/next-ferry/id978933162">NextFerry in the IOS store</a></li>
+</ul>
+
+<h1>
+<a id="under-the-hood" class="anchor" href="#under-the-hood" aria-hidden="true"><span class="octicon octicon-link"></span></a>Under the Hood</h1>
+
+<p>NextFerry is a side project of mine.  Like most of my projects, I wrote NextFerry because I needed it myself.
+There weren't (at that time) any schedule apps for the Washington State Ferries, and I wanted an app that made it easy to figure out if I could make the next ferry, or to choose between the Bainbridge and Edmonds ferries.
+The NextFerry app is designed to do exactly that with absolutely minimal interaction or cognitive load (yes, I sometimes use it while driving the car).</p>
+
+<p>The client (this project) is HTML5/JQuery and uses
+<a href="http://cubiq.org/iscroll-5">iScroll</a>,
+<a href="http://hammerjs.github.io">hammer.js</a>,
+the <a href="http://www.impallari.com/dosis">Dosis</a> font,
+and icons by
+<a href="www.freepik.com">Freepik</a>.
+The <a href="https://github.com/denised/nextferry">back end</a> is a python server hosted by
+<a href="https://cloud.google.com/appengine/docs">Google App Engine</a>.
+Travel times are provided by
+<a href="http://mapquest.com">MapQuest</a><img src="http://developer.mapquest.com/content/osm/mq_logo.png">.</p>
+
+<h1>
+<a id="contact" class="anchor" href="#contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contact</h1>
+
+<p><a href="mailto:nextferry@sandboxconsulting.co"></a><a href="mailto:nextferry@sandboxconsulting.co">nextferry@sandboxconsulting.co</a></p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/denised/nextferry-mobile-client/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/denised/nextferry-mobile-client/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/denised/nextferry-mobile-client"></a> is maintained by <a href="https://github.com/denised">denised</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
