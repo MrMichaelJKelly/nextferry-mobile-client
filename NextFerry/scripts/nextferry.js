@@ -197,6 +197,8 @@ var NextFerry = (function ($) {
         NFTime.setDisplayFormat( window.localStorage["tf"] );
         _readList = JSON.parse( window.localStorage["rl"] );
         _buffertime = parseInt( window.localStorage["bt"] );
+
+        mylog("On init, found readlist " + _readList);
     };
 
     var reset = function() {
@@ -439,6 +441,7 @@ var NextFerry = (function ($) {
     Alert.prototype.markRead = function() {
         this.unread = false;
         _readList.push(this.id);
+        NextFerry.synchSettings();
     };
     Alert.prototype.posted = function() {
         return this.id.substring(0,5); // the hack lives on...
@@ -479,6 +482,7 @@ var NextFerry = (function ($) {
         return found? 'alerts_read' : false;
     };
     Alert.loadAlerts = function(text) {
+        mylog("loadAlerts finds readlist " + JSON.stringify(_readList) );
         _alertList = [];
         var alertblocks = text.split(/^__/m);
         var i;
@@ -507,6 +511,8 @@ var NextFerry = (function ($) {
                 }
             }
         }
+        NextFerry.synchSettings();
+        mylog("LoadAlerts sets readList to " + JSON.stringify(_readList));
     };
 
     var module = {

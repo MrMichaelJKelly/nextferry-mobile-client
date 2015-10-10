@@ -100,11 +100,6 @@ h3 {
   border: 1px solid;
   background: none;
   border-radius: 0.4em;
-  -webkit-transition: background-color 0.2s;
-  transition: background-color 0.2s;
-}
-.button:active:not(.disabled) {
-  background-color: #ADB3B9;
 }
 .disabled {
   color: #ccc !important;
