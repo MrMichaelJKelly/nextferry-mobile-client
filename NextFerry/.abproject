@@ -11,6 +11,7 @@
     "android.permission.INTERNET"
   ],
   "CorePlugins": [
+    "de.appplant.cordova.plugin.local-notification@0.8.2dev2",
     "org.apache.cordova.device",
     "org.apache.cordova.geolocation"
   ],
@@ -25,7 +26,7 @@
     "ID_RESOLUTION_WXGA",
     "ID_RESOLUTION_HD720P"
   ],
-  "BundleVersion": "4.2",
+  "BundleVersion": "4.3",
   "Framework": "Cordova",
   "DisplayName": "Next Ferry",
   "Author": "denisesandbox@gmail.com",
