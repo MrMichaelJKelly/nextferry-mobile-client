@@ -16,6 +16,7 @@ var ServerIO = (function($) {
 
     var loadSchedule = function(text) {
         var lines = text.split("\n");
+        mylog("loadschedule has " + lines.length + " lines");
         for (var i in lines) {
             if (lines[i].length > 2 && lines[i][0] !== "/") {
                 NextFerry.Route.loadTimes(lines[i]);
@@ -49,11 +50,13 @@ var ServerIO = (function($) {
             var header = (firstnewline > 0 ? chunks[i].slice(0, firstnewline) : chunks[i]);
             var body = (firstnewline > 0 ? chunks[i].slice(firstnewline) : "");
             if (beginsWith(header, "schedule")) {
+                mylog("parsing full schedule from server");
                 loadSchedule(body);
                 window.localStorage["cachedate"] = header.slice("schedule ".length);
                 window.localStorage["cache"] = body;
             }
             else if (header === "special") {
+                mylog("parsing special schedule from server");
                 loadSchedule(body);
             }
             else if (header === "traveltimes") {

@@ -2,9 +2,14 @@
  * Approximately the View portion from an MVC perspective.
  */
 
+lasttime = window.performance.now();
 var mylog = function(a) {
     // change this to store log locally for on-device debugging.
-    console.log(a);
+    newtime = window.performance.now();
+    delta = newtime - lasttime;
+    lasttime = newtime;
+    console.log(a + "(" + delta +")");
+    $("#logspace").append("<p>" + a + "(" + delta + ")</p>");
 };
 
 var app = (function ($) {
@@ -28,31 +33,39 @@ var app = (function ($) {
     //======= Initialization and event wiring
 
     var init = function() {
+        mylog("0");
         NextFerry.init();
         Alarm.init();
         $("#title").lettering();
         goPage("#main-page");
+        mylog("1");
 
         // wire up asynch responses
         document.addEventListener("pause", onPause );
         document.addEventListener("unload", onPause );
         document.addEventListener("resume", onResume );
         document.addEventListener("orientationchange", onRotate );
-        ServerIO.loadSchedule.listeners.add( renderTimes );
-        ServerIO.loadTravelTimes.listeners.add( updateTravelTimes );
-        ServerIO.loadAlerts.listeners.add( updateAlerts );
-        Alarm.listeners.add( function() { goPage("#dismissalarm-page"); });
 
         // immediately show old schedule, if we have it
         if ( window.localStorage["cache"] ) {
+            mylog("have cache: " + window.localStorage["cache"].substring(0,20) + "...");
             ServerIO.loadSchedule( window.localStorage["cache"] );
+        } else {
+            mylog("no cache");
         }
         if ( window.localStorage["route"] ) {
             route = NextFerry.Route.find( window.localStorage["route"] );
         }
 
+        ServerIO.loadSchedule.listeners.add( renderTimes );
+        ServerIO.loadTravelTimes.listeners.add( updateTravelTimes );
+        ServerIO.loadAlerts.listeners.add( updateAlerts );
+        Alarm.listeners.add( function() { goPage("#dismissalarm-page"); });
+        mylog("2");
+
         // ask for new schedule, alerts, etc.
         ServerIO.requestUpdate();
+        mylog("3");
 
         // one-time initialization for pages that need it.
         settingsInit();
@@ -60,6 +73,7 @@ var app = (function ($) {
         Alarm.Timer.setTimer($("#alarm-time-remaining"));
 
         // wire up navigation and user actions
+        mylog("start init event handlers");
         var swipelistener = new Hammer($("body")[0], {
             recognizers: [[Hammer.Swipe,{ direction: Hammer.DIRECTION_RIGHT }]]
         });
@@ -69,7 +83,7 @@ var app = (function ($) {
         $("#direction").on("click", doClick( toggleDirection ));
         $("#routes").on("click", gogoPage("#details-page"));
         $("#details-body li").on("click", goDest );
-        $("span[type]").on("click", checks );
+        $("span[type]").on("click", checks );  // all our checkboxes and radio boxes
         $("#reload").on("click", doClick( reset ));
         clickOutside($(".settings-body"), doClick( backPage ));
 
@@ -83,6 +97,7 @@ var app = (function ($) {
             clickOutside($("#setalarm-dialog"), doClick( backPage ));
             clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
         }
+        mylog("end init event handlers");
 
         // initialize main page scrollers
         ensureScroller("#routes-wrapper", { click: true });
@@ -90,6 +105,7 @@ var app = (function ($) {
         updateScroller("#times-wrapper",500);
         updateScroller("#routes-wrapper",100);
 
+        mylog("5");
         // done with app construction
         // if test run, divert to test page
         if (testrun) {
@@ -107,12 +123,14 @@ var app = (function ($) {
     };
 
     var onResume = function() {
+        // Main page is the only page that can need updating purely by the
+        // passage of time.  We update it whether it is showing or not.
+        mylog("enter onResume")
+        renderMainPage();
         Alarm.init();
         ServerIO.onResume();
         ServerIO.requestUpdate(); // for new alerts
-        // Main page is the only page that can need updating purely by the
-        // passage of time.  We update it whether it is showing or not.
-        renderMainPage();
+        mylog("exit onResume")
     };
 
     var reset = function() {
@@ -154,11 +172,13 @@ var app = (function ($) {
     //======= Main Page Rendering
 
     var renderMainPage = function() {
+        mylog("enter renderMainPage");
         $("#direction").text(dir);
         renderAlarm();
         renderRoutes();
         renderTimes();
         updateScroller("#routes-wrapper");
+        mylog("exit renderMainPage");
     };
 
     var exitMainPage = function() {
@@ -229,7 +249,7 @@ var app = (function ($) {
         $("#routes>li").each( function() {
             var r = routeOf( $(this) );
             $(this).children("span").attr("astate", r.hasAlerts());
-        });;
+        });
     };
 
     // if elem is within one of the route displays (#routes, #times, etc.),
