@@ -11,9 +11,9 @@
     "android.permission.INTERNET"
   ],
   "CorePlugins": [
-    "de.appplant.cordova.plugin.local-notification@0.8.2dev2",
     "org.apache.cordova.device",
-    "org.apache.cordova.geolocation"
+    "org.apache.cordova.geolocation",
+    "org.apache.cordova.splashscreen"
   ],
   "DeviceOrientations": [
     "Portrait",
