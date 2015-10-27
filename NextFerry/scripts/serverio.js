@@ -16,7 +16,6 @@ var ServerIO = (function($) {
 
     var loadSchedule = function(text) {
         var lines = text.split("\n");
-        mylog("loadschedule has " + lines.length + " lines");
         for (var i in lines) {
             if (lines[i].length > 2 && lines[i][0] !== "/") {
                 NextFerry.Route.loadTimes(lines[i]);

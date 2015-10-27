@@ -1,17 +1,13 @@
 /* normalizing */
 body {
-  overflow: hidden;
-
   -ms-touch-action: none;
   touch-action: none;
-  -webkit-touch-callout: none;
-
   -ms-user-select: none;
   -webkit-user-select: none;
-
   -webkit-tap-highlight-color: rgba(0,0,0,0);
   -webkit-tap-highlight-color: transparent; /* For some Androids */
 
+  overflow: hidden;
   font-family: Dosis;
   font-size: 20pt;
   color: #3E556D;
@@ -28,7 +24,7 @@ li {
 #footer {
   position: fixed;
   bottom: 0;
-  height: 22pt;
+  height: 36pt;
   width: 100%;
   background-color: #6D8299;
   z-index: 10;
@@ -41,12 +37,9 @@ li {
   -webkit-transform: translate(-50%,0);
 }
 #footer li {
-  font-size: 14pt;
+  font-size: 20pt;
   color: white;
-  padding: 2pt 12pt;
-}
-#footer li.spaceafter {
-  margin-right: 20pt;
+  padding: 2pt 16pt;
 }
 
 .page {
@@ -54,7 +47,7 @@ li {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 22pt;
+  bottom: 36pt;
   overflow: hidden;
   background: url("images/background.jpg") no-repeat right bottom;
   background-size: cover;
@@ -94,15 +87,19 @@ h3 {
   font-weight: 400;
   margin-bottom: 0.25em;
 }
-.button {
+.asbutton {
   padding: 0.2em;
   padding-bottom: 0.1em;
   border: 1px solid;
   background: none;
   border-radius: 0.4em;
+  transition: background 0.1s;
 }
 .disabled {
   color: #ccc !important;
+}
+.asbutton.tapped:not(.disabled) {
+  background: #6B8FB2;
 }
 
 .page.dialog {
@@ -150,7 +147,7 @@ h3 {
 #routes-wrapper {
   position: absolute;
   width: 100%;
-  top: 55pt;
+  top: 64pt;
   left: 11pt;
   right: 10pt;
   bottom: 10pt;
@@ -530,8 +527,8 @@ span[type="radio"].checked:before {
 }
 
 span[type="checkbox"]:before {
-  font-family: Flaticon;
-  content: "\e003";
+  font-family: fontello;
+  content: "\e006";
   font-size: 80%;
   color: white;
   border: 1px solid #324151;

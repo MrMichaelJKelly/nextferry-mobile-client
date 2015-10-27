@@ -2,14 +2,15 @@
  * Approximately the View portion from an MVC perspective.
  */
 
-lasttime = window.performance.now();
+var perftime = Date.now;
+var lasttime = perftime();
 var mylog = function(a) {
-    // change this to store log locally for on-device debugging.
-    newtime = window.performance.now();
-    delta = newtime - lasttime;
-    lasttime = newtime;
-    console.log(a + "(" + delta +")");
-    $("#logspace").append("<p>" + a + "(" + delta + ")</p>");
+    // newtime = perftime();
+    // delta = newtime - lasttime;
+    // lasttime = newtime;
+    // console.log(a + "(" + delta +")");
+    // $("#logspace").append("<p>" + a + "(" + delta + ")</p>");
+    console.log(a);
 };
 
 var app = (function ($) {
@@ -17,6 +18,7 @@ var app = (function ($) {
 
     var testrun = false; // set to true to run tests, false for normal app.
 
+    //////////////////////////////////////////////////////////////////////////
     //======= App state
     // Parameters that control the generation of pages.
     // main-page: which direction are we showing?
@@ -33,12 +35,10 @@ var app = (function ($) {
     //======= Initialization and event wiring
 
     var init = function() {
-        mylog("0");
         NextFerry.init();
-        Alarm.init();
         $("#title").lettering();
         goPage("#main-page");
-        mylog("1");
+        setTimeout(navigator.splashscreen.hide, 100); // gives renderer a chance to finish
 
         // wire up asynch responses
         document.addEventListener("pause", onPause );
@@ -48,10 +48,7 @@ var app = (function ($) {
 
         // immediately show old schedule, if we have it
         if ( window.localStorage["cache"] ) {
-            mylog("have cache: " + window.localStorage["cache"].substring(0,20) + "...");
             ServerIO.loadSchedule( window.localStorage["cache"] );
-        } else {
-            mylog("no cache");
         }
         if ( window.localStorage["route"] ) {
             route = NextFerry.Route.find( window.localStorage["route"] );
@@ -60,52 +57,38 @@ var app = (function ($) {
         ServerIO.loadSchedule.listeners.add( renderTimes );
         ServerIO.loadTravelTimes.listeners.add( updateTravelTimes );
         ServerIO.loadAlerts.listeners.add( updateAlerts );
-        Alarm.listeners.add( function() { goPage("#dismissalarm-page"); });
-        mylog("2");
 
         // ask for new schedule, alerts, etc.
         ServerIO.requestUpdate();
-        mylog("3");
 
-        // one-time initialization for pages that need it.
-        settingsInit();
-        setAlarmInit();
-        Alarm.Timer.setTimer($("#alarm-time-remaining"));
+        // one-time initialization for settings pages
+        // in timeout so as not to delay main page interactivity
+        setTimeout(settingsInit, 0);
 
         // wire up navigation and user actions
-        mylog("start init event handlers");
         var swipelistener = new Hammer($("body")[0], {
             recognizers: [[Hammer.Swipe,{ direction: Hammer.DIRECTION_RIGHT }]]
         });
         swipelistener.on("swipe", swipeRight );
-        document.addEventListener("backbutton", backPage );
-        $("#footer-nav>li").on("click", goDest );
-        $("#direction").on("click", doClick( toggleDirection ));
-        $("#routes").on("click", gogoPage("#details-page"));
-        $("#details-body li").on("click", goDest );
-        $("span[type]").on("click", checks );  // all our checkboxes and radio boxes
-        $("#reload").on("click", doClick( reset ));
-        clickOutside($(".settings-body"), doClick( backPage ));
-
-        if ( Alarm.enabled() ) {
-            $("#times").on("touchend", doubleTap );     // detect double tap
-            $("#times").on("nf:doubletap", "[time]", gogoPage("#setalarm-page") );  // do something with it
-            $("#show-alarm").on("click", gogoPage("#setalarm-page" ));
-            $("#setalarm-cancel").on("click", doClick( setAlarmCancel ));
-            $("#setalarm-submit").on("click", doClick( setAlarmSubmit ));
-            $("#dismissalarm-dismiss").on("click", doClick( backPage ));
-            clickOutside($("#setalarm-dialog"), doClick( backPage ));
-            clickOutside($("#dismissalarm-dialog"), doClick( backPage ));
+        // Cordova backbutton handler...
+        document.addEventListener("backbutton", backPage);
+        // ...isn't working for WP 8.1?
+        if (window.WinJS && window.WinJS.Application) {
+            window.WinJS.Application.onbackclick = backPage;
         }
-        mylog("end init event handlers");
+
+        $("#footer-nav>li").onTap( goDest );
+        $("#direction").onTap( toggleDirection );
+        $("#routes").onTap( gogoPage("#details-page") );
+        $("#details-body li").onTap( goDest );
+        $("#homepage").onTap( openHomePage );
 
         // initialize main page scrollers
-        ensureScroller("#routes-wrapper", { click: true });
+        ensureScroller("#routes-wrapper", { tap: true });
         ensureScroller("#times-wrapper", { scrollX: true, scrollY: false });
         updateScroller("#times-wrapper",500);
         updateScroller("#routes-wrapper",100);
 
-        mylog("5");
         // done with app construction
         // if test run, divert to test page
         if (testrun) {
@@ -125,16 +108,13 @@ var app = (function ($) {
     var onResume = function() {
         // Main page is the only page that can need updating purely by the
         // passage of time.  We update it whether it is showing or not.
-        mylog("enter onResume")
+        mylog("onResume");
         renderMainPage();
-        Alarm.init();
         ServerIO.onResume();
         ServerIO.requestUpdate(); // for new alerts
-        mylog("exit onResume")
     };
 
     var reset = function() {
-        Alarm.dismissAlarm();
         NextFerry.reset();
         ServerIO.onResume();
         ServerIO.requestUpdate(); // get alerts and schedule
@@ -164,53 +144,29 @@ var app = (function ($) {
     // not as event handlers) and should be coded accordingly.
     // They can also be used directly as event handlers for non-user
     // events (e.g. responding to changes, etc.)
-    // To use them as event handlers in response to user clicks, they
-    // must be wrapped using one of the utility functions (e.g. gogoPage
-    // or doClick) that takes care of debouncing.
 
     //////////////////////////////////////////////////////////////////////////
     //======= Main Page Rendering
 
     var renderMainPage = function() {
-        mylog("enter renderMainPage");
+        //mylog("enter renderMainPage");
         $("#direction").text(dir);
-        renderAlarm();
         renderRoutes();
         renderTimes();
         updateScroller("#routes-wrapper");
-        mylog("exit renderMainPage");
-    };
-
-    var exitMainPage = function() {
-        Alarm.Timer.timerTickingOff();
-    }
-
-    var renderAlarm = function() {
-        // if there is an alarm pending, show it.
-        // do this first because it will determine size of routes display.
-        if ( Alarm.checkAlarm() ) {
-            var leaveby = Alarm.leaveByTime();
-
-            $("#alarm-leave-by").text( NextFerry.NFTime.display(leaveby) );
-            Alarm.Timer.timerTickingOn();
-            $("#show-alarm").show();
-            $("#routes-wrapper").addClass("smaller");
-        }
-        else {
-            $("#show-alarm").hide();
-            $("#routes-wrapper").removeClass("smaller");
-        }
+        //mylog("exit renderMainPage");
     };
 
     var renderRoutes = function() {
         $("#routes").empty();
         $("#routes").append( NextFerry.Route.displayRoutes().map( function(r) {
             return $( "<li routeid='" + r.code + "'>" +
-                "<span class='flaticon-warning30' astate='alerts_none'></span>" +
+                "<span class='icon-warning' astate='alerts_none'></span>" +
                 r.displayName[dir] + "</li>" );
         }));
         updateAlerts();
     };
+
     var renderTimes = function() {
         var now = NextFerry.NFTime.now();
         var routes = NextFerry.Route.displayRoutes();
@@ -236,7 +192,6 @@ var app = (function ($) {
             updateScroller("#times-wrapper");
         }, 200);
         ServerIO.requestTravelTimes();
-        decorateAlarm();
     };
 
     var updateTravelTimes = function() {
@@ -291,106 +246,6 @@ var app = (function ($) {
         window.localStorage["dir"] = dir;
     };
 
-    var decorateAlarm = function() {
-        // if there is an alarm pending, decorate that departure
-        var alarmed = Alarm.checkAlarm();
-        if ( alarmed && alarmed.dir == dir) {
-            var elem = $("[routeid='" + alarmed.routeId + "']", "#times")
-                        .find("[time='" + alarmed.ferryTime + "']");
-            elem.addClass("alarmed");
-        }
-    };
-
-
-    //////////////////////////////////////////////////////////////////////////
-    //======= Set Alarm Page
-
-    var renderSetAlarmDialog = function(e) {
-        if (e) {
-            var target = $(e.target);
-            if ( target.attr("time") ) {
-                // create a new alarm from a time entry
-                Alarm.configure( routeOf(target).code, dir, parseInt(target.attr("time")) );
-            }
-            else {
-                // re-open the existing alarm
-                Alarm.reopen();
-            }
-        }
-        else {
-            Alarm.reopen();
-        }
-
-        var input = $("#setalarm-input");
-        var ferrytime = Alarm.ferryTime();
-        var mintime = ferrytime - 240;
-        var soon = NextFerry.NFTime.now() + 1; // one minute from now
-        if ( mintime < soon ) {
-            mintime = soon;
-        }
-        input.attr("min", mintime);
-        input.attr("max", ferrytime);
-        input.val( Alarm.leaveByTime() );
-        input.change();
-        input.rangeslider("update");
-        $("#setalarm-ferrytime").text( NextFerry.NFTime.display(ferrytime) );
-        $("#setalarm-cancel").toggleClass( "disabled", !Alarm.isSet() );
-    };
-
-    var setAlarmSubmit = function() {
-        var input = $("input","#setalarm-slider");
-        Alarm.confirm(Number(input.val()));
-        backPage();
-    };
-
-    var setAlarmCancel = function() {
-        Alarm.dismissAlarm();
-        backPage();
-    };
-
-    var cancelEditAlarm = function() {
-        Alarm.cancelEdit();
-    }
-
-    var dismissAlarm = function() {
-        Alarm.dismissAlarm();
-    }
-
-    var setAlarmInit = function() {
-        var input = $("<input id='setalarm-input' type=range>");
-        var bubble = $("<output class='rangeslider__value-bubble'>");
-        var initdone = false;
-
-        var positionbubble = function(pos,slider) {
-            var bubblewidth = 50; // estimate rather than measure.
-            var bubblepos = pos + slider.grabX - (bubblewidth/2);
-            if (bubblepos <= 0) {
-                bubblepos = 0;
-            }
-            if (bubblepos + bubblewidth >= slider.rangeWidth) {
-                bubblepos = slider.rangWidth - bubblewidth;
-            }
-            bubble.css("left", bubblepos);
-        }
-
-        $("#setalarm-slider").append(input);
-        input.rangeslider({
-            polyfill: false,
-            onInit: function() {
-                if (!initdone) {
-                    this.$range.append(bubble);
-                    this.update();
-                    positionbubble(this.position,this);
-                }
-                initdone = true;
-            },
-            onSlide: function(pos, value) {
-                this.$range.attr("filltype",Alarm.goodness(value));
-                bubble.text( NextFerry.NFTime.display(value) );
-                positionbubble(pos,this);
-            }
-        });
-    };
 
     //////////////////////////////////////////////////////////////////////////
     //======= Details Page Rendering
@@ -483,8 +338,10 @@ var app = (function ($) {
             }
         });
 
-        // wire together the disable functionality for useloc
+        // wire up stuff
         $("#useloc").on("change", updateDisable);
+        $("span[type]").onTap( checks );  // all check & radio boxes
+        $("#reload").onTap( reset );
     };
 
     var renderSettingsRoutes = function() {
@@ -493,7 +350,7 @@ var app = (function ($) {
             var r = routeOf( $(this) );
             $(this).toggleClass("checked", r.isDisplayed());
         });
-        ensureScroller("#settings-routes-wrapper",{ click: true });
+        ensureScroller("#settings-routes-wrapper", { tap: true });
         updateScroller("#settings-routes-wrapper");
     };
 
@@ -515,7 +372,7 @@ var app = (function ($) {
         $("#buftimeval").text( bt );
         updateDisable();
 
-        ensureScroller("#settings-options-wrapper", { click: true });
+        ensureScroller("#settings-options-wrapper", {tap: true});
         updateScroller("#settings-options-wrapper");
     };
 
@@ -560,7 +417,7 @@ var app = (function ($) {
                 $("#abouttts").text(stat.status);
             }
         }
-        ensureScroller("#settings-about-wrapper");
+        ensureScroller("#settings-about-wrapper", {tap: true});
         updateScroller("#settings-about-wrapper");
     };
 
@@ -618,17 +475,13 @@ var app = (function ($) {
         "#settings-routes-page" : renderSettingsRoutes,
         "#settings-options-page" : renderSettingsOptions,
         "#settings-about-page" : renderSettingsAbout,
-        "#setalarm-page" : renderSetAlarmDialog
     };
     // What to do when leaving a page, no matter how the page
     // is left (forward, back, etc.)
     // Generally used to sync in-memory state somewhere.
     var exiters = {
-        "#main-page" : exitMainPage,
         "#settings-routes-page" : saveSettingsRoutes,
         "#settings-options-page" : saveSettingsOptions,
-        "#setalarm-page" : cancelEditAlarm,
-        "#dismissalarm-page" : dismissAlarm
     };
 
     var currentPage = function() {
@@ -679,6 +532,8 @@ var app = (function ($) {
             var cp = _history[0];
             renderers[cp] && renderers[cp]();
             $(cp).show();
+            // windows needs this function to return true to indicate the event has been handled
+            return true;
         }
         else {
             // Try to exit app.  NB: we can only get here via the
@@ -688,7 +543,7 @@ var app = (function ($) {
                 // Android
                 navigator.app.exitApp();
             }
-            else if ( device.platform.toLowerCase().startsWith("win") ) {
+            else if ( device.platform.toLowerCase().substr(0,3) == "win" ) {
                 // Windows
                 // per this thread, we signal the OS to handle the event
                 // by throwing an exception:
@@ -715,35 +570,30 @@ var app = (function ($) {
     // produces an event handler to go to a specific page
     var gogoPage = function(p) {
         return function(e) {
-            if ( debounced() ) {
-                goPage(p,e);
-            }
+            goPage(p,e);
             return false;
         };
     };
 
     // go to whatever page is named in the dest attribute
     var goDest = function(e) {
-        if ( debounced() ) {
-            var dest = $(e.currentTarget).attr("dest");
-            if ( dest ) {
-                goPage("#"+dest+"-page", e);
-            }
-            else {
-                mylog("oops: goDest didn't find a target");
-                mylog(e);
-            }
+        var dest = $(e.currentTarget).attr("dest");
+        if ( dest ) {
+            goPage("#"+dest+"-page", e);
+        }
+        else {
+            mylog("oops: goDest didn't find a target");
+            console.log(e);
+            console.log(this);
         }
         return false;
     };
 
-    // define an event handler for clicking outside an element on a page
-    var clickOutside = function(selector,handler) {
-        var pageof = selector.parents(".page");
-        pageof.on("click", handler );
-        selector.on("click", function() { return false; } );
-    };
 
+    var openHomePage = function() {
+        mylog("trying to open home page");
+        cordova.InAppBrowser.open("http://denised.github.io/nextferry-mobile-client", "_system", "hardwareback=no");
+    }
 
     //======= Utilities
     //////////////////////////////////////////////////////////////////////////
@@ -755,54 +605,22 @@ var app = (function ($) {
 
     var checks = function(e) {
         e.preventDefault();
-        if ( debounced() ) {
-            var target = $(e.target);
-            if ( target.attr("type") === "checkbox" ) {
-                target.toggleClass("checked");
-                target.trigger( $.Event("change") );
-            }
-            else { // radio boxes
-                if ( ! target.hasClass("checked") ) {
-                    var oldval = target.parent().children("span[type='radio'].checked");
-                    oldval.length > 0 && oldval.removeClass("checked");
-                    target.addClass("checked");
+        var target = $(e.target);
+        if ( target.attr("type") === "checkbox" ) {
+            target.toggleClass("checked");
+            target.trigger( $.Event("change") );
+        }
+        else { // radio boxes
+            if ( ! target.hasClass("checked") ) {
+                var oldval = target.parent().children("span[type='radio'].checked");
+                oldval.length > 0 && oldval.removeClass("checked");
+                target.addClass("checked");
 
-                    oldval.length > 0 && oldval.trigger( $.Event("change") );
-                    target.trigger( $.Event("change") );
-                }
+                oldval.length > 0 && oldval.trigger( $.Event("change") );
+                target.trigger( $.Event("change") );
             }
         }
         return false;
-    };
-
-    //////////////////////////////////////////////////////////////////////////
-    //======= Debouncing
-    // Iscroll sometimes sends duplicate click events, so we debounce them.
-    // The same debouncing timer is used for all click/tap events, which works
-    // fine, assuming that the user cannot intend to issue multiple events
-    // faster than every 400 ms.
-
-    var _debouncing = false;
-    var debounced = function() {
-        if ( _debouncing ) {
-            return false;
-        }
-        else {
-            _debouncing = true;
-            setTimeout(function() { _debouncing = false; }, 400);
-            return true;
-        }
-    };
-
-
-    // wrap a function in common event-handling stuff for click events.
-    var doClick = function( func ) {
-        return function( e ) {
-            if ( debounced() ) {
-                func(e);
-            }
-            return false;
-        };
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -830,28 +648,6 @@ var app = (function ($) {
             setTimeout(function() { s.refresh(); }, delay || 10);
         }
     };
-
-    //////////////////////////////////////////////////////////////////////////
-    //======= DoubleTap
-    // Quick and dirty implementation of double-tap that is just sufficient
-    // for our purposes.
-    // If two touch-end events less than 300ms apart on the same target,
-    // trigger a double-tap event on that target.
-    // Derived from the approach in https://gist.github.com/attenzione/7098476
-
-    var doubleTap = function(e) {
-        var targ = $(e.target);
-        var lasttouch = targ.data("nextferry:lasttouch");
-        var delta = (lasttouch ? (e.timeStamp - lasttouch) : -100);
-        if ( delta > 0 && delta < 300 ) {
-            targ.data("nextferry:lasttouch",undefined);
-            targ.trigger( "nf:doubletap" );
-            // no state is copied to event because we don't need it.
-        }
-        else {
-            targ.data("nextferry:lasttouch",e.timeStamp);
-        }
-    }
 
     //======= Exports
 
