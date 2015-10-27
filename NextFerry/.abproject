@@ -4,7 +4,7 @@
   "AppIdentifier": "me.denisesandbox.NextFerry",
   "ProjectName": "NextFerry",
   "IsRunnable": "true",
-  "FrameworkVersion": "3.7.0",
+  "FrameworkVersion": "3.8.0",
   "AndroidPermissions": [
     "android.permission.ACCESS_COARSE_LOCATION",
     "android.permission.ACCESS_FINE_LOCATION",
@@ -13,6 +13,7 @@
   "CorePlugins": [
     "org.apache.cordova.device",
     "org.apache.cordova.geolocation",
+    "org.apache.cordova.inappbrowser",
     "org.apache.cordova.splashscreen"
   ],
   "DeviceOrientations": [
@@ -36,7 +37,7 @@
     "2"
   ],
   "iOSBackgroundMode": [],
-  "AndroidVersionCode": "3",
+  "AndroidVersionCode": "4",
   "WP8TileTitle": "NextFerry",
   "WP8ProductID": "{69b8438c-3edb-4985-9a9c-4cf1ea10664d}",
   "WP8PublisherID": "{decd56f9-d056-43c3-9287-9735346bb520}",

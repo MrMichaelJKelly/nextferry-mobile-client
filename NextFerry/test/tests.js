@@ -1,4 +1,5 @@
 function nextFerryTests() {
+    
 
 	var schedulefragment =
 	"// this is part of a real schedule \n" +
